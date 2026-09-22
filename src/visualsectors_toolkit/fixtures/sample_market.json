@@ -1,0 +1,212 @@
+{
+  "schema_version": "visualsectors-toolkit.dataset.v1",
+  "dataset_id": "synthetic-us-equities-2026-01-15",
+  "generated_at": "2026-01-15T22:00:00Z",
+  "synthetic": true,
+  "license": "Apache-2.0; fictional observations created for this toolkit",
+  "source": "Visual Sectors synthetic fixture; no real or licensed market data",
+  "decision_time": "2026-01-15T21:00:00Z",
+  "snapshots": [
+    {
+      "ticker": "ALFA",
+      "as_of": "2026-01-15T21:00:00Z",
+      "price": 49.0,
+      "atr14": 2.0,
+      "average_dollar_volume_20d": 25000000.0,
+      "rsi14": 29.0,
+      "sma20": 50.5,
+      "sma50": 48.0,
+      "sma200": 44.0,
+      "momentum_20d_pct": -3.2,
+      "volatility_20d_pct": 34.0,
+      "pe_ratio": 21.5,
+      "earnings_growth_pct": 12.0,
+      "days_to_earnings": 5,
+      "levels": [
+        {
+          "level_date": "2026-01-15",
+          "side": "Support",
+          "level_type": "pivot_cluster",
+          "price": 48.5,
+          "score": 0.81,
+          "p_hold_7d_pct": 63.0,
+          "exp_bounce_pct": 4.2,
+          "hard_break_pct": 18.0,
+          "reward_risk": 2.1,
+          "dist_atr": -0.25,
+          "confluence_count": 3,
+          "approach": "from_above"
+        },
+        {
+          "level_date": "2026-01-15",
+          "side": "Resistance",
+          "level_type": "prior_high",
+          "price": 55.0,
+          "score": 0.72,
+          "p_hold_7d_pct": 57.0,
+          "exp_bounce_pct": 3.1,
+          "hard_break_pct": 22.0,
+          "reward_risk": 1.8,
+          "dist_atr": 3.0,
+          "confluence_count": 2,
+          "approach": "from_below"
+        },
+        {
+          "level_date": "2026-01-14",
+          "side": "Support",
+          "level_type": "stale_example",
+          "price": 46.0,
+          "score": 0.9,
+          "dist_atr": -1.5
+        }
+      ],
+      "evidence": [
+        {
+          "id": "alfa-margin-expansion",
+          "category": "fundamental",
+          "statement": "The fictional company reported year-over-year gross-margin expansion in the supplied scenario.",
+          "as_of": "2026-01-15T20:00:00Z",
+          "source": "synthetic company filing",
+          "stance": "support"
+        },
+        {
+          "id": "alfa-input-costs",
+          "category": "macro",
+          "statement": "The fictional company faces higher input-cost assumptions in the supplied scenario.",
+          "as_of": "2026-01-15T20:15:00Z",
+          "source": "synthetic sector note",
+          "stance": "opposition"
+        }
+      ],
+      "warnings": [
+        "Synthetic news evidence is illustrative and must not be treated as a live company fact."
+      ]
+    },
+    {
+      "ticker": "BRVO",
+      "as_of": "2026-01-15T21:00:00Z",
+      "price": 80.0,
+      "atr14": 3.0,
+      "average_dollar_volume_20d": 18000000.0,
+      "rsi14": 48.0,
+      "sma20": 79.0,
+      "sma50": 75.0,
+      "sma200": 68.0,
+      "momentum_20d_pct": 5.0,
+      "volatility_20d_pct": 24.0,
+      "pe_ratio": 18.0,
+      "earnings_growth_pct": 7.0,
+      "days_to_earnings": 32,
+      "levels": [
+        {
+          "level_date": "2026-01-15",
+          "side": "Support",
+          "level_type": "volume_shelf",
+          "price": 77.0,
+          "score": 0.69,
+          "dist_atr": -1.0,
+          "confluence_count": 2
+        },
+        {
+          "level_date": "2026-01-15",
+          "side": "Resistance",
+          "level_type": "prior_high",
+          "price": 86.0,
+          "score": 0.65,
+          "dist_atr": 2.0,
+          "confluence_count": 1
+        }
+      ],
+      "evidence": [],
+      "warnings": []
+    },
+    {
+      "ticker": "CRWN",
+      "as_of": "2026-01-15T21:00:00Z",
+      "price": 3.0,
+      "atr14": 0.4,
+      "average_dollar_volume_20d": 2000000.0,
+      "rsi14": 24.0,
+      "sma20": 3.2,
+      "sma50": 3.5,
+      "sma200": 4.0,
+      "momentum_20d_pct": -8.0,
+      "volatility_20d_pct": 61.0,
+      "pe_ratio": null,
+      "earnings_growth_pct": -15.0,
+      "days_to_earnings": 12,
+      "levels": [
+        {
+          "level_date": "2026-01-15",
+          "side": "Support",
+          "level_type": "round_number",
+          "price": 2.9,
+          "score": 0.51,
+          "dist_atr": -0.25,
+          "confluence_count": 1
+        }
+      ],
+      "evidence": [],
+      "warnings": []
+    },
+    {
+      "ticker": "DLTA",
+      "as_of": "2026-01-15T21:00:00Z",
+      "price": 28.0,
+      "atr14": 1.5,
+      "average_dollar_volume_20d": 9000000.0,
+      "rsi14": 33.0,
+      "sma20": 29.0,
+      "sma50": 30.0,
+      "sma200": 31.0,
+      "momentum_20d_pct": -4.0,
+      "volatility_20d_pct": 29.0,
+      "pe_ratio": 15.0,
+      "earnings_growth_pct": 3.0,
+      "days_to_earnings": 45,
+      "levels": [
+        {
+          "level_date": "2026-01-15",
+          "side": "Support",
+          "level_type": "prior_low",
+          "price": 27.0,
+          "score": 0.66,
+          "dist_atr": -0.6667,
+          "confluence_count": 2
+        },
+        {
+          "level_date": "2026-01-15",
+          "side": "Resistance",
+          "level_type": "moving_average_cluster",
+          "price": 31.0,
+          "score": 0.7,
+          "dist_atr": 2.0,
+          "confluence_count": 3
+        }
+      ],
+      "evidence": [],
+      "warnings": []
+    },
+    {
+      "ticker": "ECHO",
+      "as_of": "2026-01-15T21:00:00Z",
+      "price": 120.0,
+      "atr14": 4.0,
+      "average_dollar_volume_20d": 42000000.0,
+      "rsi14": 25.0,
+      "sma20": 123.0,
+      "sma50": 118.0,
+      "sma200": 110.0,
+      "momentum_20d_pct": -2.0,
+      "volatility_20d_pct": 20.0,
+      "pe_ratio": 30.0,
+      "earnings_growth_pct": 18.0,
+      "days_to_earnings": null,
+      "levels": [],
+      "evidence": [],
+      "warnings": [
+        "Support/resistance levels are unavailable for this observation."
+      ]
+    }
+  ]
+}

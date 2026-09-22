@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools==84.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "visualsectors-toolkit"
+version = "0.1.0"
+description = "Reproducible screening, position sizing, research, risk, monitoring, and level-based trade planning for US equities."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+authors = [{ name = "Visual Sectors" }]
+keywords = ["trading", "research", "screening", "risk", "backtesting"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Financial and Insurance Industry",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Office/Business :: Financial :: Investment",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://visualsectors.com"
+Repository = "https://github.com/Visualsectors/systematic-trading-toolkit"
+Issues = "https://github.com/Visualsectors/systematic-trading-toolkit/issues"
+
+[project.scripts]
+vstoolkit = "visualsectors_toolkit.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+visualsectors_toolkit = ["fixtures/*.json"]
