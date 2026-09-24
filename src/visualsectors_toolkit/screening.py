@@ -44,6 +44,7 @@ class ScreenResult:
     candidates: tuple[ScreenCandidate, ...]
     exclusions: tuple[ScreenExclusion, ...]
     coverage: int
+    omitted_candidates: int
     warnings: tuple[str, ...]
 
 
@@ -59,7 +60,8 @@ PRESETS: dict[PresetName, ScreenConfig] = {
     "trend_continuation": ScreenConfig(
         name="trend_continuation",
         description=(
-            "Liquid shares above rising structural averages, near the 20-session average, "
+            "Liquid shares with price, 50-session average, and 200-session average structurally ordered, "
+            "near the 20-session average, "
             "with positive 20-session momentum."
         ),
     ),
@@ -82,7 +84,7 @@ def _base_reasons(row: MarketSnapshot, config: ScreenConfig) -> list[str]:
 def _support_distance(row: MarketSnapshot) -> tuple[float | None, str | None]:
     if row.atr14 is None or row.atr14 <= 0:
         return None, "atr14_missing"
-    levels = latest_levels(row.levels)
+    levels = latest_levels(row.levels, not_after=row.as_of)
     if not levels:
         return None, "levels_missing"
     nearest = nearest_zones(row.price, levels, row.atr14)
@@ -134,10 +136,11 @@ def _trend(row: MarketSnapshot, config: ScreenConfig) -> tuple[list[str], list[s
             reasons.append("price_sma50_sma200_not_ordered")
         else:
             matched.append("price_above_sma50_above_sma200")
-        if row.atr14 is not None and abs(row.price - row.sma20) / row.atr14 <= 1.5:
-            matched.append("price_within_1_5_atr_of_sma20")
-        else:
-            reasons.append("price_farther_than_1_5_atr_from_sma20")
+        if row.atr14 is not None and row.atr14 > 0:
+            if abs(row.price - row.sma20) / row.atr14 <= 1.5:
+                matched.append("price_within_1_5_atr_of_sma20")
+            else:
+                reasons.append("price_farther_than_1_5_atr_from_sma20")
     if row.momentum_20d_pct is None:
         reasons.append("momentum_20d_missing")
     elif row.momentum_20d_pct <= 0:
@@ -203,15 +206,18 @@ def run_screen(
         "oversold_at_support": "Lowest RSI(14), then nearest support-band edge in ATR units, then ticker.",
         "trend_continuation": "Highest 20-session momentum percentage, then ticker.",
     }[preset]
+    returned = tuple(candidates[:limit])
     return ScreenResult(
         preset=preset,
         description=config.description,
         ranking_method=ranking,
-        candidates=tuple(candidates[:limit]),
+        candidates=returned,
         exclusions=tuple(exclusions),
         coverage=len(snapshots),
+        omitted_candidates=max(0, len(candidates) - len(returned)),
         warnings=(
             "Candidates meet disclosed filters; the screen does not predict returns or suitability.",
             "Historical level metrics are not used as cross-instrument probabilities.",
+            "Support distance is measured to the computed zone edge, not to the source level midpoint.",
         ),
     )

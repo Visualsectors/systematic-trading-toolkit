@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from hashlib import sha256
 
 from .levels import LevelPlan
 from .models import MarketSnapshot, RiskKind, Severity, require_iso_datetime, require_ticker
@@ -62,7 +63,7 @@ def build_risk_register(snapshot: MarketSnapshot, *, level_plan: LevelPlan | Non
                 evidence_ids=(f"derived:{snapshot.ticker}:invalidation",),
             )
         )
-    if snapshot.days_to_earnings is not None and snapshot.days_to_earnings <= 21:
+    if snapshot.days_to_earnings is not None and 0 <= snapshot.days_to_earnings <= 21:
         severity: Severity = "high" if snapshot.days_to_earnings <= 7 else "medium"
         flags.append(
             RiskFlag(
@@ -115,10 +116,11 @@ def build_risk_register(snapshot: MarketSnapshot, *, level_plan: LevelPlan | Non
                 evidence_ids=(item.id,),
             )
         )
-    for index, warning in enumerate(snapshot.warnings, start=1):
+    for warning in snapshot.warnings:
+        warning_id = sha256(warning.encode("utf-8")).hexdigest()[:12]
         flags.append(
             RiskFlag(
-                id=f"data-warning-{index}",
+                id=f"data-warning-{warning_id}",
                 kind="uncertainty",
                 severity="medium",
                 statement=warning,

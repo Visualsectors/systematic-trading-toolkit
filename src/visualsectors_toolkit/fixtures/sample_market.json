@@ -3,7 +3,7 @@
   "dataset_id": "synthetic-us-equities-2026-01-15",
   "generated_at": "2026-01-15T22:00:00Z",
   "synthetic": true,
-  "license": "Apache-2.0; fictional observations created for this toolkit",
+  "license": "CC0-1.0; fictional observations created for this toolkit",
   "source": "Visual Sectors synthetic fixture; no real or licensed market data",
   "decision_time": "2026-01-15T21:00:00Z",
   "snapshots": [

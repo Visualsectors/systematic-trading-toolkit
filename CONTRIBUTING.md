@@ -1,6 +1,6 @@
 # Contributing
 
-Use Python 3.12 or newer. Keep the core dependency-free, deterministic, and
+Use Python 3.10 or newer. Keep the core dependency-free, deterministic, and
 usable without credentials. New providers may add optional dependencies, but a
 missing optional dependency must not break fixture mode.
 
@@ -9,7 +9,7 @@ Before opening a change:
 ```bash
 python -m unittest discover -s tests -v
 python -m compileall -q src tests
-python -m visualsectors_toolkit demo --output toolkit-report.md
+python -m visualsectors_toolkit demo --offline --output toolkit-report.md
 ```
 
 Requirements for changes:
@@ -23,5 +23,5 @@ Requirements for changes:
   proprietary indicator-generation methods.
 - Document provider fields, units, timing and redistribution rights.
 
-By contributing, you agree that your contribution is licensed under the
-Apache License 2.0 included in this repository.
+By contributing, you agree that code contributions are licensed under MIT and
+documentation contributions under CC BY 4.0, as included in this repository.

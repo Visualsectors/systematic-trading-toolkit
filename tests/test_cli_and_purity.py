@@ -1,9 +1,15 @@
 import ast
+from contextlib import redirect_stderr, redirect_stdout
+from io import StringIO
+import json
+import os
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 from visualsectors_toolkit.cli import main
+from visualsectors_toolkit.providers import MissingApiKeyError, VisualSectorsProviderError
 
 
 class CliTests(unittest.TestCase):
@@ -18,6 +24,55 @@ class CliTests(unittest.TestCase):
             ):
                 self.assertIn(heading, text)
             self.assertIn("Synthetic data only", text)
+
+    def test_missing_live_key_prints_exact_signup_line_and_exits_two(self):
+        error = StringIO()
+        with patch(
+            "visualsectors_toolkit.cli.VisualSectorsProvider", side_effect=MissingApiKeyError()
+        ), redirect_stderr(error):
+            self.assertEqual(main(("plan", "AAPL")), 2)
+        self.assertEqual(
+            error.getvalue().strip(),
+            "AAPL needs live data. Get a free key (no card) at "
+            "https://api.visualsectors.com/signup, then run: vstoolkit login",
+        )
+
+    def test_login_keeps_key_out_of_output_and_command_line(self):
+        secret = "recorded-secret-test"
+        output = StringIO()
+        original = Path.cwd()
+        with tempfile.TemporaryDirectory() as directory:
+            os.chdir(directory)
+            try:
+                with patch("visualsectors_toolkit.cli.getpass.getpass", return_value=secret), patch(
+                    "visualsectors_toolkit.cli.VisualSectorsProvider"
+                ) as provider, redirect_stdout(output):
+                    self.assertEqual(main(("login", "--no-open")), 0)
+                provider.assert_called_once_with(api_key=secret)
+                self.assertNotIn(secret, output.getvalue())
+                self.assertIn("VISUALSECTORS_API_KEY=", Path(".env").read_text(encoding="utf-8"))
+                self.assertIn(".env", Path(".gitignore").read_text(encoding="utf-8"))
+            finally:
+                os.chdir(original)
+
+    def test_monitor_persists_first_provider_failure_with_real_ticker(self):
+        with tempfile.TemporaryDirectory() as directory:
+            state = Path(directory) / "state.json"
+            with patch(
+                "visualsectors_toolkit.cli._provider",
+                side_effect=VisualSectorsProviderError("recorded outage"),
+            ), redirect_stdout(StringIO()):
+                self.assertEqual(main(("monitor", "--ticker", "AAPL", "--state", str(state))), 2)
+            saved = json.loads(state.read_text(encoding="utf-8"))
+            self.assertEqual(saved["ticker"], "AAPL")
+            self.assertEqual(saved["failure"], "recorded outage")
+
+    def test_plan_supports_short_direction_offline(self):
+        output = StringIO()
+        with redirect_stdout(output):
+            self.assertEqual(main(("plan", "BRVO", "--direction", "short", "--offline")), 0)
+        result = json.loads(output.getvalue())
+        self.assertEqual(result["plan"]["direction"], "short")
 
 
 class PurityTests(unittest.TestCase):

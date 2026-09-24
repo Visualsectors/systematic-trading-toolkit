@@ -10,6 +10,10 @@ def _fmt(value: float | None, places: int = 2) -> str:
     return "unavailable" if value is None else f"{value:.{places}f}"
 
 
+def _cell(value: object) -> str:
+    return str(value).replace("|", "\\|").replace("\n", " ")
+
+
 def render_markdown(run: ToolkitRun, monitor: MonitorResult) -> str:
     """Render every public outcome with provenance and limitations visible."""
     manifest = run.manifest
@@ -25,8 +29,13 @@ def render_markdown(run: ToolkitRun, monitor: MonitorResult) -> str:
     lines = [
         "# Systematic Trading Toolkit — reproducible example",
         "",
-        "> **Synthetic data only.** This report uses fictional observations, does not contain live market data, "
-        "and is not investment advice.",
+        (
+            "> **Synthetic data only.** This report uses fictional observations, does not contain live market data, "
+            "and is not investment advice."
+            if manifest.synthetic
+            else "> **Live API data.** Stage 1 observations are date-bounded but non-point-in-time and are not "
+            "investment advice."
+        ),
         "",
         "## Provenance",
         "",
@@ -46,7 +55,7 @@ def render_markdown(run: ToolkitRun, monitor: MonitorResult) -> str:
     for rank, candidate in enumerate(run.screen.candidates, start=1):
         lines.append(
             f"| {rank} | {candidate.ticker} | {candidate.price:.2f} | "
-            f"{_fmt(candidate.support_distance_atr)} | {', '.join(candidate.matched_criteria)} |"
+            f"{_fmt(candidate.support_distance_atr)} | {_cell(', '.join(candidate.matched_criteria))} |"
         )
     lines.extend([
         "",
@@ -77,6 +86,16 @@ def render_markdown(run: ToolkitRun, monitor: MonitorResult) -> str:
         f"- Deployed: {run.portfolio_slot_size.deployed:,.2f}",
         f"- Unallocated: {run.portfolio_slot_size.unallocated:,.2f}",
         "",
+        "| Ticker | Side | Shares | Price | Notional | Portfolio share | Allocation note |",
+        "| --- | --- | ---: | ---: | ---: | ---: | --- |",
+    ])
+    for position in run.portfolio_slot_size.positions:
+        lines.append(
+            f"| {position.ticker} | {position.side} | {position.shares} | {_fmt(position.close)} | "
+            f"{position.notional:,.2f} | {position.portfolio_share:.2%} | {_cell(position.note or position.tilt)} |"
+        )
+    lines.extend([
+        "",
         "## 3. Research agent — evidence-first brief",
         "",
     ])
@@ -94,7 +113,8 @@ def render_markdown(run: ToolkitRun, monitor: MonitorResult) -> str:
     ])
     for flag in run.risk.flags:
         lines.append(
-            f"| {flag.severity} | {flag.kind} | {flag.statement} | {flag.trigger} | {flag.reassessment_action} |"
+            f"| {flag.severity} | {flag.kind} | {_cell(flag.statement)} | {_cell(flag.trigger)} | "
+            f"{_cell(flag.reassessment_action)} |"
         )
     lines.extend([
         "",
@@ -116,9 +136,29 @@ def render_markdown(run: ToolkitRun, monitor: MonitorResult) -> str:
         f"- Entry zone: {entry_zone}",
         f"- Invalidation: {_fmt(plan.invalidation_price)}",
         f"- Opposite-side reassessment zone: {reassessment_zone}",
+        f"- Reward to reassessment: {_fmt(plan.reward_to_reassessment_R)}R",
+        f"- Stop distance: {_fmt(plan.stop_distance_atr)} ATR",
+        "",
+        "Served historical base rates (descriptive, not a setup forecast):",
+        "",
+        "| Zone | Level family | Hold 7d | Bounce | Hard break | Label |",
+        "| --- | --- | ---: | ---: | ---: | --- |",
+    ])
+    for zone_name, base_rates in (
+        ("entry", plan.entry_historical_base_rates),
+        ("reassessment", plan.reassessment_historical_base_rates),
+    ):
+        for rate in base_rates:
+            lines.append(
+                f"| {zone_name} | {_cell(rate.level_type)} | {_fmt(rate.p_hold_7d_pct)}% | "
+                f"{_fmt(rate.exp_bounce_pct)}% | {_fmt(rate.hard_break_pct)}% | {rate.label} |"
+            )
+    if not plan.entry_historical_base_rates and not plan.reassessment_historical_base_rates:
+        lines.append("| unavailable | unavailable | unavailable | unavailable | unavailable | historical_base_rate |")
+    lines.extend([
         "",
         "These are conditional scenarios derived from served levels and ATR geometry. "
-        "They are not fills, targets, forecasts, or broker orders.",
+        "They are not fills, projected prices, forecasts, or broker orders.",
         "",
         "## Limitations",
         "",

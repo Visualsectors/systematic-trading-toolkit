@@ -45,6 +45,7 @@ def _derived(snapshot: MarketSnapshot, suffix: str, category: str, statement: st
         statement=statement,
         as_of=snapshot.as_of,
         source="dataset fields; deterministic calculation",
+        stance="neutral",
     )
 
 
@@ -68,6 +69,7 @@ def build_research_brief(
             statement=clean_thesis,
             as_of=snapshot.as_of,
             source="user-supplied thesis",
+            stance="neutral",
         )
         evidence.append(supplied)
         thesis_findings.append(ResearchFinding("fact", "Thesis under review: " + clean_thesis, (supplied.id,)))

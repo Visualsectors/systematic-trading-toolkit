@@ -1,6 +1,6 @@
 Visual Sectors Systematic Trading Toolkit
 Copyright 2026 Visual Sectors
 
-This product includes concepts reimplemented from Visual Sectors' internally
-owned workflows and intelligence packages. It contains no proprietary indicator
-generation methods or licensed market-data samples.
+Toolkit code is available under the MIT License. Documentation in README.md,
+docs/, and skills/ is available under CC BY 4.0. Connected datasets retain
+their own terms and are not relicensed by this repository.

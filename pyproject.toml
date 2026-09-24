@@ -7,16 +7,18 @@ name = "visualsectors-toolkit"
 version = "0.1.0"
 description = "Reproducible screening, position sizing, research, risk, monitoring, and level-based trade planning for US equities."
 readme = "README.md"
-requires-python = ">=3.12"
-license = "Apache-2.0"
-license-files = ["LICENSE", "NOTICE"]
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE", "LICENSE-DOCS", "NOTICE"]
 authors = [{ name = "Visual Sectors" }]
-keywords = ["trading", "research", "screening", "risk", "backtesting"]
+keywords = ["trading", "research", "screening", "risk", "support-resistance"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Financial and Insurance Industry",
   "Intended Audience :: Developers",
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Topic :: Office/Business :: Financial :: Investment",
@@ -24,7 +26,7 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Homepage = "https://visualsectors.com"
+Homepage = "https://api.visualsectors.com"
 Repository = "https://github.com/Visualsectors/systematic-trading-toolkit"
 Issues = "https://github.com/Visualsectors/systematic-trading-toolkit/issues"
 

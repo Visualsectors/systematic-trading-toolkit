@@ -6,7 +6,7 @@ The public surface is deliberately small. Provider I/O lives behind
 
 from .levels import build_level_plan, cluster_levels, nearest_zones
 from .monitoring import MonitorState, evaluate_monitor
-from .providers import JsonFileProvider, MarketDataProvider, SyntheticFixtureProvider
+from .providers import JsonFileProvider, MarketDataProvider, SyntheticFixtureProvider, VisualSectorsProvider
 from .research import build_research_brief
 from .risk import build_risk_register
 from .screening import PRESETS, run_screen
@@ -18,6 +18,7 @@ __all__ = [
     "MonitorState",
     "PRESETS",
     "SyntheticFixtureProvider",
+    "VisualSectorsProvider",
     "build_level_plan",
     "build_research_brief",
     "build_risk_register",

@@ -40,7 +40,9 @@ class MarketDataProvider(ABC):
 
     def get(self, ticker: str) -> MarketSnapshot:
         normalized = ticker.strip().upper()
-        for snapshot in self.universe():
+        snapshots = self.universe()
+        for snapshot in snapshots:
             if snapshot.ticker == normalized:
                 return snapshot
-        raise KeyError(f"ticker not present in provider dataset: {normalized}")
+        available = ", ".join(sorted(snapshot.ticker for snapshot in snapshots)) or "none"
+        raise KeyError(f"ticker not present in provider dataset: {normalized}; available tickers: {available}")

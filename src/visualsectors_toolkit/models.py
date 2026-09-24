@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field, is_dataclass
+from dataclasses import MISSING, asdict, dataclass, is_dataclass
 from datetime import date, datetime
 from math import isfinite
+import re
 from typing import Any, Literal, Mapping, Sequence
 
 LevelSide = Literal["Support", "Resistance"]
@@ -32,7 +33,7 @@ def require_ticker(value: str) -> str:
     if not isinstance(value, str):
         raise ValueError("ticker must be a string")
     ticker = value.strip().upper()
-    if not ticker or len(ticker) > 12 or any(c not in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-" for c in ticker):
+    if len(ticker) > 12 or re.fullmatch(r"[A-Z0-9]+(?:[.-][A-Z0-9]+)*", ticker) is None:
         raise ValueError(f"invalid ticker: {value!r}")
     return ticker
 
@@ -57,7 +58,7 @@ class Evidence:
     statement: str
     as_of: str
     source: str
-    stance: EvidenceStance = "neutral"
+    stance: EvidenceStance
     url: str | None = None
 
     def __post_init__(self) -> None:
@@ -147,6 +148,9 @@ class MarketSnapshot:
             raise ValueError("snapshot.levels must contain Level values")
         if any(not isinstance(item, Evidence) for item in self.evidence):
             raise ValueError("snapshot.evidence must contain Evidence values")
+        evidence_ids = [item.id for item in self.evidence]
+        if len(evidence_ids) != len(set(evidence_ids)):
+            raise ValueError("snapshot evidence IDs must be unique")
         if any(not isinstance(item, str) or not item.strip() for item in self.warnings):
             raise ValueError("snapshot.warnings must contain non-empty strings")
 
@@ -174,6 +178,22 @@ class DatasetManifest:
             raise ValueError("synthetic must be a boolean")
         require_iso_datetime(self.generated_at, "manifest.generated_at")
         require_iso_datetime(self.decision_time, "manifest.decision_time")
+        cutoff = datetime.fromisoformat(self.decision_time.replace("Z", "+00:00"))
+        for snapshot in self.snapshots:
+            snapshot_time = datetime.fromisoformat(snapshot.as_of.replace("Z", "+00:00"))
+            if snapshot_time > cutoff:
+                raise ValueError(f"snapshot {snapshot.ticker} is after manifest.decision_time")
+            for evidence in snapshot.evidence:
+                evidence_time = datetime.fromisoformat(evidence.as_of.replace("Z", "+00:00"))
+                if evidence_time > cutoff:
+                    raise ValueError(
+                        f"evidence {evidence.id} for {snapshot.ticker} is after manifest.decision_time"
+                    )
+            for level in snapshot.levels:
+                if date.fromisoformat(level.level_date) > cutoff.date():
+                    raise ValueError(
+                        f"level dated {level.level_date} for {snapshot.ticker} is after manifest.decision_time"
+                    )
         tickers = [row.ticker for row in self.snapshots]
         if len(tickers) != len(set(tickers)):
             raise ValueError("duplicate ticker in dataset")
@@ -185,12 +205,29 @@ def _exact_keys(raw: Mapping[str, Any], allowed: set[str], label: str) -> None:
         raise ValueError(f"{label} has unknown fields: {', '.join(sorted(unknown))}")
 
 
+def _construct(model: type[Any], raw: Mapping[str, Any], label: str, **overrides: Any) -> Any:
+    fields = model.__dataclass_fields__.values()
+    missing = sorted(
+        item.name
+        for item in fields
+        if item.default is MISSING and item.default_factory is MISSING and item.name not in raw
+    )
+    if missing:
+        raise ValueError(f"{label} missing required fields: {', '.join(missing)}")
+    values = dict(raw)
+    values.update(overrides)
+    try:
+        return model(**values)
+    except TypeError as exc:
+        raise ValueError(f"{label} is invalid: {exc}") from exc
+
+
 def _level(raw: Mapping[str, Any]) -> Level:
     if not isinstance(raw, Mapping):
         raise ValueError("level must be an object")
     fields = {field.name for field in Level.__dataclass_fields__.values()}
     _exact_keys(raw, fields, "level")
-    return Level(**raw)  # type: ignore[arg-type]
+    return _construct(Level, raw, "level")
 
 
 def _evidence(raw: Mapping[str, Any]) -> Evidence:
@@ -198,7 +235,7 @@ def _evidence(raw: Mapping[str, Any]) -> Evidence:
         raise ValueError("evidence must be an object")
     fields = {field.name for field in Evidence.__dataclass_fields__.values()}
     _exact_keys(raw, fields, "evidence")
-    return Evidence(**raw)  # type: ignore[arg-type]
+    return _construct(Evidence, raw, "evidence")
 
 
 def _snapshot(raw: Mapping[str, Any]) -> MarketSnapshot:
@@ -206,14 +243,23 @@ def _snapshot(raw: Mapping[str, Any]) -> MarketSnapshot:
         raise ValueError("snapshot must be an object")
     fields = {field.name for field in MarketSnapshot.__dataclass_fields__.values()}
     _exact_keys(raw, fields, "snapshot")
-    values = dict(raw)
-    values["levels"] = tuple(_level(row) for row in raw.get("levels", ()))
-    values["evidence"] = tuple(_evidence(row) for row in raw.get("evidence", ()))
+    levels = raw.get("levels", ())
+    evidence = raw.get("evidence", ())
+    if not isinstance(levels, Sequence) or isinstance(levels, (str, bytes)):
+        raise ValueError("snapshot.levels must be a list")
+    if not isinstance(evidence, Sequence) or isinstance(evidence, (str, bytes)):
+        raise ValueError("snapshot.evidence must be a list")
     warnings = raw.get("warnings", ())
     if not isinstance(warnings, Sequence) or isinstance(warnings, (str, bytes)):
         raise ValueError("snapshot.warnings must be a list")
-    values["warnings"] = tuple(warnings)
-    return MarketSnapshot(**values)  # type: ignore[arg-type]
+    return _construct(
+        MarketSnapshot,
+        raw,
+        "snapshot",
+        levels=tuple(_level(row) for row in levels),
+        evidence=tuple(_evidence(row) for row in evidence),
+        warnings=tuple(warnings),
+    )
 
 
 def parse_manifest(raw: Mapping[str, Any]) -> DatasetManifest:
@@ -221,12 +267,10 @@ def parse_manifest(raw: Mapping[str, Any]) -> DatasetManifest:
         raise ValueError("manifest must be an object")
     fields = {field.name for field in DatasetManifest.__dataclass_fields__.values()}
     _exact_keys(raw, fields, "manifest")
-    values = dict(raw)
     snapshots = raw.get("snapshots")
     if not isinstance(snapshots, Sequence) or isinstance(snapshots, (str, bytes)):
         raise ValueError("manifest.snapshots must be a list")
-    values["snapshots"] = tuple(_snapshot(row) for row in snapshots)
-    return DatasetManifest(**values)  # type: ignore[arg-type]
+    return _construct(DatasetManifest, raw, "manifest", snapshots=tuple(_snapshot(row) for row in snapshots))
 
 
 def to_dict(value: Any) -> Any:

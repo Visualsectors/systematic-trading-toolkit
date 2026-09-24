@@ -8,12 +8,20 @@ will hold, break, bounce, or reach another zone.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import date, datetime
+from decimal import Decimal, ROUND_HALF_UP
 from math import isfinite
 from typing import Literal, Sequence
 
 from .models import Level, LevelSide, require_finite, require_iso_datetime, require_ticker
 
 DEFAULT_HALF_WIDTH_ATR = 0.25
+PRICE_TICK = Decimal("0.01")
+
+
+def _price(value: float) -> float:
+    rounded = Decimal(str(value)).quantize(PRICE_TICK, rounding=ROUND_HALF_UP)
+    return float(max(PRICE_TICK, rounded))
 
 
 @dataclass(frozen=True, slots=True)
@@ -46,6 +54,19 @@ class NearestZones:
 
 
 @dataclass(frozen=True, slots=True)
+class HistoricalBaseRate:
+    """A provider-served historical statistic, not a forecast for this setup."""
+
+    label: Literal["historical_base_rate"]
+    side: LevelSide
+    level_type: str
+    level_price: float
+    p_hold_7d_pct: float | None
+    exp_bounce_pct: float | None
+    hard_break_pct: float | None
+
+
+@dataclass(frozen=True, slots=True)
 class LevelPlan:
     ticker: str
     direction: Literal["long", "short"]
@@ -55,6 +76,10 @@ class LevelPlan:
     invalidation_price: float | None
     reassessment_zone: Zone | None
     risk_per_share: float | None
+    reward_to_reassessment_R: float | None
+    stop_distance_atr: float | None
+    entry_historical_base_rates: tuple[HistoricalBaseRate, ...]
+    reassessment_historical_base_rates: tuple[HistoricalBaseRate, ...]
     status: Literal["ready", "insufficient_data"]
     notes: tuple[str, ...]
 
@@ -69,14 +94,36 @@ def zone_for(level: Level, atr: float, *, half_width_atr: float = DEFAULT_HALF_W
     if half < 0:
         raise ValueError("half_width_atr must be non-negative")
     width = scale * half
-    return level.price - width, level.price + width
+    return _price(level.price - width), _price(level.price + width)
 
 
-def latest_levels(levels: Sequence[Level]) -> tuple[Level, ...]:
-    if not levels:
+def latest_levels(
+    levels: Sequence[Level], *, not_after: str | date | datetime | None = None
+) -> tuple[Level, ...]:
+    cutoff: date | None
+    if isinstance(not_after, datetime):
+        cutoff = not_after.date()
+    elif isinstance(not_after, date):
+        cutoff = not_after
+    elif isinstance(not_after, str):
+        try:
+            cutoff = datetime.fromisoformat(not_after.replace("Z", "+00:00")).date()
+        except ValueError:
+            try:
+                cutoff = date.fromisoformat(not_after)
+            except ValueError as exc:
+                raise ValueError("not_after must be an ISO date or datetime") from exc
+    elif not_after is None:
+        cutoff = None
+    else:
+        raise ValueError("not_after must be an ISO date or datetime")
+    eligible = tuple(
+        level for level in levels if cutoff is None or date.fromisoformat(level.level_date) <= cutoff
+    )
+    if not eligible:
         return ()
-    latest = max(level.level_date for level in levels)
-    return tuple(level for level in levels if level.level_date == latest)
+    latest = max(level.level_date for level in eligible)
+    return tuple(level for level in eligible if level.level_date == latest)
 
 
 def derive_atr(levels: Sequence[Level], reference_price: float) -> float | None:
@@ -117,11 +164,13 @@ def _int_max(values: Sequence[int | None]) -> int | None:
 
 def _finish(low: float, high: float, members: Sequence[Level], atr: float) -> Zone:
     ordered = tuple(members)
+    rounded_low = _price(low)
+    rounded_high = max(rounded_low, _price(high))
     return Zone(
-        low=low,
-        high=high,
-        mid=(low + high) / 2,
-        width_atr=(high - low) / atr,
+        low=rounded_low,
+        high=rounded_high,
+        mid=_price((rounded_low + rounded_high) / 2),
+        width_atr=(rounded_high - rounded_low) / atr,
         side=_side(ordered),
         level_types=tuple(sorted({member.level_type for member in ordered})),
         member_count=len(ordered),
@@ -131,14 +180,37 @@ def _finish(low: float, high: float, members: Sequence[Level], atr: float) -> Zo
     )
 
 
+def _base_rates(zone: Zone | None) -> tuple[HistoricalBaseRate, ...]:
+    if zone is None:
+        return ()
+    return tuple(
+        HistoricalBaseRate(
+            label="historical_base_rate",
+            side=member.side,
+            level_type=member.level_type,
+            level_price=member.price,
+            p_hold_7d_pct=member.p_hold_7d_pct,
+            exp_bounce_pct=member.exp_bounce_pct,
+            hard_break_pct=member.hard_break_pct,
+        )
+        for member in zone.members
+        if any(
+            value is not None
+            for value in (member.p_hold_7d_pct, member.exp_bounce_pct, member.hard_break_pct)
+        )
+    )
+
+
 def cluster_levels(
     levels: Sequence[Level],
     atr: float,
     *,
     half_width_atr: float = DEFAULT_HALF_WIDTH_ATR,
     same_side_only: bool = True,
+    max_zone_width_atr: float = 1.0,
 ) -> tuple[Zone, ...]:
     scale = _positive(atr, "atr")
+    max_width = _positive(max_zone_width_atr, "max_zone_width_atr") * scale
     if not levels:
         return ()
     entries = []
@@ -161,7 +233,13 @@ def cluster_levels(
         open_high: float | None = None
         members: list[Level] = []
         for low, high, _side_name, _kind, _date, _index, level in group:
-            if open_low is not None and open_high is not None and low <= open_high:
+            if (
+                open_low is not None
+                and open_high is not None
+                and low <= open_high
+                and max(open_high, high) - min(open_low, low) <= max_width
+            ):
+                open_low = min(open_low, low)
                 open_high = max(open_high, high)
                 members.append(level)
                 continue
@@ -232,14 +310,52 @@ def build_level_plan(
             invalidation_price=None,
             reassessment_zone=None,
             risk_per_share=None,
+            reward_to_reassessment_R=None,
+            stop_distance_atr=None,
+            entry_historical_base_rates=(),
+            reassessment_historical_base_rates=(),
             status="insufficient_data",
             notes=("A positive ATR and dated levels are required; no levels were invented.",),
         )
-    scale = _positive(atr, "atr")
+    scale = require_finite(atr, "atr")
+    if scale <= 0:
+        return LevelPlan(
+            ticker=normalized_ticker,
+            direction=direction,
+            as_of=as_of,
+            current_price=current,
+            entry_zone=None,
+            invalidation_price=None,
+            reassessment_zone=None,
+            risk_per_share=None,
+            reward_to_reassessment_R=None,
+            stop_distance_atr=None,
+            entry_historical_base_rates=(),
+            reassessment_historical_base_rates=(),
+            status="insufficient_data",
+            notes=("A positive ATR and dated levels are required; no levels were invented.",),
+        )
     buffer = require_finite(invalidation_buffer_atr, "invalidation_buffer_atr")
     if buffer < 0:
         raise ValueError("invalidation_buffer_atr must be non-negative")
-    latest = latest_levels(levels)
+    latest = latest_levels(levels, not_after=as_of)
+    if not latest:
+        return LevelPlan(
+            ticker=normalized_ticker,
+            direction=direction,
+            as_of=as_of,
+            current_price=current,
+            entry_zone=None,
+            invalidation_price=None,
+            reassessment_zone=None,
+            risk_per_share=None,
+            reward_to_reassessment_R=None,
+            stop_distance_atr=None,
+            entry_historical_base_rates=(),
+            reassessment_historical_base_rates=(),
+            status="insufficient_data",
+            notes=("No level dated on or before the decision time was available.",),
+        )
     nearest = nearest_zones(current, latest, scale)
     entry_side = "Support" if direction == "long" else "Resistance"
     review_side = "Resistance" if direction == "long" else "Support"
@@ -259,19 +375,35 @@ def build_level_plan(
     ))
     invalidation = None
     risk = None
+    reward_r = None
+    stop_distance_atr = None
     notes = [
         "Zones are computed from dated level observations and an ATR grouping width; "
         "they are scenarios, not fill or outcome forecasts."
     ]
     if entry is not None:
-        invalidation = entry.low - buffer * scale if direction == "long" else entry.high + buffer * scale
+        invalidation = _price(
+            entry.low - buffer * scale if direction == "long" else entry.high + buffer * scale
+        )
         reference_entry = entry.high if direction == "long" else entry.low
-        risk = abs(reference_entry - invalidation)
+        risk = _price(abs(reference_entry - invalidation))
+        stop_distance_atr = risk / scale
     else:
         side_name = "support" if direction == "long" else "resistance"
         notes.append(f"No eligible {side_name} zone was available for an entry scenario.")
+    if entry is not None and review is not None:
+        beyond_entry = review.low > entry.high if direction == "long" else review.high < entry.low
+        if not beyond_entry:
+            review = None
+            notes.append(
+                "The opposite-side zone was not beyond the entry zone, so it was not presented as reassessment."
+            )
     if review is None:
-        notes.append("No opposite-side reassessment zone was available; no target was fabricated.")
+        notes.append("No opposite-side reassessment zone was available; no price objective was fabricated.")
+    elif entry is not None and risk is not None and risk > 0:
+        reference_entry = entry.high if direction == "long" else entry.low
+        reward = review.low - reference_entry if direction == "long" else reference_entry - review.high
+        reward_r = round(reward / risk, 4)
     return LevelPlan(
         ticker=normalized_ticker,
         direction=direction,
@@ -281,6 +413,10 @@ def build_level_plan(
         invalidation_price=invalidation,
         reassessment_zone=review,
         risk_per_share=risk,
+        reward_to_reassessment_R=reward_r,
+        stop_distance_atr=stop_distance_atr,
+        entry_historical_base_rates=_base_rates(entry),
+        reassessment_historical_base_rates=_base_rates(review),
         status="ready" if entry is not None else "insufficient_data",
         notes=tuple(notes),
     )

@@ -1,8 +1,8 @@
 """Two explicit, deterministic position-sizing methods.
 
 ``stop_risk/v1`` answers "how many shares fit this planned loss and allocation
-cap?". ``portfolio_slots/v1`` reimplements Visual Sectors' established
-portfolio-slot/inverse-volatility behavior. The methods are never blended.
+cap?". ``portfolio_slots/v1`` is the toolkit's disclosed portfolio-slot and
+inverse-volatility example. The methods are never blended.
 """
 
 from __future__ import annotations
@@ -12,7 +12,7 @@ from decimal import Decimal, ROUND_FLOOR, ROUND_HALF_UP
 from math import isfinite
 from typing import Literal, Sequence
 
-from .models import require_ticker
+from .models import optional_finite, require_ticker
 
 
 def _decimal(value: float, name: str, *, positive: bool = True) -> Decimal:
@@ -115,6 +115,12 @@ class SizingPick:
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "ticker", require_ticker(self.ticker))
+        object.__setattr__(self, "close", optional_finite(self.close, "pick.close", positive=True))
+        object.__setattr__(
+            self,
+            "volatility_pct",
+            optional_finite(self.volatility_pct, "pick.volatility_pct", positive=True),
+        )
         if self.side not in ("long", "short"):
             raise ValueError("pick.side must be long or short")
 
@@ -125,7 +131,7 @@ class SizedPosition:
     side: Literal["long", "short"]
     close: float | None
     volatility_pct: float | None
-    target: float
+    allocation_amount: float
     shares: int
     notional: float
     tilt: Literal["tilted", "equal", "no_price", "min_share", "too_expensive"]
@@ -145,7 +151,7 @@ class PortfolioSlotSize:
     net: float
     deployed: float
     unallocated: float
-    portfolio_share_of_batch: float
+    deployed_fraction_of_portfolio: float
     notes: tuple[str, ...]
 
 
@@ -165,14 +171,8 @@ def size_by_portfolio_slots(
 
     slot = Decimal(str(_money(capital / intended_holdings)))
     budget = slot * len(picks)
-    sizable = [pick for pick in picks if pick.close is not None and isfinite(pick.close) and pick.close > 0]
-    missing_vol = [
-        pick
-        for pick in sizable
-        if pick.volatility_pct is None
-        or not isfinite(pick.volatility_pct)
-        or pick.volatility_pct <= 0
-    ]
+    sizable = [pick for pick in picks if pick.close is not None]
+    missing_vol = [pick for pick in sizable if pick.volatility_pct is None]
     tilted = bool(sizable) and not missing_vol
     sizable_budget = slot * len(sizable)
     targets: dict[str, Decimal] = {}
@@ -189,11 +189,19 @@ def size_by_portfolio_slots(
             names = ", ".join(p.ticker for p in missing_vol)
             notes.append(f"Volatility missing for {names}; equal slots used for all priced names.")
 
-    partial: list[tuple[SizingPick, Decimal, int, Decimal, str, str | None]] = []
+    partial: list[tuple[SizingPick, Decimal, int, Decimal, str, str | None, bool]] = []
     for pick in picks:
-        if pick.close is None or not isfinite(pick.close) or pick.close <= 0:
+        if pick.close is None:
             partial.append(
-                (pick, Decimal(0), 0, Decimal(0), "no_price", "No valid close; its slot remains unallocated.")
+                (
+                    pick,
+                    Decimal(0),
+                    0,
+                    Decimal(0),
+                    "no_price",
+                    "No valid close; its slot remains unallocated.",
+                    False,
+                )
             )
             continue
         price = _decimal(pick.close, "close")
@@ -201,18 +209,63 @@ def size_by_portfolio_slots(
         shares = int((target / price).to_integral_value(rounding=ROUND_FLOOR))
         tilt = "tilted" if tilted else "equal"
         note = None
+        is_minimum = False
         if shares == 0 and price > budget:
             tilt, note = "too_expensive", "One share exceeds the whole batch budget; not sized."
         elif shares == 0:
-            shares, tilt, note = 1, "min_share", "One share exceeds this name's target; the overshoot is reported."
-        partial.append((pick, target, shares, price * shares, tilt, note))
+            shares, tilt, note, is_minimum = (
+                1,
+                "min_share",
+                "One share exceeds this name's allocation; other allocations may be reduced to keep the batch capped.",
+                True,
+            )
+        partial.append((pick, target, shares, price * shares, tilt, note, is_minimum))
+
+    # A one-share minimum is useful only if it does not silently exceed the
+    # disclosed batch budget. Reduce non-minimum allocations first, then drop
+    # unaffordable minimums in deterministic price/ticker order.
+    while sum((row[3] for row in partial), Decimal(0)) > budget:
+        reducible = [
+            index
+            for index, row in enumerate(partial)
+            if row[2] > (1 if row[6] else 0) and row[3] > 0
+        ]
+        if reducible:
+            index = max(reducible, key=lambda item: (partial[item][3] / partial[item][2], partial[item][0].ticker))
+            pick, target, shares, _notional, tilt, note, is_minimum = partial[index]
+            price = _decimal(pick.close or 0, "close")
+            reduction_note = "Share count was reduced to keep total deployment within the batch budget."
+            partial[index] = (
+                pick,
+                target,
+                shares - 1,
+                price * (shares - 1),
+                tilt,
+                reduction_note if note is None else f"{note} {reduction_note}",
+                is_minimum,
+            )
+            continue
+        minimums = [index for index, row in enumerate(partial) if row[6] and row[2] == 1]
+        if not minimums:
+            raise AssertionError("portfolio sizing could not enforce the batch budget")
+        index = max(minimums, key=lambda item: (partial[item][3], partial[item][0].ticker))
+        pick, target, _shares, _notional, _tilt, _note, _is_minimum = partial[index]
+        partial[index] = (
+            pick,
+            target,
+            0,
+            Decimal(0),
+            "too_expensive",
+            "One share would exceed the remaining batch budget; not sized.",
+            False,
+        )
 
     gross_long = sum(
-        (notional for pick, _target, _shares, notional, _tilt, _note in partial if pick.side == "long"),
+        (notional for pick, _target, _shares, notional, _tilt, _note, _minimum in partial if pick.side == "long"),
         Decimal(0),
     )
     gross_short = sum(
-        (notional for pick, _target, _shares, notional, _tilt, _note in partial if pick.side == "short"),
+        (notional for pick, _target, _shares, notional, _tilt, _note, _minimum in partial if pick.side == "short"),
         Decimal(0),
     )
     deployed = gross_long + gross_short
@@ -222,7 +275,7 @@ def size_by_portfolio_slots(
             side=pick.side,
             close=pick.close,
             volatility_pct=pick.volatility_pct,
-            target=_money(target),
+            allocation_amount=_money(target),
             shares=shares,
             notional=_money(notional),
             tilt=tilt,  # type: ignore[arg-type]
@@ -230,7 +283,7 @@ def size_by_portfolio_slots(
             portfolio_share=_fraction(notional, capital),
             note=note,
         )
-        for pick, target, shares, notional, tilt, note in partial
+        for pick, target, shares, notional, tilt, note, _minimum in partial
     )
     return PortfolioSlotSize(
         method="portfolio_slots/v1",
@@ -242,6 +295,6 @@ def size_by_portfolio_slots(
         net=_money(gross_long - gross_short),
         deployed=_money(deployed),
         unallocated=_money(budget - deployed),
-        portfolio_share_of_batch=_fraction(deployed, capital),
+        deployed_fraction_of_portfolio=_fraction(deployed, capital),
         notes=tuple(notes),
     )

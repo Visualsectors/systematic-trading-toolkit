@@ -35,9 +35,9 @@ slot         = portfolio / N
 batch budget = k × slot
 ```
 
-When every priced pick has positive volatility, its target uses normalized inverse-volatility weight across the priced batch. If any priced pick lacks valid volatility, every priced pick receives an equal slot. Whole shares are floored. Missing prices remain unallocated. A one-share minimum is explicit and is not applied if one share exceeds the entire batch budget.
+When every priced pick has positive volatility, its allocation uses normalized inverse-volatility weight across the priced batch. If any priced pick lacks valid volatility, every priced pick receives an equal slot. Whole shares are floored. Missing prices remain unallocated. A one-share minimum is explicit; a second pass reduces other shares or omits the minimum so total deployment never exceeds the batch budget.
 
-This method matches the established Visual Sectors behavior; it answers a different question from stop-risk sizing and is not combined with it.
+This is a disclosed toolkit example; it answers a different question from stop-risk sizing and is not combined with it.
 
 ## Research and risk
 
@@ -45,11 +45,11 @@ The brief cites supplied evidence or deterministic derived observations. It labe
 
 ## Monitoring semantics
 
-The monitor compares the new non-tailwind risk map with the last valid map. It emits a new event only for a new flag, increased severity, resolved flag, evaluation failure, or recovery. Identical failures and unchanged registers are deduplicated. During failure, the previous active risks remain active.
+The monitor compares the newest risk map with the last valid map, including tailwinds. It reports new, changed, increased/decreased, and resolved flags plus evaluation failure/recovery. It also retains the original plan prices and reports entry-zone arrivals, reassessment-zone arrivals, and invalidation breaches against that saved plan. Identical failures and unchanged states are deduplicated; out-of-order observations are rejected. During failure, the previous active risks and plan remain active.
 
 ## Extending the toolkit
 
-A new indicator or model should ship with:
+A new indicator or model must ship with:
 
 - exact units and timing semantics;
 - a missing-data rule;

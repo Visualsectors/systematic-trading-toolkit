@@ -36,7 +36,7 @@ class PortfolioSlotSizingTests(unittest.TestCase):
             portfolio=100_000, intended_holdings=10,
             picks=(SizingPick("ONE", 100, 20), SizingPick("TWO", 50, None)),
         )
-        self.assertEqual([item.target for item in result.positions], [10_000, 10_000])
+        self.assertEqual([item.allocation_amount for item in result.positions], [10_000, 10_000])
         self.assertTrue(result.notes)
 
     def test_minimum_share_and_too_expensive_are_explicit(self):
@@ -51,6 +51,20 @@ class PortfolioSlotSizingTests(unittest.TestCase):
         )
         self.assertEqual(expensive.positions[0].tilt, "too_expensive")
         self.assertEqual(expensive.positions[0].shares, 0)
+
+    def test_minimum_shares_never_overspend_batch(self):
+        result = size_by_portfolio_slots(
+            portfolio=1_000,
+            intended_holdings=10,
+            picks=(SizingPick("ONE", 150, 20), SizingPick("TWO", 50, 20)),
+        )
+        self.assertLessEqual(result.deployed, result.batch_budget)
+        self.assertGreaterEqual(result.unallocated, 0)
+        self.assertEqual(result.deployed_fraction_of_portfolio, 0.2)
+
+    def test_pick_numeric_types_fail_cleanly(self):
+        with self.assertRaisesRegex(ValueError, "pick.close must be finite"):
+            SizingPick("ONE", "100", 20)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

@@ -14,7 +14,18 @@ from .base import MarketDataProvider, ProviderCapabilities
 class JsonFileProvider(MarketDataProvider):
     def __init__(self, path: str | Path) -> None:
         self._path = Path(path)
-        raw: Any = json.loads(self._path.read_text(encoding="utf-8"))
+        payload = self._path.read_bytes()
+        try:
+            if payload.startswith((b"\xff\xfe", b"\xfe\xff")):
+                text = payload.decode("utf-16")
+            else:
+                text = payload.decode("utf-8-sig")
+        except UnicodeDecodeError as exc:
+            raise ValueError(
+                "dataset must be UTF-8 (BOM accepted) or BOM-marked UTF-16; "
+                "in PowerShell use Set-Content -Encoding utf8"
+            ) from exc
+        raw: Any = json.loads(text)
         if not isinstance(raw, dict):
             raise ValueError("dataset root must be an object")
         self._manifest = parse_manifest(raw)

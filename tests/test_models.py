@@ -34,6 +34,40 @@ class ModelTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "must include a timezone"):
             parse_manifest(raw)
 
+    def test_decision_time_rejects_future_snapshot_evidence_and_level(self):
+        mutations = (
+            ("as_of", "2026-01-16T00:00:00Z"),
+            ("evidence_as_of", "2026-01-16T00:00:00Z"),
+            ("level_date", "2026-01-16"),
+        )
+        for kind, value in mutations:
+            with self.subTest(kind=kind):
+                raw = copy.deepcopy(self.raw)
+                if kind == "as_of":
+                    raw["snapshots"][0]["as_of"] = value
+                elif kind == "evidence_as_of":
+                    raw["snapshots"][0]["evidence"][0]["as_of"] = value
+                else:
+                    raw["snapshots"][0]["levels"][0]["level_date"] = value
+                with self.assertRaisesRegex(ValueError, "after manifest.decision_time"):
+                    parse_manifest(raw)
+
+    def test_evidence_stance_is_required_and_ids_are_unique(self):
+        missing = copy.deepcopy(self.raw)
+        del missing["snapshots"][0]["evidence"][0]["stance"]
+        with self.assertRaisesRegex(ValueError, "missing required fields: stance"):
+            parse_manifest(missing)
+        duplicate = copy.deepcopy(self.raw)
+        duplicate["snapshots"][0]["evidence"][1]["id"] = duplicate["snapshots"][0]["evidence"][0]["id"]
+        with self.assertRaisesRegex(ValueError, "evidence IDs must be unique"):
+            parse_manifest(duplicate)
+
+    def test_punctuation_only_ticker_is_rejected(self):
+        raw = copy.deepcopy(self.raw)
+        raw["snapshots"][0]["ticker"] = "..."
+        with self.assertRaisesRegex(ValueError, "invalid ticker"):
+            parse_manifest(raw)
+
 
 if __name__ == "__main__":
     unittest.main()

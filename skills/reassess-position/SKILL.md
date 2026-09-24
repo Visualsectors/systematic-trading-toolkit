@@ -7,11 +7,11 @@ description: Reassess a monitored stock scenario when evidence, risk, or levels 
 
 Require the existing thesis or plan, ticker, authorized current dataset, and prior monitor-state file. If any is missing, identify the gap before drawing a conclusion.
 
-1. Run `vstoolkit monitor --data <dataset.json> --ticker <ticker> --state <state.json>`.
-2. Read only emitted changes: new flags, increased severity, resolved flags, evaluation failures, and recovery.
+1. Run `vstoolkit monitor --ticker <ticker> --direction <long-or-short> --state <state.json>` (or add `--data <dataset.json>` for an authorized file).
+2. Read only emitted changes: new, changed, increased/decreased, or resolved flags; entry/reassessment-zone arrivals; invalidation breaches; evaluation failures; and recovery.
 3. If the evaluation failed, retain the prior active risks and say that current status is unknown. Never call a failure an all-clear.
 4. Run `vstoolkit research --data <dataset.json> --ticker <ticker> --thesis "<existing thesis>"` when evidence changed.
-5. Compare the current level invalidation, contrary evidence, event risk, volatility, and data warnings with the original assumptions.
+5. Treat the prices saved in monitor state as the controlling plan. Never replace a breached invalidation with a newly calculated plan before reporting the breach. Compare contrary evidence, event risk, volatility, and data warnings with the original assumptions.
 6. Report one of: no new review condition, reassessment required, thesis invalidated under its stated rule, or unable to evaluate. Cite the exact event and evidence IDs.
 7. If size is recalculated, name either `stop_risk/v1` or `portfolio_slots/v1` and show all inputs. Never blend the methods silently.
 

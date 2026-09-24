@@ -26,6 +26,11 @@ class ScreeningTests(unittest.TestCase):
         self.assertIn("ATR units", result.ranking_method)
         self.assertNotIn("score", result.ranking_method.lower())
 
+    def test_limit_reports_omitted_candidates(self):
+        result = run_screen(self.rows, "oversold_at_support", limit=1)
+        self.assertEqual(len(result.candidates), 1)
+        self.assertEqual(result.omitted_candidates, 1)
+
 
 if __name__ == "__main__":
     unittest.main()

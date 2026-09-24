@@ -1,6 +1,6 @@
 # Dataset contract
 
-The toolkit accepts `visualsectors-toolkit.dataset.v1`, a strict point-in-time JSON document. Unknown fields are rejected to catch spelling mistakes and silent schema drift.
+The toolkit accepts `visualsectors-toolkit.dataset.v1`, a strict decision-time-bounded JSON document. Unknown fields are rejected to catch spelling mistakes and silent schema drift.
 
 ## Manifest
 
@@ -55,7 +55,8 @@ Evidence statements should be concise factual observations. A source must descri
 
 ## Timing and leakage rules
 
-- Every field must have been available by `decision_time`.
+- No observation timestamp may be later than `decision_time`.
+- A provider must separately declare whether its historical values are truly point-in-time. The Stage 1 Visual Sectors API is non-PIT because later revisions can be visible in date-bounded reads.
 - Restated fundamentals need an availability timestamp, not only a fiscal-period date.
 - Corporate actions and price adjustment conventions must be documented by the provider.
 - A backtest must select the dataset version available at each simulated decision time.
@@ -63,4 +64,4 @@ Evidence statements should be concise factual observations. A source must descri
 
 ## Data rights
 
-The manifest declares dataset terms but cannot grant rights the producer does not hold. Before sharing a dataset, confirm rights for raw values, derived values, caching, display, end-user analysis, model input, and redistribution. Apache-2.0 applies to toolkit code—not automatically to connected data.
+The manifest declares dataset terms but cannot grant rights the producer does not hold. Before sharing a dataset, confirm rights for raw values, derived values, caching, display, end-user analysis, model input, and redistribution. MIT applies to toolkit code and CC BY 4.0 to toolkit documentation—not automatically to connected data.

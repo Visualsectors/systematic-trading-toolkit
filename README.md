@@ -1,146 +1,152 @@
 # Systematic Trading Toolkit
 
-An open, inspectable Python toolkit for turning point-in-time US-equity data into six practical research outputs:
+**S/R levels with measured hold, bounce and break rates**—plus screening, position sizing, evidence-linked research, risk registers, and change-based monitoring for US-listed equities.
 
-1. filtered, ready-to-research watchlists;
-2. reproducible position sizes;
-3. evidence-first research briefs;
-4. explicit tailwind, headwind, and uncertainty registers;
-5. change-based monitoring events; and
-6. conditional entry, invalidation, and reassessment zones.
+This is an inspectable, dependency-free Python toolkit for builders using Claude Code, Codex, Cursor, or their own automation. It connects to the Visual Sectors Data API with a free key, keeps credentials outside prompts and shell history, and contains no broker connection or order execution.
 
-The core is deterministic and dependency-free. It runs offline with a bundled synthetic dataset, contains no broker integration, and never treats missing data as neutral evidence.
+## Run it on AAPL
 
-> **Project status:** pre-release public-repository candidate. The code is usable locally, but no Visual Sectors API adapter or live-data entitlement is included in v0.1.0.
+Requirements: Python 3.10 or newer. In PowerShell:
 
-## Why this exists
-
-Most trading examples hide critical assumptions in a notebook, mix data access with financial logic, or report only the attractive result. This toolkit keeps the decision path visible:
-
-- every screen publishes its filters, rank method, and exclusions;
-- each sizing result names its method and binding constraint;
-- research findings distinguish facts, interpretations, contrary evidence, and gaps;
-- monitoring reports state changes instead of repeating unchanged alerts;
-- level metrics are historical observations, not cross-instrument probabilities; and
-- calculation modules have no network, clock, environment, filesystem, or random dependency.
-
-It is designed for Python and agent-tool builders who want code they can inspect, fork, test, and connect to their own licensed data.
-
-## Quickstart
-
-Requirements: Python 3.12 or newer.
-
-```bash
-git clone https://github.com/Visualsectors/systematic-trading-toolkit.git
-cd systematic-trading-toolkit
-python -m pip install -e .
-vstoolkit demo --output toolkit-report.md
+```powershell
+py -m venv .venv
+Set-ExecutionPolicy -Scope Process Bypass
+.\.venv\Scripts\Activate.ps1
+python -m pip install visualsectors-toolkit
+vstoolkit plan AAPL
 ```
 
-The demo is entirely offline and uses fictional symbols and observations. It creates one Markdown report containing all six outcomes.
+The first live command exits with this instruction when no key exists:
 
-Run an individual screen:
+```text
+AAPL needs live data. Get a free key (no card) at https://api.visualsectors.com/signup, then run: vstoolkit login
+```
 
-```bash
+Continue without putting the key on a command line:
+
+```powershell
+vstoolkit login
+vstoolkit plan AAPL
+```
+
+`login` opens signup, reads the key through hidden input, saves it to the ignored `.env` file, and verifies the service plus one AAPL levels request. A successful plan includes:
+
+- entry and reassessment zones built from the newest eligible served levels;
+- a scenario invalidation and stop distance in ATR units;
+- reward to reassessment in R;
+- served hold, bounce, and hard-break measurements labelled `historical_base_rate`; and
+- whole-share `stop_risk/v1` arithmetic with every input visible.
+
+Until the package is published, install the repository checkout instead:
+
+```powershell
+python -m pip install .
+```
+
+## Offline demo
+
+The bundled fixture is fictional and needs no key or network:
+
+```powershell
+vstoolkit demo --offline --output toolkit-report.md
+vstoolkit screen --offline --preset oversold_at_support --limit 10
+vstoolkit plan ALFA --offline
+```
+
+The report contains all six outcomes in one Markdown file.
+
+## What it produces
+
+1. Ready-to-research watchlists from disclosed filters and deterministic rank rules.
+2. Position sizes from either stop risk or portfolio slots, never a silent blend.
+3. Research briefs that separate facts, interpretations, contrary evidence, and gaps.
+4. Tailwind, headwind, and uncertainty flags with explicit reassessment conditions.
+5. State-based events for risk changes, zone arrivals, invalidation breaches, provider failures, and recovery.
+6. Conditional entry, invalidation, and reassessment geometry from served S/R levels.
+
+### Screening
+
+```powershell
+vstoolkit screen --preset near_support --limit 10
 vstoolkit screen --preset oversold_at_support --limit 10
+vstoolkit screen --preset trend_continuation --limit 10
 ```
 
-Run auditable stop-risk arithmetic:
+The live provider starts with `POST /v1/screen`, then loads the fields needed to validate the returned names locally. The three presets disclose their filters in [the methodology](docs/METHODOLOGY.md). Distance is measured to the computed support-zone edge.
 
-```bash
-vstoolkit size-stop \
-  --capital 100000 \
-  --risk-fraction 0.005 \
-  --entry 100 \
-  --stop 95 \
-  --max-allocation 0.10
+### Position sizing
+
+The two methods answer different questions:
+
+- `stop_risk/v1` caps whole shares by planned loss and maximum allocation.
+- `portfolio_slots/v1` divides a batch into slots and uses inverse volatility only when every priced name has valid volatility.
+
+```powershell
+vstoolkit size-stop --capital 100000 --risk-fraction 0.005 --entry 100 --stop 95 --max-allocation 0.10
+vstoolkit size-portfolio --tickers AAPL,MSFT --portfolio 100000 --intended-holdings 10
 ```
 
-The result is 100 shares, $10,000 notional, and $500 planned loss at the stop before gaps, slippage, commissions, taxes, or borrow costs.
+`0.005` means 0.5% of capital and `0.10` means 10%. Fractions above 5% risk or 50% allocation require interactive confirmation or `--yes`. Calculated loss excludes gaps, slippage, commissions, taxes, and borrow costs.
 
-## The six outcomes
+### Research and monitoring
 
-### 1. Screening
-
-Three disclosed presets ship in v0.1.0:
-
-| Preset | Purpose | Rank method |
-| --- | --- | --- |
-| `near_support` | Liquid shares within 1.5 ATR of served support | nearest support-band edge in ATR units |
-| `oversold_at_support` | Near support with RSI(14) at or below 35 | lowest RSI, then support distance |
-| `trend_continuation` | Ordered long-term averages, near SMA(20), positive momentum | highest 20-session momentum |
-
-Every non-candidate has machine-readable exclusion reasons. Historical level `score` fields are not used as comparable return probabilities.
-
-### 2. Position sizing
-
-The methods are deliberately separate:
-
-- `stop_risk/v1`: whole shares constrained by both a planned-loss budget and a maximum allocation;
-- `portfolio_slots/v1`: the established Visual Sectors slot method, with inverse-volatility weights when every priced pick has valid volatility and equal slots otherwise.
-
-They are never silently blended. Missing price leaves a slot unallocated. A one-share minimum and an unaffordable share are reported explicitly.
-
-### 3. Research briefs
-
-`build_research_brief` creates a structured brief over supplied fields and evidence. Every factual or interpreted claim carries evidence IDs. Contrary evidence has its own section. Missing news, fundamentals, event dates, levels, or thesis inputs remain visible as coverage gaps.
-
-The public implementation is deterministic; it does not need an LLM. An AI client can summarize the resulting JSON, but it should not replace or invent the cited facts.
-
-### 4. Risk registers
-
-`build_risk_register` turns the available evidence into review conditions. A flag states:
-
-- type: headwind, tailwind, or uncertainty;
-- severity;
-- the observed condition;
-- the trigger for reassessment; and
-- the action to take when the trigger changes.
-
-Absence of a flag means absence of supplied evidence, not absence of risk.
-
-### 5. Monitoring
-
-`evaluate_monitor` compares the newest risk register with the last valid state. It emits events for new flags, severity increases, resolutions, evaluation failures, and recovery. An evaluation failure retains existing risks and cannot generate a false all-clear.
-
-```bash
-vstoolkit monitor --ticker ALFA --state monitor-state.json
+```powershell
+vstoolkit research --ticker AAPL --direction long --thesis "Margins improve while price holds structural support"
+vstoolkit monitor --ticker AAPL --direction long --state monitor-state.json
 ```
 
-The command writes state atomically. Running the unchanged fixture again produces no duplicate risk events.
+The monitor writes state atomically. It retains the original plan prices, so crossing the saved invalidation emits `invalidation_breached` even when new levels have moved. A provider failure becomes `evaluation_failed`; prior risks and plan prices remain active.
 
-### 6. Entry and exit planning
+### Files and reports
 
-Levels from the most recent served level date are expanded into ATR-width zones and clustered without changing their original support/resistance side. For a long scenario, the toolkit can identify:
-
-- a support-based entry zone;
-- an invalidation boundary below that zone; and
-- the nearest served resistance zone as a reassessment area.
-
-These are conditional planning scenarios—not fill promises, price targets, forecasts, or orders.
-
-## Bring your own data
-
-Use the strict JSON contract documented in [docs/DATA_CONTRACT.md](docs/DATA_CONTRACT.md):
-
-```bash
-vstoolkit screen --data /path/to/your-dataset.json --preset near_support
-vstoolkit research --data /path/to/your-dataset.json --ticker AAPL --thesis "Your falsifiable thesis"
+```powershell
+vstoolkit screen --data .\my-dataset.json --preset near_support
+vstoolkit report --data .\my-dataset.json --output .\research-report.md
 ```
 
-Unknown fields fail closed. Every dataset must declare its source, license, whether it is synthetic, its decision time, and generation time. Raw data rights remain separate from the Apache-2.0 code license.
+The strict file format is documented in [the dataset contract](docs/DATA_CONTRACT.md). Unknown fields, future-dated observations, duplicate evidence IDs, and missing evidence stance fail closed. UTF-8, UTF-8 with BOM, and BOM-marked UTF-16 files are accepted for Windows PowerShell interoperability.
 
-Provider I/O implements `MarketDataProvider`; calculations consume immutable `MarketSnapshot` values. This keeps live API credentials and transport logic outside the research core.
+## How to read the output
+
+Historical hold, bounce, and break rates describe the served level family; they are not probabilities for the current setup. Zones are conditional geometry, not fills or forecasts. A screen narrows research coverage; it does not establish expected return or suitability. Missing values remain missing, and Stage 1 API observations are non-point-in-time. Treat cited structured output as the audit record when an AI presents it.
+
+## Live data scope and rights
+
+The default host and signup surface are both `https://api.visualsectors.com`.
+
+- Anonymous free access: 500 requests/minute, 10,000/day, 100,000/month, and a 6-month history allowance.
+- LinkedIn-approved free access: the same request allowance and a 3-year history allowance.
+- Capacity access: 1,000 requests/minute, 25,000/day, 500,000/month, and a 15-year history allowance.
+
+Returned rows remain limited by retained source history. The August 2026 audit found daily bars beginning on 2025-08-11, technicals beginning on 2021-01-04, and shorter coverage for some fundamentals and news views. The live adapter therefore derives 20-session momentum, annualized 20-session volatility, and 20-session average dollar volume from available raw, unadjusted bars and carries that limitation in every snapshot.
+
+The API may be used to research, advise, or build decision tools under the applicable terms. Do not redistribute raw API values. Code and data rights are separate; connecting a dataset does not relicense it.
+
+## Agent skills
+
+Two optional skills are included:
+
+- `build-research-thesis` keeps an AI inside cited evidence and makes contrary evidence visible.
+- `reassess-position` interprets monitor events without replacing the saved invalidation.
+
+Install them for Claude Code in PowerShell:
+
+```powershell
+$profileRoot = [Environment]::GetFolderPath('UserProfile')
+New-Item -ItemType Directory -Force (Join-Path $profileRoot '.claude\skills') | Out-Null
+Copy-Item -Recurse -Force .\skills\build-research-thesis (Join-Path $profileRoot '.claude\skills\build-research-thesis')
+Copy-Item -Recurse -Force .\skills\reassess-position (Join-Path $profileRoot '.claude\skills\reassess-position')
+```
+
+For Codex, use the same commands with `.codex\skills` as the destination. In Cursor or another agent, attach the relevant `SKILL.md` as project instructions. Never paste an API key into an AI prompt.
 
 ## Python API
 
 ```python
-from visualsectors_toolkit import SyntheticFixtureProvider, run_screen
-from visualsectors_toolkit.levels import build_level_plan
+from visualsectors_toolkit import VisualSectorsProvider, build_level_plan
 
-provider = SyntheticFixtureProvider()
-screen = run_screen(provider.universe(), "oversold_at_support")
-row = provider.get(screen.candidates[0].ticker)
+provider = VisualSectorsProvider()
+row = provider.get("AAPL")
 plan = build_level_plan(
     ticker=row.ticker,
     as_of=row.as_of,
@@ -151,54 +157,41 @@ plan = build_level_plan(
 )
 ```
 
-## Architecture and trust boundary
+Provider I/O is isolated from deterministic calculation modules. The live adapter uses the standard library, Bearer authentication, cursor paging, `Retry-After`, and a per-day local cache. One fully hydrated ticker normally uses about six API requests before cache hits.
+
+## Trust boundary
 
 ```text
-licensed API or local JSON
-          │
-          ▼
-  provider boundary (I/O)
-          │ immutable, point-in-time snapshots
-          ▼
- deterministic calculation core
-  ├─ screening
-  ├─ level geometry
-  ├─ two named sizing methods
-  ├─ research assembly
-  ├─ risk register
-  └─ monitor comparison
-          │
-          ▼
- JSON / Markdown / optional AI presentation layer
+Visual Sectors API or strict local JSON
+                 |
+                 v
+          provider boundary
+                 |
+                 v
+     deterministic calculation core
+       | screen | levels | sizing |
+       | research | risk | monitor |
+                 |
+                 v
+       JSON / Markdown / AI display
 ```
 
-The public repository contains orchestration and interpretation logic. Proprietary Visual Sectors indicator-generation methods, credentials, licensed raw market data, entitlements, and broker execution stay outside this boundary.
-
-## What is not included
-
-- trade execution or broker connectivity;
-- personal suitability or portfolio advice;
-- live data or a guarantee of data quality;
-- proprietary options-derived, market-regime, or earnings indicators;
-- a backtesting engine (that belongs in the separate Edge Clinic effort); or
-- a claim that a historical level held, bounced, or broke with any future probability.
-
-See [docs/METHODOLOGY.md](docs/METHODOLOGY.md) and [docs/LIMITATIONS.md](docs/LIMITATIONS.md) before adapting the output to a production decision process.
+Proprietary options-derived indicators, market-regime methods, credentials, raw licensed datasets, entitlements, and broker execution stay outside this repository.
 
 ## Development and QA
 
-```bash
+```powershell
 python -m unittest discover -s tests -v
 python -m compileall -q src tests
-python -m visualsectors_toolkit demo --output toolkit-report.md
+python -m pip check
+python -m pip wheel --no-cache-dir --no-deps . --wheel-dir dist
+python -m visualsectors_toolkit demo --offline --output toolkit-report.md
 ```
 
-The reference suite covers arithmetic, missing-data behavior, temporal level selection, deterministic rankings, evidence traceability, alert deduplication, failure recovery, strict schemas, and purity of calculation modules.
+CI covers Windows, macOS, and Linux on Python 3.10–3.13. See [methodology](docs/METHODOLOGY.md), [limitations](docs/LIMITATIONS.md), [contribution guidance](CONTRIBUTING.md), and [security policy](SECURITY.md).
 
-Contributions are welcome under [CONTRIBUTING.md](CONTRIBUTING.md). Security reports should follow [SECURITY.md](SECURITY.md).
+## License
 
-## License and data rights
+Code is MIT licensed. README, `docs/`, and `skills/` are CC BY 4.0. Dataset and API rights remain separate; see [LICENSE](LICENSE), [LICENSE-DOCS](LICENSE-DOCS), and [NOTICE](NOTICE).
 
-Code and documentation are licensed under Apache-2.0. Dataset and API rights are separate. The bundled dataset is fictional and distributable under the terms stated in its manifest. Connecting another dataset does not grant permission to redistribute it.
-
-This software is for research and education. It does not provide investment, legal, tax, or accounting advice.
+This software supports research and education. It does not provide investment, legal, tax, or accounting advice.
