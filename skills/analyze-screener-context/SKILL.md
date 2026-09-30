@@ -16,9 +16,13 @@ and [tier and grounding rules](references/tiers-and-grounding.md) before interpr
 1. Inspect dataset source, license, synthetic flag, decision time and true source
    cutoffs. Label fictional demonstrations. Never insert future bars, revisions,
    headlines, memberships or market caps, or infer missing facts from a name.
-2. Run `vstoolkit context --data <context-dataset.json>`. This command needs Node
-   22+ but no npm packages. It computes the released features deterministically;
-   it does not retrieve live data, browse, call a model or buy API calls.
+2. Run `vstoolkit context --ticker <ticker>` with an authorized free API key, or
+   `vstoolkit context --data <dataset.json>` for a frozen dataset.v2. Computed
+   features use pure Python, with no clock/network inside the feature step.
+   `--offline` is a full-lane fictional demonstration. Add `--card <card.md>`
+   or `--format markdown` for an evidence-linked observation card. Read
+   [live coverage](references/live-data.md) and [wording](references/wording.md).
+   Live retrieval is metered; ask for consent before repeated or broad retrieval.
 3. Read the three lanes and their quality/risk codes. Missing optional weighting
    or headline peers means **not supplied**, not zero, no peers or negative news.
 4. For a machine-validated card, supply the frozen screen's analyst metadata:
@@ -28,7 +32,9 @@ and [tier and grounding rules](references/tiers-and-grounding.md) before interpr
    with an embedded rewrite or send raw OHLCV/API keys to the model.
 5. Validate with `vstoolkit context --data <dataset.json> --analysis-input
    <analysis.json> --model-output <raw-response.json> --request <saved-request.json>`.
-   Only display the validated, code-rendered decision. A rejected answer remains
+   This optional grounded-model request/validation path requires Node 22+;
+   ordinary computed JSON/cards do not. Only display the validated decision as
+   a machine-validated analysis. A rejected answer remains
    rejected; do not loosen safeguards or substitute unvalidated draft prose.
 
 ## Three lane analysis

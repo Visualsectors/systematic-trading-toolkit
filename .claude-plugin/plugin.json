@@ -1,0 +1,9 @@
+{
+  "name": "systematic-trading-toolkit",
+  "version": "0.1.0",
+  "description": "Four evidence-first skills for screening, context, research and position review. No execution.",
+  "author": { "name": "Visual Sectors" },
+  "homepage": "https://api.visualsectors.com",
+  "repository": "https://github.com/Visualsectors/systematic-trading-toolkit",
+  "license": "MIT"
+}

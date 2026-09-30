@@ -11,6 +11,7 @@ from unittest.mock import patch
 
 from visualsectors_toolkit.cli import main
 from visualsectors_toolkit.context import load_context_dataset, read_context_json, run_context
+from visualsectors_toolkit.context_features import compute_context
 
 ROOT = Path(__file__).parents[1]
 FIXTURE = ROOT / "tests/fixtures/screener-context-0.5.0"
@@ -71,6 +72,9 @@ class ScreenerContextTests(unittest.TestCase):
 
     def test_complete_computed_context_field_for_field(self):
         self.assertEqual(run_context(self.spec, self.packet), self.expected)
+
+    def test_pure_python_computed_context_field_for_field(self):
+        self.assertEqual(compute_context(self.spec, self.packet), self.expected)
 
     def test_repeat_is_deterministic_and_does_not_mutate_inputs(self):
         before = deepcopy((self.spec, self.packet))
@@ -183,14 +187,15 @@ class ScreenerContextTests(unittest.TestCase):
         with patch.dict(os.environ, {"NODE_OPTIONS": "--invalid-flag", "GH_TOKEN": "test-only",
                                       "VISUALSECTORS_API_KEY": "test-only"}), patch.object(
                                           context.subprocess, "run", side_effect=capture):
-            self.assertEqual(run_context(self.spec, self.packet), self.expected)
+            self.assertEqual(json.loads(run_context(self.spec, self.packet, mode="request", analysis_input=self.metadata)["user"]), self.user)
         self.assertTrue(seen)
         self.assertTrue(all(not ({"NODE_OPTIONS", "GH_TOKEN", "VISUALSECTORS_API_KEY"} & set(env)) for env in seen))
 
     def test_missing_node_is_an_actionable_error_not_a_fake_result(self):
         with patch("visualsectors_toolkit.context.shutil.which", return_value=None):
+            self.assertEqual(run_context(self.spec, self.packet), self.expected)
             with self.assertRaisesRegex(ValueError, "Node.js 22"):
-                run_context(self.spec, self.packet)
+                run_context(self.spec, self.packet, mode="request", analysis_input=self.metadata)
 
     def test_source_and_fixture_integrity(self):
         engine = ROOT / "src/visualsectors_toolkit/context_engine"

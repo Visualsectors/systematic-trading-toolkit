@@ -133,7 +133,8 @@ class CliTests(unittest.TestCase):
 class PurityTests(unittest.TestCase):
     def test_calculation_modules_do_not_import_io_or_nondeterminism(self):
         root = Path(__file__).parents[1] / "src" / "visualsectors_toolkit"
-        pure = ("levels.py", "models.py", "monitoring.py", "research.py", "risk.py", "screening.py", "sizing.py")
+        pure = ("levels.py", "models.py", "monitoring.py", "research.py", "risk.py", "screening.py", "sizing.py",
+                "context_features.py", "context_math.py", "context_price.py", "context_peers.py", "context_evidence.py", "named_price.py")
         forbidden = {"requests", "httpx", "urllib", "socket", "random", "secrets", "os", "pathlib"}
         for name in pure:
             with self.subTest(module=name):

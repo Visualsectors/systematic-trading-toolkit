@@ -4,22 +4,23 @@ The optional `vstoolkit context` command ports preset-skills 0.5.0 from
 vs-intelligence commit `863489f2b111fe88ab7fd3827413cff46cda8f49`. It computes
 Price, Peers and Market over a frozen screen, constructs the exact grounded
 analyst request and validates/renders a supplied model answer. It never makes
-a model call, retrieves data, uses an API key, buys calls or changes membership.
+a model call, buys calls or changes membership. The optional live adapter retrieves
+authorized API data separately from the pure feature calculation.
 The model interprets; code measures and owns displayed facts.
 
-Python 3.10+ remains the toolkit runtime. **This new command also needs Node.js
-22+ on PATH**, available from [Node.js](https://nodejs.org/en/download).
-No npm dependency is needed at runtime: the engine and its source are bundled
-in the installed wheel. Other toolkit commands do not need Node. The port keeps
-the released JavaScript arithmetic, hashes, chronology and renderer rather
-than maintaining a second Python implementation with different rounding.
+Python 3.10+ is enough for computed JSON and Markdown observation cards. Pure
+Python functions preserve the released arithmetic and evidence ordering, checked
+field for field against the golden fixture. **Only optional model-request/answer
+validation needs Node.js 22+**. Its released engine/source are bundled; no npm
+packages are required at runtime.
 
 ## Run the fictional parity example
 
 From a source checkout, after the normal toolkit installation:
 
 ```powershell
-node --version
+vstoolkit context --offline --format markdown
+vstoolkit context --offline --card context.local.md
 vstoolkit context --retrieval-spec .\tests\fixtures\screener-context-0.5.0\retrieval-spec.json --data .\tests\fixtures\screener-context-0.5.0\evidence-packet.json
 ```
 
@@ -29,7 +30,8 @@ output matches `computed-context.json` field for field, including ordered
 evidence, risk codes, optional weighted/headline peers and narrative roles.
 
 The CLI supports separate spec/packet files for parity and authorized replays.
-For normal dataset use, `vstoolkit context --data context-dataset.json` requires:
+Normal files use additive [dataset.v2](DATA_CONTRACT.md#v2-optional-context-fields).
+The legacy context envelope below remains supported for authorized replays:
 
 | Root field | Contract |
 | --- | --- |
@@ -49,8 +51,32 @@ The engine inherits no API credentials or `NODE_OPTIONS` injection flags.
 The old `visualsectors-toolkit.dataset.v1` remains unchanged. Its snapshots do
 not contain historical OHLCV, effective memberships, full-universe aggregates
 or benchmark paths. It is deliberately rejected by `context`, not expanded
-with invented data. G13 owns the connector evidence retrieval; automatic API
-hydration of this richer packet is not implemented by this port.
+with invented data.
+
+## Live Price and Market with explicit gaps
+
+```powershell
+vstoolkit login
+vstoolkit context --ticker AAPL --format markdown
+vstoolkit context --ticker KMI --card kmi-context.local.md
+vstoolkit context --ticker JPM
+```
+
+This fetches candidate and SPY/QQQ/IWM/RSP daily bars plus candidate/SPY-linked
+news. Each paginated response is metered; pace calls using current entitlements.
+Live data is non-PIT; SPY-linked news is only a market proxy. Missing industry
+membership, market caps, breadth and structured news linkages mean **not supplied**.
+Peers abstain; no taxonomy or co-mentions are invented. Missing benchmark
+entitlements downgrade the Market lane; authentication/quota failures remain errors.
+The card's coverage section exposes proxy/split/lineage limitations. Client read
+fingerprints are not warehouse lineage evidence. Full-lane historical work needs
+licensed PIT datasets or a future server-side evidence endpoint; this CLI does
+not pretend that endpoint exists.
+
+The ordinary Markdown card is an evidence-linked observation summary, not a
+validated A/B/C judgment. An agent adds tailwinds, headwinds and proposed review
+conditions using cited facts; a machine-validated tier needs the frozen analyst
+metadata and strict request/response path below.
 
 ## Feature coverage
 

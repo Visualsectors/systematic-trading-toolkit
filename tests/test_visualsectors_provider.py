@@ -207,6 +207,56 @@ class VisualSectorsProviderTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "single token"):
             VisualSectorsProvider(api_key="-----BEGIN OPENSSH PRIVATE KEY-----\nnot-a-secret")
 
+    def test_api_hosts_reject_insecure_or_credential_bearing_urls_before_io(self):
+        for host in ("http://api.example.com", "ftp://api.example.com", "https://user:password@example.com",
+                     "https://example.com?secret=yes", "https://example.com#fragment", "https://example.com\n"):
+            with self.subTest(host=host), patch("visualsectors_toolkit.providers.visualsectors.urlopen") as http:
+                with self.assertRaisesRegex(ValueError, "HTTPS"):
+                    VisualSectorsProvider(api_key="test-only", base_url=host)
+                http.assert_not_called()
+
+    def test_authenticated_redirects_are_refused_without_forwarding_a_key(self):
+        from visualsectors_toolkit.providers.visualsectors import _NoCredentialRedirect
+        from urllib.request import Request
+        request = Request("https://api.visualsectors.com/v1/levels", headers={"Authorization": "Bearer test-only"})
+        for target in ("http://api.visualsectors.com/v1/levels", "https://untrusted.example/v1/levels"):
+            with self.subTest(target=target), self.assertRaisesRegex(ApiResponseError, "redirects are refused"):
+                _NoCredentialRedirect().redirect_request(request, None, 302, "redirect", {}, target)
+
+    def test_cache_is_separate_for_each_key_and_does_not_use_legacy_cache(self):
+        with tempfile.TemporaryDirectory() as directory:
+            first = VisualSectorsProvider(api_key="first-test-key", cache_dir=directory)
+            second = VisualSectorsProvider(api_key="second-test-key", cache_dir=directory)
+            with patch("visualsectors_toolkit.providers.visualsectors.urlopen",
+                       side_effect=[BytesIO(b'{"account":"first"}'), BytesIO(b'{"account":"second"}')]) as http:
+                self.assertEqual(first._request_json("GET", "/v1/levels"), {"account": "first"})
+                self.assertEqual(second._request_json("GET", "/v1/levels"), {"account": "second"})
+                self.assertEqual(first._request_json("GET", "/v1/levels"), {"account": "first"})
+                self.assertEqual(http.call_count, 2)
+            self.assertNotEqual(first._cache_namespace, second._cache_namespace)
+            paths = [str(path) for path in Path(directory).rglob("*.json")]
+            self.assertEqual(len(paths), 2)
+            self.assertTrue(all("test-key" not in path for path in paths))
+
+    def test_multi_ticker_manifest_uses_latest_valid_snapshot_time(self):
+        with tempfile.TemporaryDirectory() as directory:
+            provider = RecordedProvider(directory)
+            provider.get("AAPL")
+            for payload in provider.recorded.values():
+                if isinstance(payload, dict) and "as_of" in payload:
+                    payload["as_of"] = "2026-09-24T23:59:59Z"
+            provider.get("MSFT")
+            self.assertEqual(provider.manifest.decision_time, "2026-09-24T23:59:59Z")
+            self.assertEqual(len(provider.manifest.snapshots), 2)
+
+    def test_news_and_observations_after_common_cutoff_are_not_used(self):
+        with tempfile.TemporaryDirectory() as directory:
+            provider = RecordedProvider(directory)
+            provider.recorded[("GET", "/v1/levels", None)]["as_of"] = "2026-09-23T12:00:00Z"
+            row = provider.get("AAPL")
+            self.assertEqual(row.evidence, ())
+            self.assertIn("after the common source cutoff", " ".join(row.warnings))
+
     def test_missing_key_has_signup_guidance(self):
         with tempfile.TemporaryDirectory() as directory, patch.dict(
             os.environ, {"VISUALSECTORS_API_KEY": ""}, clear=False

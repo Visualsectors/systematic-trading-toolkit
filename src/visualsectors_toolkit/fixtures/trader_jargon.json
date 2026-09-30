@@ -1,0 +1,5369 @@
+[
+  {
+    "phrase": "oversold",
+    "variants": [
+      "OS",
+      "oversold stocks",
+      "deeply oversold",
+      "RSI oversold",
+      "oversold territory"
+    ],
+    "family": "mean_reversion",
+    "meaning": "Price has fallen far and fast enough that a momentum oscillator sits at the bottom of its range.",
+    "measurable_as": [
+      "rsi14 <= 30",
+      "stoch_k_14_1_3 <= 20",
+      "mfi14 <= 20",
+      "bb_percent_b < 0"
+    ],
+    "common_settings": [
+      "RSI 14 below 30 (Wilder default)",
+      "RSI 14 below 20 for \"deeply\" oversold",
+      "RSI 2 below 10 or 5 (Connors, short-term)",
+      "RSI 5 at or below 30 above the 200-day (StockCharts sample)",
+      "Finviz offers oversold at 40/30/20/10"
+    ],
+    "substitutes": [
+      "stoch_k_14_1_3 < 20",
+      "Williams %R(14) < -80, which equals stoch_k_14_1_3 < 20",
+      "mfi14 < 20 (or < 10 for extreme)",
+      "CCI(20) < -100",
+      "StochRSI(14) < 0.20",
+      "bb_percent_b < 0"
+    ],
+    "ambiguity": "Traders disagree on the threshold (30 vs 20), the period (14 vs 2 or 5), and whether oversold means anything in a downtrend; ChartSchool says the readings work best in ranges. Retail posts also use \"oversold\" to mean \"fell a lot / looks cheap\" with no indicator at all.",
+    "screenable_today": true,
+    "needs": "RSI at periods other than 14 (2, 4, 5); CCI; StochRSI (refused today).",
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/relative-strength-index-rsi",
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/stochastic-oscillator-fast-slow-and-full",
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/williams-r",
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/money-flow-index-mfi",
+      "https://finviz.com/screener.ashx?v=111&ft=4",
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/",
+      "https://www.reddit.com/r/swingtrading/comments/p83qnm/",
+      "https://www.reddit.com/r/algotrading/comments/1i2n579/",
+      "https://www.reddit.com/r/Daytrading/comments/1i23ziu/",
+      "https://www.reddit.com/r/stocks/comments/1v2nolz/"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "overbought",
+    "variants": [
+      "OB",
+      "overbought stocks",
+      "RSI overbought",
+      "extremely overbought"
+    ],
+    "family": "mean_reversion",
+    "meaning": "Price has risen far and fast enough that a momentum oscillator sits at the top of its range.",
+    "measurable_as": [
+      "rsi14 >= 70",
+      "stoch_k_14_1_3 >= 80",
+      "mfi14 >= 80",
+      "bb_percent_b > 1"
+    ],
+    "common_settings": [
+      "RSI 14 above 70; 80 for strong trends",
+      "RSI 2 above 90 or 95 (Connors short side)",
+      "Finviz offers 90/80/70/60"
+    ],
+    "substitutes": [
+      "stoch_k_14_1_3 > 80",
+      "Williams %R(14) > -20 (= stoch_k_14_1_3 > 80)",
+      "mfi14 > 80 (> 90 extreme)",
+      "CCI(20) > +100",
+      "bb_percent_b > 1"
+    ],
+    "ambiguity": "Momentum traders treat overbought as strength, not a sell signal; ChartSchool warns overbought can persist in uptrends.",
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/relative-strength-index-rsi",
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/stochastic-oscillator-fast-slow-and-full",
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/money-flow-index-mfi",
+      "https://finviz.com/screener.ashx?v=111&ft=4",
+      "https://www.reddit.com/r/thetagang/comments/1596oay/",
+      "https://www.reddit.com/r/Daytrading/comments/1i23ziu/"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "RSI 2 oversold",
+    "variants": [
+      "RSI(2) under 10",
+      "RSI2 < 5",
+      "Connors RSI",
+      "2-period RSI",
+      "RSI 4 below 30"
+    ],
+    "family": "mean_reversion",
+    "meaning": "A very short RSI at an extreme, used for short-term mean-reversion entries inside a long-term uptrend.",
+    "measurable_as": [
+      "rsi(2) <= 10 AND close > sma200"
+    ],
+    "common_settings": [
+      "RSI 2 at or below 5 (aggressive) or 10; exit above the 5-day SMA (ChartSchool)",
+      "RSI 4 below 30, exit above 55 (Reddit backtest)",
+      "RSI 2 below 30 with RSI 5 below 50 and 50 SMA above 200 SMA (Reddit)"
+    ],
+    "substitutes": [
+      "rsi14 <= 30 AND close > sma200 (slower)",
+      "stoch_k_14_1_3 < 10 AND close > sma200",
+      "bb_percent_b < 0 AND close > sma200"
+    ],
+    "ambiguity": "Backtests posted on r/algotrading look strong; replies say they are curve-fit, lose to buy-and-hold, or fail out of sample.",
+    "screenable_today": false,
+    "needs": "RSI at period 2 (and 4/5); 5-day SMA for the exit.",
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/trading-strategies-and-models/trading-strategies/rsi-2",
+      "https://www.reddit.com/r/algotrading/comments/15qiymg/",
+      "https://www.reddit.com/r/algotrading/comments/1i2n579/",
+      "https://www.reddit.com/r/swingtrading/comments/1h4jxqh/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "oversold in an uptrend",
+    "variants": [
+      "pullback in uptrend",
+      "dip in an uptrend",
+      "oversold above the 200"
+    ],
+    "family": "mean_reversion",
+    "meaning": "A stock whose long-term trend is up but whose short-term oscillator is at an oversold reading.",
+    "measurable_as": [
+      "close > sma200 AND rsi14 <= 40",
+      "close > sma200 AND stoch_k_14_1_3 < 20"
+    ],
+    "common_settings": [
+      "Close above SMA 200 with RSI 5 at or below 30 (ChartSchool sample)",
+      "Williams %R below -80 in last 20 days, then back above -50, above the 200-day (ChartSchool)",
+      "Slow stochastic oversold upturn above the 200-day (ChartSchool)"
+    ],
+    "substitutes": [
+      "close > sma200 AND mfi14 < 20",
+      "close > sma200 AND bb_percent_b < 0.05"
+    ],
+    "ambiguity": "Whether to require a turn-up (oscillator crossing back above the line) before entry; that turn is a crossover the screener refuses.",
+    "screenable_today": true,
+    "needs": "Oscillator crossing back up (crossover); RSI 5.",
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/relative-strength-index-rsi",
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/williams-r",
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/stochastic-oscillator-fast-slow-and-full",
+      "https://www.reddit.com/r/swingtrading/comments/1h4jxqh/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "oversold bounce",
+    "variants": [
+      "oversold reversal",
+      "bounce play",
+      "dead cat bounce (bearish)"
+    ],
+    "family": "mean_reversion",
+    "meaning": "An oversold stock that has started to rise, usually on above-average volume.",
+    "measurable_as": [
+      "rsi14 < 30 AND change_today > 0 AND rvol >= 2"
+    ],
+    "common_settings": [
+      "Finviz \"oversold reversal\" recipe: RSI 14 oversold 30, price up today, relative volume over 2, price over $5"
+    ],
+    "substitutes": [
+      "stoch_k_14_1_3 < 20 AND stoch_k_14_1_3 > stoch_d_14_1_3",
+      "rsi14 < 35 AND support_dist_atr <= 0.5 AND expected_bounce > 0"
+    ],
+    "ambiguity": "A bounce that fails is called a dead cat bounce; traders differ on how much confirmation to wait for.",
+    "screenable_today": false,
+    "needs": "Daily % change, relative volume.",
+    "sources": [
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/",
+      "https://www.reddit.com/r/swingtrading/comments/p83qnm/",
+      "https://www.reddit.com/r/algotrading/comments/1i2n579/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "RSI above 50",
+    "variants": [
+      "bullish RSI",
+      "RSI bull zone",
+      "RSI holding 40",
+      "RSI 40-90 range"
+    ],
+    "family": "momentum",
+    "meaning": "Momentum is on the upside half of the RSI range, often used as a trend filter rather than a signal.",
+    "measurable_as": [
+      "rsi14 > 50"
+    ],
+    "common_settings": [
+      "Centerline 50",
+      "Bull markets hold RSI 40-50 as support and range 40-90 (Brown/Cardwell via ChartSchool)",
+      "Finviz \"not oversold\" >50 / >40"
+    ],
+    "substitutes": [
+      "macd > 0",
+      "stoch_k_14_1_3 > 50",
+      "mfi14 > 50"
+    ],
+    "ambiguity": null,
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/relative-strength-index-rsi",
+      "https://finviz.com/screener.ashx?v=111&ft=4",
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/",
+      "https://www.reddit.com/r/swingtrading/comments/1nzm12r/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "not overbought",
+    "variants": [
+      "room to run",
+      "not extended (RSI)"
+    ],
+    "family": "momentum",
+    "meaning": "The oscillator is below the overbought line so the move is judged to have room left.",
+    "measurable_as": [
+      "rsi14 < 70",
+      "rsi14 < 60"
+    ],
+    "common_settings": [
+      "Finviz \"not overbought\" options are <60 and <50"
+    ],
+    "substitutes": [
+      "stoch_k_14_1_3 < 80"
+    ],
+    "ambiguity": "Whether 60 or 70 is the cap.",
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://finviz.com/screener.ashx?v=111&ft=4",
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/",
+      "https://www.reddit.com/r/investing/comments/11kzewv/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "RSI pullback zone",
+    "variants": [
+      "RSI 40-50",
+      "RSI 40-55",
+      "RSI reset"
+    ],
+    "family": "mean_reversion",
+    "meaning": "An uptrending stock whose RSI has cooled into the 40s without going oversold.",
+    "measurable_as": [
+      "rsi14 BETWEEN 40 AND 55 AND close > sma50"
+    ],
+    "common_settings": [
+      "RSI 14 between 40 and 50 with volume above its 20-day average (Reddit scan)",
+      "RSI 14 40-55 with price above SMA 50 and 200, 1-week performance negative (Reddit)"
+    ],
+    "substitutes": [
+      "stoch_k_14_1_3 BETWEEN 20 AND 50 AND close > sma50"
+    ],
+    "ambiguity": "Some add a trend filter (above the 50-day), others do not.",
+    "screenable_today": true,
+    "needs": "Volume vs its 20-day average (relative volume).",
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/1qjxlq0/",
+      "https://www.reddit.com/r/swingtrading/comments/1nzm12r/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "strong momentum (RSI)",
+    "variants": [
+      "RSI 60+",
+      "momentum buildup",
+      "RSI 60-100"
+    ],
+    "family": "momentum",
+    "meaning": "An oscillator reading in the upper band taken as a sign that buyers are in control.",
+    "measurable_as": [
+      "rsi14 >= 60"
+    ],
+    "common_settings": [
+      "RSI 60-100 with 2x relative volume (Reddit)",
+      "Minervini-template users trying RSI above 78 (Reddit)"
+    ],
+    "substitutes": [
+      "macd_hist > 0",
+      "adx14 > 25 AND rsi14 > 60"
+    ],
+    "ambiguity": "RSI of the stock is often confused with relative strength against the index; a reply in r/swingtrading corrects exactly this.",
+    "screenable_today": true,
+    "needs": "Relative volume for the common pairing.",
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/1sm1364/",
+      "https://www.reddit.com/r/swingtrading/comments/1l8rhi7/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "stochastic oversold",
+    "variants": [
+      "stoch oversold",
+      "stochastics under 20",
+      "slow stoch oversold",
+      "%K below 20"
+    ],
+    "family": "mean_reversion",
+    "meaning": "The close is near the bottom of its recent high-low range.",
+    "measurable_as": [
+      "stoch_k_14_1_3 < 20",
+      "stoch_d_14_1_3 < 20"
+    ],
+    "common_settings": [
+      "Fast (14,3), slow (14,3) and full (14,3,3) versions; 80/20 lines (ChartSchool)"
+    ],
+    "substitutes": [
+      "rsi14 < 30",
+      "Williams %R(14) < -80"
+    ],
+    "ambiguity": "Slow %K(14,3) equals the fast %D(14,1,3), so \"slow stochastic %K under 20\" maps to stoch_d_14_1_3 < 20; slow %D (14,3,3) is not available.",
+    "screenable_today": true,
+    "needs": "Slow %D (14,3,3) if a source insists on it.",
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/stochastic-oscillator-fast-slow-and-full",
+      "https://www.reddit.com/r/Daytrading/comments/1i23ziu/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "stochastic overbought",
+    "variants": [
+      "stoch overbought",
+      "stochastics over 80"
+    ],
+    "family": "mean_reversion",
+    "meaning": "The close is near the top of its recent high-low range.",
+    "measurable_as": [
+      "stoch_k_14_1_3 > 80",
+      "stoch_d_14_1_3 > 80"
+    ],
+    "common_settings": [
+      "80 line on (14,3) or (14,3,3)"
+    ],
+    "substitutes": [
+      "rsi14 > 70",
+      "Williams %R(14) > -20"
+    ],
+    "ambiguity": "Stays overbought in strong uptrends (ChartSchool).",
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/stochastic-oscillator-fast-slow-and-full"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "Williams %R oversold",
+    "variants": [
+      "%R below -80",
+      "Williams percent R"
+    ],
+    "family": "mean_reversion",
+    "meaning": "The close sits in the bottom fifth of the 14-period high-low range.",
+    "measurable_as": [
+      "stoch_k_14_1_3 < 20"
+    ],
+    "common_settings": [
+      "14 periods; -80/-20 lines (ChartSchool)"
+    ],
+    "substitutes": [
+      "stoch_k_14_1_3 < 20 (identical: %R = fast %K - 100)"
+    ],
+    "ambiguity": null,
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/williams-r"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "MFI oversold",
+    "variants": [
+      "money flow oversold",
+      "MFI under 20",
+      "volume-weighted RSI"
+    ],
+    "family": "volume",
+    "meaning": "The volume-weighted RSI analogue is at the bottom of its range.",
+    "measurable_as": [
+      "mfi14 < 20",
+      "mfi14 < 10"
+    ],
+    "common_settings": [
+      "MFI 14; 80/20 normal, 90/10 extreme (ChartSchool)"
+    ],
+    "substitutes": [
+      "rsi14 < 30"
+    ],
+    "ambiguity": null,
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/money-flow-index-mfi"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "stoch RSI oversold",
+    "variants": [
+      "StochRSI",
+      "stoch RSI under 20",
+      "stochastic RSI"
+    ],
+    "family": "mean_reversion",
+    "meaning": "RSI is at the bottom of its own recent range (stochastic formula applied to RSI).",
+    "measurable_as": [
+      "stochrsi14 < 0.20"
+    ],
+    "common_settings": [
+      "14 periods; 0.80/0.20 lines (ChartSchool)"
+    ],
+    "substitutes": [
+      "stoch_k_14_1_3 < 20",
+      "rsi14 < 30"
+    ],
+    "ambiguity": "ChartSchool calls it far more sensitive than RSI and in need of confirmation.",
+    "screenable_today": false,
+    "needs": "StochRSI (refused today).",
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/stochrsi"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "CCI oversold",
+    "variants": [
+      "CCI below -100",
+      "commodity channel oversold"
+    ],
+    "family": "mean_reversion",
+    "meaning": "Price is far below its statistical mean as measured by CCI.",
+    "measurable_as": [
+      "cci20 < -100",
+      "cci20 < -200"
+    ],
+    "common_settings": [
+      "CCI 20; +/-100 normal, +/-200 extreme (ChartSchool)"
+    ],
+    "substitutes": [
+      "rsi14 < 30",
+      "bb_percent_b < 0"
+    ],
+    "ambiguity": "ChartSchool says wait for CCI back above zero or a price break before acting.",
+    "screenable_today": false,
+    "needs": "CCI indicator.",
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/commodity-channel-index-cci",
+      "https://help.stockcharts.com/scanning-and-alerts/scan-writing-resource-center/advanced-scan-library/predefined-scans",
+      "https://chartschool.stockcharts.com/table-of-contents/trading-strategies-and-models/trading-strategies/narrow-range-day-nr7"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "MACD bullish",
+    "variants": [
+      "MACD positive",
+      "MACD above signal",
+      "MACD above zero",
+      "histogram green"
+    ],
+    "family": "momentum",
+    "meaning": "The fast EMA is above the slow EMA or the MACD line is above its signal line.",
+    "measurable_as": [
+      "macd > macd_signal",
+      "macd > 0",
+      "macd_hist > 0"
+    ],
+    "common_settings": [
+      "12,26,9 (ChartSchool default)"
+    ],
+    "substitutes": [
+      "rsi14 > 50",
+      "ema20 > sma50"
+    ],
+    "ambiguity": "Whether \"bullish MACD\" means above zero, above signal, or a fresh cross.",
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/macd-moving-average-convergence-divergence-oscillator",
+      "https://www.reddit.com/r/swingtrading/comments/1wj5h8s/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "MACD crossover",
+    "variants": [
+      "MACD cross",
+      "bullish MACD cross",
+      "MACD crossed signal",
+      "MACD cross from below zero"
+    ],
+    "family": "momentum",
+    "meaning": "The MACD line has just crossed its signal line (or zero).",
+    "measurable_as": [
+      "macd crosses above macd_signal within 1 bar",
+      "macd crosses above macd_signal AND macd < 0"
+    ],
+    "common_settings": [
+      "12,26,9; StockCharts predefined scan requires the cross below zero; ChartSchool sample adds price above the 200-day"
+    ],
+    "substitutes": [
+      "macd > macd_signal AND macd < 0 (state, not event)",
+      "macd_hist > 0 AND macd_hist small"
+    ],
+    "ambiguity": "Whether crosses far from zero count; ChartSchool says treat extremes with caution.",
+    "screenable_today": false,
+    "needs": "Crossover events (refused).",
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/macd-moving-average-convergence-divergence-oscillator",
+      "https://help.stockcharts.com/scanning-and-alerts/scan-writing-resource-center/advanced-scan-library/predefined-scans",
+      "https://www.reddit.com/r/swingtrading/comments/1sm1364/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "MACD histogram turning up",
+    "variants": [
+      "histogram ticking up",
+      "MACD curling"
+    ],
+    "family": "momentum",
+    "meaning": "The MACD histogram is still negative or small but rising bar over bar.",
+    "measurable_as": [
+      "macd_hist > macd_hist[1]"
+    ],
+    "common_settings": [
+      "12,26,9"
+    ],
+    "substitutes": [
+      "macd_hist > 0"
+    ],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Prior-bar values (slope).",
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/macd-moving-average-convergence-divergence-oscillator"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "divergence",
+    "variants": [
+      "bullish divergence",
+      "bearish divergence",
+      "RSI divergence",
+      "MACD divergence"
+    ],
+    "family": "momentum",
+    "meaning": "Price makes a new low (or high) that the oscillator does not confirm.",
+    "measurable_as": [
+      "price lower low AND rsi14 higher low over last N bars"
+    ],
+    "common_settings": [
+      "RSI 14 on daily is most common"
+    ],
+    "substitutes": [],
+    "ambiguity": "Traders disagree on swing-point detection and lookback.",
+    "screenable_today": false,
+    "needs": "Swing-point detection over history (refused today).",
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/relative-strength-index-rsi",
+      "https://www.reddit.com/r/Daytrading/comments/1i23ziu/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "failure swing",
+    "variants": [
+      "RSI failure swing"
+    ],
+    "family": "momentum",
+    "meaning": "RSI leaves an extreme, retests it without breaking, then breaks its prior swing.",
+    "measurable_as": [
+      "rsi14 path condition over N bars"
+    ],
+    "common_settings": [
+      "30/70 lines (Wilder via ChartSchool)"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Indicator history / swing logic.",
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/relative-strength-index-rsi"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "mean reversion",
+    "variants": [
+      "mean reversion setup",
+      "snap back",
+      "reversion to the mean",
+      "stretched from the mean"
+    ],
+    "family": "mean_reversion",
+    "meaning": "A bet that a price far from its average will move back toward it.",
+    "measurable_as": [
+      "bb_percent_b < 0",
+      "bb_percent_b > 1",
+      "rsi14 <= 30 AND close > sma200"
+    ],
+    "common_settings": [
+      "Bollinger 20,2 outside the bands",
+      "RSI 2/4 extremes with a 200-day filter"
+    ],
+    "substitutes": [
+      "(close - sma20) / atr14 < -2",
+      "stoch_k_14_1_3 < 20"
+    ],
+    "ambiguity": "On r/options, \"mean reversion\" of IV rank is questioned because the mean itself moves and volatility clusters.",
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://www.reddit.com/r/algotrading/comments/15qiymg/",
+      "https://www.reddit.com/r/options/comments/1rxn6l4/",
+      "https://www.reddit.com/r/thetagang/comments/1cd6shp/",
+      "https://chartschool.stockcharts.com/table-of-contents/trading-strategies-and-models/trading-strategies/rsi-2"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "below the lower Bollinger band",
+    "variants": [
+      "outside the bands",
+      "under the lower band",
+      "band tag"
+    ],
+    "family": "mean_reversion",
+    "meaning": "Close below the lower Bollinger band.",
+    "measurable_as": [
+      "bb_percent_b < 0"
+    ],
+    "common_settings": [
+      "Bollinger 20,2"
+    ],
+    "substitutes": [
+      "rsi14 < 30"
+    ],
+    "ambiguity": null,
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://help.stockcharts.com/scanning-and-alerts/scan-writing-resource-center/advanced-scan-library/predefined-scans",
+      "https://www.reddit.com/r/options/comments/1rxn6l4/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "above the upper Bollinger band",
+    "variants": [
+      "riding the bands",
+      "walking the bands",
+      "moved above upper band"
+    ],
+    "family": "momentum",
+    "meaning": "Close above the upper Bollinger band, read as strength by trend traders and as stretched by mean-reversion traders.",
+    "measurable_as": [
+      "bb_percent_b > 1"
+    ],
+    "common_settings": [
+      "Bollinger 20,2; StockCharts predefined scan"
+    ],
+    "substitutes": [
+      "rsi14 > 70"
+    ],
+    "ambiguity": "Breakout signal vs overextension.",
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://help.stockcharts.com/scanning-and-alerts/scan-writing-resource-center/advanced-scan-library/predefined-scans",
+      "https://www.reddit.com/r/Daytrading/comments/1tlxr9y/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "extended",
+    "variants": [
+      "stretched",
+      "overextended",
+      "too far from the 10",
+      "parabolic extension"
+    ],
+    "family": "mean_reversion",
+    "meaning": "Price is far above a short or medium moving average, so a fresh entry is judged late.",
+    "measurable_as": [
+      "(close - ema20) / atr14 >= 3",
+      "(close - sma50) / sma50 >= 0.25"
+    ],
+    "common_settings": [
+      "Distance above 10/20-day MA; Qullamaggie shorts parabolics back toward the 10/20-day"
+    ],
+    "substitutes": [
+      "rsi14 >= 75",
+      "bb_percent_b > 1"
+    ],
+    "ambiguity": "No agreed distance; traders quote ATR multiples or percent.",
+    "screenable_today": true,
+    "needs": "Close as a field in expressions (assumed).",
+    "sources": [
+      "https://qullamaggie.com/my-3-timeless-setups-that-have-made-me-tens-of-millions/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "parabolic",
+    "variants": [
+      "going parabolic",
+      "parabolic short",
+      "vertical move"
+    ],
+    "family": "momentum",
+    "meaning": "A near-vertical multi-day run, often shorted once it cracks.",
+    "measurable_as": [
+      "return_5d >= 50% AND consecutive_up_days >= 3"
+    ],
+    "common_settings": [
+      "Up 50-100%+ (larger caps) or 300-1000%+ (small caps) in days or weeks, 3-5+ up days in a row (Qullamaggie)"
+    ],
+    "substitutes": [
+      "(close - ema20) / atr14 >= 5",
+      "rsi14 >= 85"
+    ],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Multi-day return and consecutive-day counts.",
+    "sources": [
+      "https://qullamaggie.com/my-3-timeless-setups-that-have-made-me-tens-of-millions/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "capitulation",
+    "variants": [
+      "washout",
+      "flush",
+      "puke"
+    ],
+    "family": "mean_reversion",
+    "meaning": "A heavy-volume, sharp sell-off that may mark exhaustion of sellers.",
+    "measurable_as": [
+      "change_today <= -5% AND rvol >= 3 AND rsi14 < 25"
+    ],
+    "common_settings": [
+      "Extreme RVOL spikes (4.0+) near oversold can foreshadow reversals (ChartSchool RVOL)"
+    ],
+    "substitutes": [
+      "rsi14 < 20 AND mfi14 < 15"
+    ],
+    "ambiguity": "No shared numeric definition.",
+    "screenable_today": false,
+    "needs": "Daily % change, relative volume.",
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/relative-volume-rvol"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "falling knife",
+    "variants": [
+      "catching a falling knife"
+    ],
+    "family": "mean_reversion",
+    "meaning": "A stock still dropping hard; used as a warning against buying oversold readings too early.",
+    "measurable_as": [
+      "rsi14 < 30 AND close < sma200 AND change_5d < -10%"
+    ],
+    "common_settings": [],
+    "substitutes": [
+      "rsi14 < 30 AND close < sma50"
+    ],
+    "ambiguity": "The same chart is an \"oversold bounce\" candidate to someone else.",
+    "screenable_today": false,
+    "needs": "Multi-day % change.",
+    "sources": [
+      "https://www.reddit.com/r/algotrading/comments/1i2n579/",
+      "https://www.reddit.com/r/Daytrading/comments/1t0e5lw/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "uptrend",
+    "variants": [
+      "in an uptrend",
+      "trending up",
+      "bullish trend",
+      "trend is up"
+    ],
+    "family": "trend",
+    "meaning": "Price and its moving averages are rising and stacked bullishly.",
+    "measurable_as": [
+      "close > sma50 AND sma50 > sma200",
+      "close > sma200",
+      "adx14 > 25 AND close > sma50"
+    ],
+    "common_settings": [
+      "Price above SMA 50 and 200 with SMA 50 above 200 (Reddit pullback screen)",
+      "Above 50, 100 and 200 SMA (RealDayTrading)",
+      "20/50/200 EMA aligned (Reddit)"
+    ],
+    "substitutes": [
+      "ema20 > sma50 > sma200",
+      "macd > 0 AND close > sma200"
+    ],
+    "ambiguity": "Which averages define it (20/50/200, 50/150/200, 10/20/50) and whether the averages must also be rising.",
+    "screenable_today": true,
+    "needs": "MA slope (\"rising\") for the stricter versions.",
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/1nzm12r/",
+      "https://www.reddit.com/r/RealDayTrading/comments/tnyz9a/",
+      "https://www.reddit.com/r/swingtrading/comments/1hbxhgo/",
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/average-directional-index-adx"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "downtrend",
+    "variants": [
+      "in a downtrend",
+      "trending down",
+      "bearish trend"
+    ],
+    "family": "trend",
+    "meaning": "Price and its moving averages are falling and stacked bearishly.",
+    "measurable_as": [
+      "close < sma50 AND sma50 < sma200",
+      "close < sma200"
+    ],
+    "common_settings": [
+      "Mirror of uptrend settings"
+    ],
+    "substitutes": [
+      "ema20 < sma50 < sma200"
+    ],
+    "ambiguity": null,
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/average-directional-index-adx",
+      "https://www.reddit.com/r/swingtrading/comments/1o55odr/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "stacked moving averages",
+    "variants": [
+      "MAs stacked",
+      "aligned MAs",
+      "bullish alignment",
+      "stacked MAs"
+    ],
+    "family": "trend",
+    "meaning": "Short, medium and long moving averages are ordered fastest on top in an uptrend.",
+    "measurable_as": [
+      "ema20 > sma50 AND sma50 > sma200",
+      "ema21 > sma50 AND sma50 > sma100 AND sma100 > sma200"
+    ],
+    "common_settings": [
+      "20 > 50 > 200 (Reddit)",
+      "10e / 21s / 62s / 252s (Reddit)",
+      "50 > 150 > 200 (Minervini)"
+    ],
+    "substitutes": [
+      "close > ema21 AND ema21 > sma50"
+    ],
+    "ambiguity": "Which lengths, and SMA vs EMA.",
+    "screenable_today": true,
+    "needs": "SMA 150 and EMA 10 for the Minervini and 10/20 versions.",
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/1hbxhgo/",
+      "https://www.reddit.com/r/swingtrading/comments/1dtoyfv/",
+      "https://www.chartmill.com/trading-ideas/645-Mark-Minervinis-Trend-Template-TTP"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "above the 200",
+    "variants": [
+      "the 200",
+      "200-day",
+      "200 DMA",
+      "above the 200 SMA",
+      "200 day moving average"
+    ],
+    "family": "trend",
+    "meaning": "Close is above the 200-day simple moving average, the most quoted long-term trend line.",
+    "measurable_as": [
+      "close > sma200"
+    ],
+    "common_settings": [
+      "200-day SMA; some use the 200 EMA (Reddit)"
+    ],
+    "substitutes": [
+      "close > sma100",
+      "sma50 > sma200"
+    ],
+    "ambiguity": "SMA vs EMA 200.",
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/trading-strategies-and-models/trading-strategies/rsi-2",
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/macd-moving-average-convergence-divergence-oscillator",
+      "https://www.reddit.com/r/swingtrading/comments/1hbxhgo/",
+      "https://www.reddit.com/r/StockMarket/comments/1uso0yz/"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "below the 200",
+    "variants": [
+      "under the 200",
+      "broke the 200"
+    ],
+    "family": "trend",
+    "meaning": "Close is below the 200-day simple moving average.",
+    "measurable_as": [
+      "close < sma200"
+    ],
+    "common_settings": [
+      "200-day SMA"
+    ],
+    "substitutes": [
+      "sma50 < sma200"
+    ],
+    "ambiguity": "\"Broke the 200\" implies a fresh cross, which is an event.",
+    "screenable_today": true,
+    "needs": "Crossover for \"just broke\".",
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/trading-strategies-and-models/trading-strategies/rsi-2",
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/williams-r"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "the 50",
+    "variants": [
+      "50-day",
+      "50 DMA",
+      "the 50-day line",
+      "10-week line",
+      "50 SMA"
+    ],
+    "family": "trend",
+    "meaning": "The 50-day moving average as support, trend filter, or pullback target.",
+    "measurable_as": [
+      "close > sma50",
+      "abs(close - sma50) / atr14 <= 1"
+    ],
+    "common_settings": [
+      "50-day SMA; IBD calls it the 10-week line on weekly charts and treats the first or second pullback to it as buyable"
+    ],
+    "substitutes": [
+      "close > ema21"
+    ],
+    "ambiguity": null,
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://finance.yahoo.com/news/watch-50-day-10-week-212700211.html",
+      "https://www.reddit.com/r/swingtrading/comments/1o55odr/",
+      "https://www.reddit.com/r/swingtrading/comments/1nzm12r/"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "the 21 EMA",
+    "variants": [
+      "21 EMA",
+      "21-day EMA",
+      "the 21",
+      "21e"
+    ],
+    "family": "trend",
+    "meaning": "The 21-day exponential moving average used as the swing-trend line and pullback level.",
+    "measurable_as": [
+      "close > ema21",
+      "abs(close - ema21) / atr14 <= 0.5"
+    ],
+    "common_settings": [
+      "21 EMA with 50/200 SMA (Reddit)",
+      "IBD power trend uses the 21-day EMA above the 50-day"
+    ],
+    "substitutes": [
+      "close > ema20",
+      "close > sma20"
+    ],
+    "ambiguity": null,
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/1hbxhgo/",
+      "https://www.reddit.com/r/swingtrading/comments/1dtoyfv/",
+      "https://finance.yahoo.com/news/watch-50-day-10-week-212700211.html"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "the 20",
+    "variants": [
+      "20 EMA",
+      "20-day",
+      "20 SMA",
+      "the 20 day"
+    ],
+    "family": "trend",
+    "meaning": "The 20-day moving average (SMA or EMA) as short-term trend line.",
+    "measurable_as": [
+      "close > ema20",
+      "close > sma20"
+    ],
+    "common_settings": [
+      "Finviz SMA 20 filter",
+      "Weekly 20 EMA for dip buys (Reddit)"
+    ],
+    "substitutes": [
+      "close > ema21"
+    ],
+    "ambiguity": "SMA vs EMA.",
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://finviz.com/screener.ashx?v=111&ft=4",
+      "https://www.reddit.com/r/swingtrading/comments/1h4jxqh/",
+      "https://www.reddit.com/r/swingtrading/comments/1o55odr/",
+      "https://www.reddit.com/r/swingtrading/comments/1nzm12r/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "the 10",
+    "variants": [
+      "10 EMA",
+      "10-day",
+      "10 day moving average",
+      "10-week"
+    ],
+    "family": "trend",
+    "meaning": "The 10-day moving average used as a trailing stop and a tight trend line for momentum names.",
+    "measurable_as": [
+      "close > ema10"
+    ],
+    "common_settings": [
+      "Qullamaggie trails with the 10-day or 20-day and exits on the first close below",
+      "10/20 EMA with 50/200 SMA (Reddit)"
+    ],
+    "substitutes": [
+      "close > ema20"
+    ],
+    "ambiguity": "Which of 10 vs 20 to trail.",
+    "screenable_today": false,
+    "needs": "EMA/SMA 10.",
+    "sources": [
+      "https://qullamaggie.com/my-3-timeless-setups-that-have-made-me-tens-of-millions/",
+      "https://www.reddit.com/r/swingtrading/comments/1hbxhgo/",
+      "https://www.reddit.com/r/swingtrading/comments/1o55odr/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "9 and 21 EMA",
+    "variants": [
+      "8/21 EMA",
+      "9/21",
+      "EMA 9 21",
+      "9 EMA"
+    ],
+    "family": "trend",
+    "meaning": "Fast EMA pair used for short-term trend and crossover entries.",
+    "measurable_as": [
+      "ema9 > ema21",
+      "ema9 crosses above ema21"
+    ],
+    "common_settings": [
+      "9/21 (Reddit day trader)"
+    ],
+    "substitutes": [
+      "ema20 > sma50",
+      "close > ema21"
+    ],
+    "ambiguity": "Crossovers are events; \"ready to cross\" needs a distance rule such as EMA gap under 0.2%.",
+    "screenable_today": false,
+    "needs": "EMA 8/9; crossover events.",
+    "sources": [
+      "https://www.reddit.com/r/Daytrading/comments/1tlxr9y/",
+      "https://www.reddit.com/r/swingtrading/comments/1hbxhgo/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "the 150",
+    "variants": [
+      "150-day",
+      "30-week",
+      "30-week MA",
+      "SMA 150"
+    ],
+    "family": "trend",
+    "meaning": "The 150-day (about 30-week) moving average used by Minervini and Weinstein.",
+    "measurable_as": [
+      "close > sma150 AND sma150 > sma200"
+    ],
+    "common_settings": [
+      "30-week MA (Weinstein)",
+      "50/150/200 (Minervini)"
+    ],
+    "substitutes": [
+      "close > sma100 AND sma100 > sma200"
+    ],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "SMA 150.",
+    "sources": [
+      "https://www.chartmill.com/trading-ideas/645-Mark-Minervinis-Trend-Template-TTP",
+      "https://deepvue.com/indicators/stan-weinstein-stage-analysis-when-to-buy/",
+      "https://www.reddit.com/r/swingtrading/comments/1hbxhgo/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "Stage 2",
+    "variants": [
+      "stage 2 uptrend",
+      "stage analysis",
+      "Weinstein stage 2"
+    ],
+    "family": "trend",
+    "meaning": "Weinstein advancing phase: price above a rising 30-week moving average.",
+    "measurable_as": [
+      "close > sma150 AND sma150 rising over 20 days"
+    ],
+    "common_settings": [
+      "30-week MA (~150-day)"
+    ],
+    "substitutes": [
+      "close > sma100 AND sma50 > sma100",
+      "close > sma200 AND sma50 > sma200"
+    ],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "SMA 150 and slope.",
+    "sources": [
+      "https://deepvue.com/indicators/stan-weinstein-stage-analysis-when-to-buy/",
+      "https://www.reddit.com/r/swingtrading/comments/1l8rhi7/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "Minervini trend template",
+    "variants": [
+      "trend template",
+      "TTP",
+      "Minervini template",
+      "SEPA"
+    ],
+    "family": "trend",
+    "meaning": "A checklist of moving-average alignment, 52-week position and relative strength.",
+    "measurable_as": [
+      "close > sma50 > sma150 > sma200",
+      "sma200 rising >= 1 month",
+      "close >= 1.30 * low_52w",
+      "close >= 0.75 * high_52w",
+      "rs_rating >= 70"
+    ],
+    "common_settings": [
+      "30% above 52-week low, within 25% of 52-week high, RS rating 70+ (80-90 preferred)"
+    ],
+    "substitutes": [
+      "close > sma50 AND sma50 > sma100 AND sma100 > sma200"
+    ],
+    "ambiguity": "Reddit users report the template returns too many names and add RS ranking or VCP checks.",
+    "screenable_today": false,
+    "needs": "SMA 150, MA slope, 52-week high/low, RS rating.",
+    "sources": [
+      "https://www.chartmill.com/trading-ideas/645-Mark-Minervinis-Trend-Template-TTP",
+      "https://www.reddit.com/r/swingtrading/comments/1l8rhi7/",
+      "https://www.reddit.com/r/Trading/comments/1fhx084/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "golden cross",
+    "variants": [
+      "golden crossover",
+      "golden cross forming",
+      "50/200 cross"
+    ],
+    "family": "trend",
+    "meaning": "A shorter moving average crosses above a longer one, most often the 50-day above the 200-day.",
+    "measurable_as": [
+      "sma50 crosses above sma200"
+    ],
+    "common_settings": [
+      "50/200 SMA (most sources, StockCharts predefined scan)",
+      "ChartSchool MA-strategy page uses 50/100 as its example"
+    ],
+    "substitutes": [
+      "sma50 > sma200 AND (sma200 - sma50)/sma200 < 0.01 (about to cross, state)",
+      "sma50 > sma200 (after the cross)"
+    ],
+    "ambiguity": "Lengths differ (50/200 vs 50/100) and many Reddit users want \"forming\" rather than \"happened\".",
+    "screenable_today": false,
+    "needs": "Crossover events (refused).",
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/trading-strategies-and-models/trading-strategies/moving-average-trading-strategies",
+      "https://help.stockcharts.com/scanning-and-alerts/scan-writing-resource-center/advanced-scan-library/predefined-scans",
+      "https://www.quant-investing.com/glossary/cross-sma-50200-golden-cross",
+      "https://www.reddit.com/r/swingtrading/comments/1h4jxqh/",
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "death cross",
+    "variants": [
+      "50 below 200"
+    ],
+    "family": "trend",
+    "meaning": "The 50-day moving average crosses below the 200-day.",
+    "measurable_as": [
+      "sma50 crosses below sma200"
+    ],
+    "common_settings": [
+      "50/200 SMA"
+    ],
+    "substitutes": [
+      "sma50 < sma200"
+    ],
+    "ambiguity": "Same length dispute as golden cross.",
+    "screenable_today": false,
+    "needs": "Crossover events (refused).",
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/trading-strategies-and-models/trading-strategies/moving-average-trading-strategies",
+      "https://help.stockcharts.com/scanning-and-alerts/scan-writing-resource-center/advanced-scan-library/predefined-scans",
+      "https://www.quant-investing.com/glossary/cross-sma-50200-golden-cross"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "ready to cross",
+    "variants": [
+      "about to cross",
+      "near a cross",
+      "converging MAs"
+    ],
+    "family": "trend",
+    "meaning": "Two moving averages are close enough that a crossover is imminent.",
+    "measurable_as": [
+      "abs(ema9 - ema21) / ema21 < 0.002",
+      "sma50 < sma200 AND (sma200 - sma50)/sma200 < 0.01"
+    ],
+    "common_settings": [
+      "EMA distance under 0.2% or X bars from crossing (Reddit reply)"
+    ],
+    "substitutes": [
+      "abs(ema20 - sma50)/sma50 < 0.005"
+    ],
+    "ambiguity": "Needs an explicit distance; Reddit replies say every scanner defines it differently.",
+    "screenable_today": true,
+    "needs": "EMA 9 for the most common pair.",
+    "sources": [
+      "https://www.reddit.com/r/Daytrading/comments/1tlxr9y/",
+      "https://www.reddit.com/r/swingtrading/comments/1h4jxqh/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "crosses above",
+    "variants": [
+      "crossed above",
+      "cross over",
+      "price crossing the 50",
+      "moved above"
+    ],
+    "family": "trend",
+    "meaning": "Price or an indicator moved from below a line to above it on the latest bar.",
+    "measurable_as": [
+      "close > sma50 AND close[1] <= sma50[1]"
+    ],
+    "common_settings": [
+      "Finviz offers \"price crossed SMA\" and \"SMA crossed SMA\" filters"
+    ],
+    "substitutes": [
+      "close > sma50 AND abs(close - sma50)/atr14 < 0.5 (just above, state)"
+    ],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Prior-bar values / crossover events (refused).",
+    "sources": [
+      "https://finviz.com/screener.ashx?v=111&ft=4",
+      "https://www.reddit.com/r/swingtrading/comments/1o55odr/",
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/",
+      "https://www.reddit.com/r/RealDayTrading/comments/walv06/"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "reclaim",
+    "variants": [
+      "reclaimed the 50",
+      "reclaim the 21",
+      "back above",
+      "reclaimed VWAP"
+    ],
+    "family": "trend",
+    "meaning": "Price closes back above a level or average it had lost.",
+    "measurable_as": [
+      "close > sma50 AND min(close, 5 bars) < sma50"
+    ],
+    "common_settings": [
+      "Daily MA reclaims; VWAP reclaim intraday"
+    ],
+    "substitutes": [
+      "close > ema21 AND abs(close - ema21)/atr14 < 0.5"
+    ],
+    "ambiguity": "How many bars below counts as \"lost\".",
+    "screenable_today": false,
+    "needs": "Bar history / crossover.",
+    "sources": [
+      "https://finance.yahoo.com/news/watch-50-day-10-week-212700211.html",
+      "https://www.reddit.com/r/swingtrading/comments/1nzm12r/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "lost the level",
+    "variants": [
+      "lost the 50",
+      "broke support",
+      "breakdown below the MA"
+    ],
+    "family": "trend",
+    "meaning": "Price closed below an average or level it had been holding.",
+    "measurable_as": [
+      "close < sma50 AND close[1] >= sma50[1]"
+    ],
+    "common_settings": [],
+    "substitutes": [
+      "close < sma50",
+      "hard_break_rate high"
+    ],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Crossover events.",
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/1hbxhgo/",
+      "https://www.reddit.com/r/swingtrading/comments/1o55odr/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "strong trend",
+    "variants": [
+      "trending",
+      "trend strength",
+      "ADX above 25"
+    ],
+    "family": "trend",
+    "meaning": "Directional movement is strong regardless of direction.",
+    "measurable_as": [
+      "adx14 > 25"
+    ],
+    "common_settings": [
+      "ADX 14; under 20 no trend, 20-25 grey zone, over 25 strong (ChartSchool); 20 used for new-trend scans"
+    ],
+    "substitutes": [
+      "abs(macd) large",
+      "close > sma50 AND sma50 > sma200"
+    ],
+    "ambiguity": "Threshold 20 vs 25.",
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/average-directional-index-adx",
+      "https://help.stockcharts.com/scanning-and-alerts/scan-writing-resource-center/advanced-scan-library/predefined-scans"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "choppy",
+    "variants": [
+      "range-bound",
+      "sideways",
+      "no trend",
+      "chop"
+    ],
+    "family": "trend",
+    "meaning": "Price oscillates without direction.",
+    "measurable_as": [
+      "adx14 < 20"
+    ],
+    "common_settings": [
+      "ADX under 20 (ChartSchool)"
+    ],
+    "substitutes": [
+      "bb_width low",
+      "abs(close - sma50)/atr14 < 1"
+    ],
+    "ambiguity": null,
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/average-directional-index-adx",
+      "https://www.reddit.com/r/swingtrading/comments/1dtoyfv/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "+DI above -DI",
+    "variants": [
+      "DI cross",
+      "directional movement bullish"
+    ],
+    "family": "trend",
+    "meaning": "Upward directional movement exceeds downward movement.",
+    "measurable_as": [
+      "plus_di14 > minus_di14"
+    ],
+    "common_settings": [
+      "ADX > 20 with +DI crossing above -DI above the 50-day (ChartSchool sample)"
+    ],
+    "substitutes": [
+      "adx14 > 20 AND close > sma50"
+    ],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "+DI and -DI lines (only adx14 exists).",
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/average-directional-index-adx",
+      "https://help.stockcharts.com/scanning-and-alerts/scan-writing-resource-center/advanced-scan-library/predefined-scans"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "higher lows",
+    "variants": [
+      "higher highs and higher lows",
+      "HH/HL",
+      "making higher lows",
+      "uptrend structure"
+    ],
+    "family": "trend",
+    "meaning": "Each swing low is above the prior one, the price-action definition of an uptrend.",
+    "measurable_as": [
+      "swing_low_1 > swing_low_2 > swing_low_3"
+    ],
+    "common_settings": [
+      "Qullamaggie consolidation has higher lows and a tightening range"
+    ],
+    "substitutes": [
+      "close > sma50 AND sma50 > sma100"
+    ],
+    "ambiguity": "Swing detection rules vary.",
+    "screenable_today": false,
+    "needs": "Swing-point detection.",
+    "sources": [
+      "https://qullamaggie.com/my-3-timeless-setups-that-have-made-me-tens-of-millions/",
+      "https://trendspider.com/learning-center/chart-patterns-flags/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "lower highs",
+    "variants": [
+      "lower highs and lower lows",
+      "LH/LL"
+    ],
+    "family": "trend",
+    "meaning": "Each swing high is below the prior one.",
+    "measurable_as": [
+      "swing_high_1 < swing_high_2"
+    ],
+    "common_settings": [],
+    "substitutes": [
+      "close < sma50 AND sma50 < sma100"
+    ],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Swing-point detection.",
+    "sources": [
+      "https://trendspider.com/learning-center/chart-patterns-flags/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "power trend",
+    "variants": [
+      "IBD power trend"
+    ],
+    "family": "trend",
+    "meaning": "IBD condition where lows hold above the 21-day EMA for 10 days and the 21 EMA holds above a rising 50-day.",
+    "measurable_as": [
+      "low > ema21 for 10 days AND ema21 > sma50 for 5 days AND sma50 rising"
+    ],
+    "common_settings": [
+      "IBD definition"
+    ],
+    "substitutes": [
+      "close > ema21 AND ema21 > sma50"
+    ],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Persistence counts over bars; MA slope.",
+    "sources": [
+      "https://finance.yahoo.com/news/watch-50-day-10-week-212700211.html"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "Heikin Ashi reversal",
+    "variants": [
+      "HA reversal",
+      "HA candles",
+      "3 HA candles in a row",
+      "flat-bottom HA"
+    ],
+    "family": "pattern",
+    "meaning": "A colour change or flat-bottomed Heikin Ashi candle used as trend-change signal.",
+    "measurable_as": [
+      "ha_color changes to green AND ha_body > prior bodies"
+    ],
+    "common_settings": [
+      "Daily plus 5-minute HA in the RealDayTrading TC2000 scan"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Heikin Ashi candles.",
+    "sources": [
+      "https://www.reddit.com/r/RealDayTrading/comments/walv06/",
+      "https://www.reddit.com/r/swingtrading/comments/1hbxhgo/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "52-week high",
+    "variants": [
+      "new 52-week high",
+      "new highs",
+      "52w high",
+      "yearly high"
+    ],
+    "family": "momentum",
+    "meaning": "Price trades at or above its highest level of the last year.",
+    "measurable_as": [
+      "high >= max(high, 252 bars)"
+    ],
+    "common_settings": [
+      "StockCharts predefined: high above 253-day max",
+      "Finviz: New High, or % below high bands"
+    ],
+    "substitutes": [
+      "close >= 0.95 * high_52w (near high)"
+    ],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "52-week high/low fields.",
+    "sources": [
+      "https://help.stockcharts.com/scanning-and-alerts/scan-writing-resource-center/advanced-scan-library/predefined-scans",
+      "https://finviz.com/screener.ashx?v=111&ft=4",
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/",
+      "https://www.chartmill.com/trading-ideas/645-Mark-Minervinis-Trend-Template-TTP"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "near 52-week high",
+    "variants": [
+      "near highs",
+      "within 25% of the high",
+      "close to highs"
+    ],
+    "family": "momentum",
+    "meaning": "Price within a stated percent of its 52-week high.",
+    "measurable_as": [
+      "close >= 0.75 * high_52w",
+      "close >= 0.95 * high_52w"
+    ],
+    "common_settings": [
+      "Within 25% (Minervini)",
+      "Finviz 0-3%, 0-5%, 0-10% below high"
+    ],
+    "substitutes": [
+      "resistance_dist_atr <= 1 (if the high is a level)"
+    ],
+    "ambiguity": "Tolerance ranges from 3% to 25%.",
+    "screenable_today": false,
+    "needs": "52-week high field.",
+    "sources": [
+      "https://www.chartmill.com/trading-ideas/645-Mark-Minervinis-Trend-Template-TTP",
+      "https://finviz.com/screener.ashx?v=111&ft=4"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "all-time high",
+    "variants": [
+      "ATH",
+      "ATHs",
+      "blue sky",
+      "record high"
+    ],
+    "family": "momentum",
+    "meaning": "Price at its highest ever, so no overhead supply.",
+    "measurable_as": [
+      "high >= max(high, all history)"
+    ],
+    "common_settings": [],
+    "substitutes": [
+      "near 52-week high"
+    ],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "All-history high.",
+    "sources": [
+      "https://www.reddit.com/r/RealDayTrading/comments/walv06/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "52-week low",
+    "variants": [
+      "new lows",
+      "yearly low",
+      "52w low"
+    ],
+    "family": "momentum",
+    "meaning": "Price at or below its lowest level of the last year.",
+    "measurable_as": [
+      "low <= min(low, 252 bars)"
+    ],
+    "common_settings": [
+      "StockCharts: 253-day minimum"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "52-week low field.",
+    "sources": [
+      "https://help.stockcharts.com/scanning-and-alerts/scan-writing-resource-center/advanced-scan-library/predefined-scans",
+      "https://www.reddit.com/r/Daytrading/comments/1tv21c0/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "off the lows",
+    "variants": [
+      "X% above the 52-week low",
+      "up from the lows",
+      "30% above low"
+    ],
+    "family": "momentum",
+    "meaning": "Price has risen a set percent from a recent or 52-week low.",
+    "measurable_as": [
+      "close >= 1.30 * low_52w",
+      "close >= 1.35 * min(low, 65 bars)"
+    ],
+    "common_settings": [
+      "30% above 52-week low (Minervini)",
+      "35% up from the 65-day low (Reddit weekend screen)"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Rolling low over N bars.",
+    "sources": [
+      "https://www.chartmill.com/trading-ideas/645-Mark-Minervinis-Trend-Template-TTP",
+      "https://www.reddit.com/r/swingtrading/comments/1wj5h8s/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "N-day high",
+    "variants": [
+      "20-day high",
+      "new 1-month high",
+      "50-day high",
+      "breaking prior highs"
+    ],
+    "family": "momentum",
+    "meaning": "Price exceeds its highest high of the last N days.",
+    "measurable_as": [
+      "high > max(high[1..20])"
+    ],
+    "common_settings": [
+      "Finviz 20-day / 50-day / 52-week new high",
+      "StockCharts 20-day price channel"
+    ],
+    "substitutes": [
+      "resistance_dist_atr <= 0"
+    ],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Rolling high over N bars.",
+    "sources": [
+      "https://finviz.com/screener.ashx?v=111&ft=4",
+      "https://help.stockcharts.com/scanning-and-alerts/scan-writing-resource-center/advanced-scan-library/predefined-scans",
+      "https://www.reddit.com/r/RealDayTrading/comments/wiu93j/",
+      "https://www.reddit.com/r/RealDayTrading/comments/tnyz9a/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "previous day high",
+    "variants": [
+      "PDH",
+      "above yesterday's high",
+      "taking out the prior day high"
+    ],
+    "family": "momentum",
+    "meaning": "Price trades above the prior session high.",
+    "measurable_as": [
+      "high > high[1]",
+      "close > high[1]"
+    ],
+    "common_settings": [
+      "Also prior week/month highs (RealDayTrading)"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Prior-bar high/low.",
+    "sources": [
+      "https://www.reddit.com/r/RealDayTrading/comments/tnyz9a/",
+      "https://www.reddit.com/r/RealDayTrading/comments/omw9rn/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "top gainers",
+    "variants": [
+      "biggest gainers",
+      "movers",
+      "top movers",
+      "% gainers",
+      "up big today"
+    ],
+    "family": "momentum",
+    "meaning": "Stocks ranked by today's percent gain.",
+    "measurable_as": [
+      "change_today >= 10% ORDER BY change_today DESC"
+    ],
+    "common_settings": [
+      "Up 10%+ on the day (Warrior)",
+      "Finviz \"Top Gainers\" signal"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Daily % change and ranking.",
+    "sources": [
+      "https://finviz.com/help/screener.ashx",
+      "https://www.tradingview.com/script/mbqMf3pF-Ross-Cameron-5-Pillars-Filter/",
+      "https://www.reddit.com/r/Daytrading/comments/1vb75ve/"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "up on the day",
+    "variants": [
+      "green today",
+      "performance today up",
+      "positive day"
+    ],
+    "family": "momentum",
+    "meaning": "Price is above the prior close.",
+    "measurable_as": [
+      "change_today > 0"
+    ],
+    "common_settings": [
+      "Finviz \"Performance: Today Up\""
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Daily % change.",
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/n4tb5y/",
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "ripping",
+    "variants": [
+      "running",
+      "mooning",
+      "to the moon",
+      "popping",
+      "squeezing higher"
+    ],
+    "family": "momentum",
+    "meaning": "Slang for a stock rising sharply right now.",
+    "measurable_as": [
+      "change_today >= 10% AND rvol >= 3"
+    ],
+    "common_settings": [
+      "Not standardised"
+    ],
+    "substitutes": [],
+    "ambiguity": "Pure slang; numbers vary by speaker.",
+    "screenable_today": false,
+    "needs": "Daily % change, relative volume.",
+    "sources": [
+      "https://www.schaeffersresearch.com/content/education/2025/07/11/the-ultimate-2025-trader-slang-glossary",
+      "https://www.reddit.com/r/swingtrading/comments/n4tb5y/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "momentum stocks",
+    "variants": [
+      "momo",
+      "momentum names",
+      "momentum leaders",
+      "1/3/6 month gainers"
+    ],
+    "family": "momentum",
+    "meaning": "Stocks with the largest price gains over one to six months.",
+    "measurable_as": [
+      "return_22d >= 25% OR return_67d >= 50% OR return_126d >= 150%"
+    ],
+    "common_settings": [
+      "Top 1-2% of 1M/3M/6M gainers (Qullamaggie)",
+      "+25% in 1 month / +50% in 3 / +150% in 6 (scan write-ups)",
+      "3/6/12-month and YTD performance ranking (Reddit)"
+    ],
+    "substitutes": [
+      "rsi14 > 60 AND close > ema21 AND ema21 > sma50"
+    ],
+    "ambiguity": "Intraday \"momo\" (gappers) vs multi-month momentum are different screens.",
+    "screenable_today": false,
+    "needs": "Multi-period performance returns and ranking.",
+    "sources": [
+      "https://qullamaggie.com/my-3-timeless-setups-that-have-made-me-tens-of-millions/",
+      "https://tikamalma.substack.com/p/qullamaggie-swing-trading-setups",
+      "https://www.reddit.com/r/swingtrading/comments/1sm1364/",
+      "https://www.reddit.com/r/Daytrading/comments/1vb75ve/"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "down this week",
+    "variants": [
+      "weekly pullback",
+      "week down",
+      "perf 1W negative"
+    ],
+    "family": "mean_reversion",
+    "meaning": "Price is lower than a week ago, used with a positive longer-term performance to define a pullback.",
+    "measurable_as": [
+      "return_5d < 0 AND return_21d > 0"
+    ],
+    "common_settings": [
+      "Quarter up, week down (Reddit Finviz screen)",
+      "Perf 1M > 0 and 1W < 0 (Reddit)"
+    ],
+    "substitutes": [
+      "close > sma50 AND close < ema20"
+    ],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Performance windows.",
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/1vlk3qc/",
+      "https://www.reddit.com/r/swingtrading/comments/1nzm12r/",
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "dropped X% in a day",
+    "variants": [
+      "big drop",
+      "down 10% day",
+      "crash day"
+    ],
+    "family": "mean_reversion",
+    "meaning": "A single-day decline beyond a threshold, sometimes N days ago.",
+    "measurable_as": [
+      "change_on_day(t-5) <= -10%"
+    ],
+    "common_settings": [],
+    "substitutes": [],
+    "ambiguity": "Reddit users report mainstream screeners cannot look at \"exactly 5 days ago\".",
+    "screenable_today": false,
+    "needs": "Historical daily % change.",
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/1kopdbh/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "pullback",
+    "variants": [
+      "pulling back",
+      "healthy pullback",
+      "retracement",
+      "pullback entry"
+    ],
+    "family": "mean_reversion",
+    "meaning": "A temporary decline inside an uptrend, bought near a moving average or support.",
+    "measurable_as": [
+      "close > sma200 AND sma50 > sma200 AND rsi14 BETWEEN 40 AND 55",
+      "close > sma50 AND support_dist_atr <= 1"
+    ],
+    "common_settings": [
+      "RSI 40-55 with price above SMA 50/200 and 1-week performance negative (Reddit)",
+      "Dip below EMA 20 then green candle and RSI back above 50 (Reddit)",
+      "Pullback to the 21 EMA or 50-day"
+    ],
+    "substitutes": [
+      "close > sma200 AND stoch_k_14_1_3 < 30",
+      "abs(close - ema21)/atr14 <= 0.5 AND ema21 > sma50"
+    ],
+    "ambiguity": "How to tell a pullback from a reversal; breakout traders (Qullamaggie, Minervini) often do not wait for one.",
+    "screenable_today": true,
+    "needs": "Performance windows; candle close position.",
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/1nzm12r/",
+      "https://www.reddit.com/r/swingtrading/comments/1qjxlq0/",
+      "https://www.reddit.com/r/swingtrading/comments/1rp240d/",
+      "https://www.reddit.com/r/swingtrading/comments/1s1qx81/",
+      "https://www.reddit.com/r/swingtrading/comments/1wj5h8s/",
+      "https://finance.yahoo.com/news/watch-50-day-10-week-212700211.html"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "buy the dip",
+    "variants": [
+      "BTFD",
+      "dip",
+      "dip buying",
+      "buying dips"
+    ],
+    "family": "mean_reversion",
+    "meaning": "Buying after a short-term drop, usually in something with a longer-term uptrend.",
+    "measurable_as": [
+      "close > sma200 AND rsi14 < 40",
+      "close > sma200 AND close < ema20"
+    ],
+    "common_settings": [
+      "Dips to the weekly 10/20/50 EMA (Reddit)",
+      "200 SMA below 50 SMA and price crossing down through the 50 (Reddit)"
+    ],
+    "substitutes": [
+      "support_dist_atr <= 0.5 AND close > sma200"
+    ],
+    "ambiguity": "Some traders say buy strength, not dips.",
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://www.schaeffersresearch.com/content/education/2025/07/11/the-ultimate-2025-trader-slang-glossary",
+      "https://www.reddit.com/r/swingtrading/comments/1o55odr/"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "pullback to the moving average",
+    "variants": [
+      "bounce at the moving average",
+      "MA bounce",
+      "tagging the 21",
+      "kissing the 50"
+    ],
+    "family": "level",
+    "meaning": "Price has pulled back to touch or approach a rising moving average.",
+    "measurable_as": [
+      "abs(close - ema21)/atr14 <= 0.5",
+      "close > sma20 AND close < sma50"
+    ],
+    "common_settings": [
+      "Finviz recipe: price above SMA 20, below SMA 50, relative volume over 1"
+    ],
+    "substitutes": [
+      "support_dist_atr <= 0.5"
+    ],
+    "ambiguity": "Which average (10/20/21/50) acts as support differs by stock.",
+    "screenable_today": true,
+    "needs": "Relative volume.",
+    "sources": [
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/",
+      "https://finance.yahoo.com/news/watch-50-day-10-week-212700211.html",
+      "https://www.reddit.com/r/swingtrading/comments/1hbxhgo/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "at support",
+    "variants": [
+      "near support",
+      "sitting on support",
+      "testing support",
+      "support zone",
+      "demand zone"
+    ],
+    "family": "level",
+    "meaning": "Price is close to a price level where buying has appeared before.",
+    "measurable_as": [
+      "support_dist_atr <= 0.5"
+    ],
+    "common_settings": [
+      "Distance in ATR or percent; screens for \"dip trading at support\" (Reddit)"
+    ],
+    "substitutes": [
+      "abs(close - sma50)/atr14 <= 0.5"
+    ],
+    "ambiguity": "Traders draw levels differently (wicks vs closes, weekly vs daily).",
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/1o55odr/",
+      "https://www.reddit.com/r/swingtrading/comments/1wj5h8s/",
+      "https://www.reddit.com/r/thetagang/comments/1cd6shp/",
+      "https://www.reddit.com/r/swingtrading/comments/1s1qx81/"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "near resistance",
+    "variants": [
+      "into resistance",
+      "under resistance",
+      "supply zone",
+      "at the ceiling"
+    ],
+    "family": "level",
+    "meaning": "Price is close to a level where selling has appeared before.",
+    "measurable_as": [
+      "resistance_dist_atr <= 0.5"
+    ],
+    "common_settings": [],
+    "substitutes": [
+      "near 52-week high"
+    ],
+    "ambiguity": null,
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/1o55odr/",
+      "https://www.reddit.com/r/swingtrading/comments/1rp240d/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "strong support",
+    "variants": [
+      "well-tested support",
+      "key level",
+      "major support",
+      "triple bottom"
+    ],
+    "family": "level",
+    "meaning": "A level that has been tested and held several times.",
+    "measurable_as": [
+      "tests_365d >= 3 AND hold_rate_7d >= 0.7"
+    ],
+    "common_settings": [],
+    "substitutes": [
+      "confluence_count >= 2"
+    ],
+    "ambiguity": "Whether more tests make a level stronger or weaker is debated.",
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/1s1qx81/",
+      "https://www.reddit.com/r/swingtrading/comments/1o55odr/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "retest",
+    "variants": [
+      "backtest",
+      "retest of the breakout",
+      "retest and hold",
+      "S/R flip",
+      "role reversal"
+    ],
+    "family": "level",
+    "meaning": "Price returns to a level it recently broke, which should now act in the opposite role.",
+    "measurable_as": [
+      "support_dist_atr <= 0.5 AND level_was_resistance_recently"
+    ],
+    "common_settings": [
+      "Wait for pullback to the breakout level (Reddit)"
+    ],
+    "substitutes": [
+      "support_dist_atr <= 0.5 AND tests_365d >= 2"
+    ],
+    "ambiguity": "Breakout traders argue strong breakouts never retest.",
+    "screenable_today": false,
+    "needs": "A flag that a level was broken recently (event history).",
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/1rp240d/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "bounce off support",
+    "variants": [
+      "support held",
+      "holding support",
+      "defended the level",
+      "expected bounce"
+    ],
+    "family": "level",
+    "meaning": "Price touched support and turned up.",
+    "measurable_as": [
+      "support_dist_atr <= 0.5 AND hold_rate_7d >= 0.6 AND expected_bounce > 0"
+    ],
+    "common_settings": [],
+    "substitutes": [
+      "support_dist_atr <= 1 AND stoch_k_14_1_3 > stoch_d_14_1_3"
+    ],
+    "ambiguity": null,
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://www.reddit.com/r/thetagang/comments/1cd6shp/",
+      "https://www.reddit.com/r/RealDayTrading/comments/omw9rn/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "support break",
+    "variants": [
+      "breakdown",
+      "broke support",
+      "hard break",
+      "lost support"
+    ],
+    "family": "level",
+    "meaning": "Price closed decisively below a support level.",
+    "measurable_as": [
+      "close < level_price AND hard_break_rate high"
+    ],
+    "common_settings": [],
+    "substitutes": [
+      "support_dist_atr < 0"
+    ],
+    "ambiguity": null,
+    "screenable_today": true,
+    "needs": "Break-event detection for \"just broke\".",
+    "sources": [
+      "https://www.reddit.com/r/Daytrading/comments/1t0e5lw/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "risk/reward",
+    "variants": [
+      "R:R",
+      "reward to risk",
+      "3R",
+      "2:1",
+      "good risk reward",
+      "asymmetric"
+    ],
+    "family": "level",
+    "meaning": "The distance to target divided by the distance to stop.",
+    "measurable_as": [
+      "reward_risk >= 2",
+      "reward_risk >= 3"
+    ],
+    "common_settings": [
+      "3R+ quoted by SMC/ICT posters",
+      "2:1 minimum is common"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/1rp240d/",
+      "https://www.reddit.com/r/swingtrading/comments/1vlk3qc/",
+      "https://www.reddit.com/r/swingtrading/comments/1wj5h8s/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "confluence",
+    "variants": [
+      "confluence zone",
+      "multiple levels",
+      "stacked levels"
+    ],
+    "family": "level",
+    "meaning": "Several independent levels (MA, prior high, round number) line up at the same price.",
+    "measurable_as": [
+      "confluence_count >= 2"
+    ],
+    "common_settings": [],
+    "substitutes": [
+      "support_dist_atr <= 0.5 AND abs(close - sma50)/atr14 <= 0.5"
+    ],
+    "ambiguity": "The word was not seen verbatim in the sources read; mapped because the screener exposes a confluence count.",
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/1s1qx81/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "tight stop",
+    "variants": [
+      "clean invalidation",
+      "low-risk entry",
+      "tight risk"
+    ],
+    "family": "level",
+    "meaning": "An entry close to a clear level, so the stop is small.",
+    "measurable_as": [
+      "support_dist_atr <= 0.5 AND reward_risk >= 3"
+    ],
+    "common_settings": [
+      "Stop no wider than ADR (Qullamaggie)"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://qullamaggie.com/my-3-timeless-setups-that-have-made-me-tens-of-millions/",
+      "https://www.reddit.com/r/swingtrading/comments/1wj5h8s/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "double bottom",
+    "variants": [
+      "W bottom",
+      "double bottom at support"
+    ],
+    "family": "pattern",
+    "meaning": "Two lows at roughly the same price with a bounce between.",
+    "measurable_as": [
+      "tests_365d >= 2 AND support_dist_atr <= 0.5"
+    ],
+    "common_settings": [
+      "Finviz chart-pattern filter family (used in r/swingtrading screens)"
+    ],
+    "substitutes": [
+      "support hold rate high"
+    ],
+    "ambiguity": "Pattern recognition vs a simple two-test count.",
+    "screenable_today": true,
+    "needs": "Pattern recognition for the strict version.",
+    "sources": [
+      "https://finviz.com/screener.ashx?v=111&ft=4",
+      "https://help.stockcharts.com/scanning-and-alerts/scan-writing-resource-center/advanced-scan-library/predefined-scans"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "squeeze",
+    "variants": [
+      "Bollinger squeeze",
+      "BB squeeze",
+      "volatility squeeze",
+      "the squeeze"
+    ],
+    "family": "volatility",
+    "meaning": "Bollinger BandWidth near its lowest level in months, read as a coming volatility expansion.",
+    "measurable_as": [
+      "bb_width <= min(bb_width, 125 bars) * 1.1",
+      "bb_width < stock-specific threshold"
+    ],
+    "common_settings": [
+      "8-12 month lookback for \"historically low\" (ChartSchool)",
+      "Expansion scan: BandWidth more than twice its 5-day max"
+    ],
+    "substitutes": [
+      "bb_width < 3 * natr14 (approximates bands inside Keltner)",
+      "adx14 < 20 AND bb_width low"
+    ],
+    "ambiguity": "No universal BandWidth threshold; \"squeeze\" also means a short squeeze or gamma squeeze.",
+    "screenable_today": true,
+    "needs": "Rolling min/percentile of bb_width for the standard definition.",
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/bollinger-bandwidth",
+      "https://www.reddit.com/r/swingtrading/comments/18iznhl/",
+      "https://www.reddit.com/r/swingtrading/comments/1dtoyfv/"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "TTM squeeze",
+    "variants": [
+      "squeeze on",
+      "squeeze fired",
+      "red dots",
+      "John Carter squeeze"
+    ],
+    "family": "volatility",
+    "meaning": "Bollinger Bands (20,2) sit inside Keltner Channels (20,1.5 ATR); \"fired\" when they move back outside.",
+    "measurable_as": [
+      "bb_upper < kc_upper AND bb_lower > kc_lower"
+    ],
+    "common_settings": [
+      "BB 20,2 inside KC 20,1.5; momentum histogram above zero and rising for longs (ChartSchool)"
+    ],
+    "substitutes": [
+      "bb_width < 3 * natr14 (approximation: ATR period 14 not 20, SMA vs EMA midline, both widths in percent)"
+    ],
+    "ambiguity": "A top Reddit reply calls the author an indicator seller and says squeezes often fizzle without a trend; direction is not given by the indicator.",
+    "screenable_today": false,
+    "needs": "Keltner Channels; squeeze-state and fired events.",
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/ttm-squeeze",
+      "https://www.reddit.com/r/swingtrading/comments/1dtoyfv/",
+      "https://www.reddit.com/r/swingtrading/comments/1925vg5/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "coiling",
+    "variants": [
+      "coiled",
+      "coiling up",
+      "winding up",
+      "spring loaded"
+    ],
+    "family": "volatility",
+    "meaning": "Price range is contracting before an expected move.",
+    "measurable_as": [
+      "bb_width low AND natr14 falling",
+      "rmv15 < 10"
+    ],
+    "common_settings": [
+      "Deepvue RMV 15-day under 10",
+      "Compression on the 2-hour chart (RealDayTrading)"
+    ],
+    "substitutes": [
+      "bb_width < 3 * natr14",
+      "adx14 < 20 AND resistance_dist_atr <= 1"
+    ],
+    "ambiguity": "Qualitative; each platform measures tightness differently.",
+    "screenable_today": true,
+    "needs": "Range-based tightness measures (RMV, NR7, inside days).",
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/1sm1364/",
+      "https://deepvue.com/screener/volatility-contraction-pattern/",
+      "https://www.reddit.com/r/RealDayTrading/comments/omw9rn/",
+      "https://www.tradingsim.com/blog/inside-day"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "tight range",
+    "variants": [
+      "tight",
+      "tightening",
+      "flat",
+      "tight consolidation",
+      "tight closes"
+    ],
+    "family": "volatility",
+    "meaning": "Price has moved very little over the last several days.",
+    "measurable_as": [
+      "(max(high,5) - min(low,5)) / close <= 0.08"
+    ],
+    "common_settings": [
+      "5-day price range between -4% and +4% (Deepvue)",
+      "Price within 15% of 6-day high and low (Qullamaggie scan write-up)"
+    ],
+    "substitutes": [
+      "bb_width low",
+      "natr14 < 2"
+    ],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Rolling high/low over N bars.",
+    "sources": [
+      "https://deepvue.com/screener/volatility-contraction-pattern/",
+      "https://tikamalma.substack.com/p/qullamaggie-swing-trading-setups",
+      "https://www.reddit.com/r/swingtrading/comments/1l8rhi7/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "compression",
+    "variants": [
+      "range compression",
+      "volatility compression",
+      "contraction"
+    ],
+    "family": "volatility",
+    "meaning": "Shrinking daily ranges or bands over consecutive bars.",
+    "measurable_as": [
+      "range_today < min(range, 6 prior bars)",
+      "bb_width falling"
+    ],
+    "common_settings": [
+      "Compression breaks in the RealDayTrading scan"
+    ],
+    "substitutes": [
+      "bb_width < 3 * natr14"
+    ],
+    "ambiguity": null,
+    "screenable_today": true,
+    "needs": "Range history.",
+    "sources": [
+      "https://www.reddit.com/r/RealDayTrading/comments/walv06/",
+      "https://www.reddit.com/r/RealDayTrading/comments/omw9rn/",
+      "https://www.reddit.com/r/Daytrading/comments/1tv21c0/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "NR7",
+    "variants": [
+      "narrow range 7",
+      "NR4",
+      "narrowest range"
+    ],
+    "family": "volatility",
+    "meaning": "Today's high-low range is the smallest of the last seven days (NR4: four).",
+    "measurable_as": [
+      "(high - low) < min(high - low, 6 prior bars)"
+    ],
+    "common_settings": [
+      "Crabel NR4/NR7; ChartSchool scan uses Range < min(6, Range) one day ago"
+    ],
+    "substitutes": [
+      "bb_width low"
+    ],
+    "ambiguity": "Bulkowski finds breakout direction close to a coin flip in bull markets.",
+    "screenable_today": false,
+    "needs": "Daily range history.",
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/trading-strategies-and-models/trading-strategies/narrow-range-day-nr7",
+      "https://www.thepatternsite.com/nr7.html"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "inside day",
+    "variants": [
+      "inside bar",
+      "ID",
+      "inside week",
+      "NR7 inside day",
+      "double inside day"
+    ],
+    "family": "pattern",
+    "meaning": "Today's high is below yesterday's high and today's low is above yesterday's low.",
+    "measurable_as": [
+      "high < high[1] AND low > low[1]"
+    ],
+    "common_settings": [
+      "Daily or weekly; combined with NR7 for stronger compression"
+    ],
+    "substitutes": [
+      "NR7"
+    ],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Prior-bar high/low.",
+    "sources": [
+      "https://www.tradingsim.com/blog/inside-day",
+      "https://www.luxalgo.com/library/concept/inside-bar/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "VCP",
+    "variants": [
+      "volatility contraction pattern",
+      "contractions",
+      "Minervini VCP"
+    ],
+    "family": "pattern",
+    "meaning": "A base where each pullback is smaller than the last and volume dries up before a breakout.",
+    "measurable_as": [
+      "pullback depths decreasing (e.g., 20% -> 10% -> 5%) AND volume drying up AND within 25% of 52w high"
+    ],
+    "common_settings": [
+      "2-4 contractions typical",
+      "Power play screen: 6-month change > 85% and 15-day change between -15% and +5% (Deepvue)"
+    ],
+    "substitutes": [
+      "bb_width low AND close > sma50 AND sma50 > sma200 AND resistance_dist_atr <= 1"
+    ],
+    "ambiguity": "Counting contractions is subjective; Reddit users struggle to narrow template output to real VCPs.",
+    "screenable_today": false,
+    "needs": "Swing detection, volume dry-up, 52-week high.",
+    "sources": [
+      "https://www.luxalgo.com/library/concept/volatility-contraction-pattern/",
+      "https://deepvue.com/screener/volatility-contraction-pattern/",
+      "https://www.reddit.com/r/swingtrading/comments/1l8rhi7/",
+      "https://www.reddit.com/r/Trading/comments/1fhx084/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "high volatility",
+    "variants": [
+      "volatile",
+      "big movers",
+      "ATR% above 2.5",
+      "wide range stocks"
+    ],
+    "family": "volatility",
+    "meaning": "Stocks whose average daily move is large relative to price.",
+    "measurable_as": [
+      "natr14 >= 2.5",
+      "natr14 >= 4"
+    ],
+    "common_settings": [
+      "ATR% minimum 2.5% (Reddit weekend screen)",
+      "ADR above 4-5% (Qullamaggie write-ups)",
+      "Finviz Volatility week/month over 2-15%"
+    ],
+    "substitutes": [
+      "bb_width high"
+    ],
+    "ambiguity": "ADR% excludes gaps while ATR% includes them.",
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/1wj5h8s/",
+      "https://tikamalma.substack.com/p/qullamaggie-swing-trading-setups",
+      "https://finviz.com/screener.ashx?v=111&ft=4",
+      "https://www.reddit.com/r/swingtrading/comments/1nzm12r/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "low volatility",
+    "variants": [
+      "quiet",
+      "boring",
+      "low vol"
+    ],
+    "family": "volatility",
+    "meaning": "Stocks whose average daily move is small relative to price.",
+    "measurable_as": [
+      "natr14 < 1.5"
+    ],
+    "common_settings": [],
+    "substitutes": [
+      "bb_width low"
+    ],
+    "ambiguity": null,
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/bollinger-bandwidth"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "ADR",
+    "variants": [
+      "ADR%",
+      "average daily range",
+      "average day range"
+    ],
+    "family": "volatility",
+    "meaning": "Average of daily high-low range as a percent of price, used to size stops.",
+    "measurable_as": [
+      "adr20_pct >= 4"
+    ],
+    "common_settings": [
+      "ADR% over 20 days = 100 * (mean(high/low) - 1)",
+      "Qullamaggie keeps stops within ADR"
+    ],
+    "substitutes": [
+      "natr14 >= 4 (ATR includes gaps, ADR does not)"
+    ],
+    "ambiguity": "TradingView divides by close, others by open; ATR vs ADR differ on gaps.",
+    "screenable_today": true,
+    "needs": "ADR% itself (natr14 is a close substitute).",
+    "sources": [
+      "https://tradethatswing.com/which-is-better-average-true-range-atr-average-day-range-adr-or-intraday-range-ir/",
+      "https://usethinkscript.com/threads/adr-average-daily-range-for-thinkorswim.17831/",
+      "https://qullamaggie.com/my-3-timeless-setups-that-have-made-me-tens-of-millions/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "ATR",
+    "variants": [
+      "average true range",
+      "ATR over $0.50",
+      "ATR stop"
+    ],
+    "family": "volatility",
+    "meaning": "Average true range in dollars, used as a volatility floor and stop distance.",
+    "measurable_as": [
+      "atr14 >= 0.5"
+    ],
+    "common_settings": [
+      "ATR 14 (Wilder)",
+      "ATR at least $0.50 for gap scans",
+      "Finviz ATR over 0.25-5"
+    ],
+    "substitutes": [
+      "natr14"
+    ],
+    "ambiguity": null,
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://finviz.com/screener.ashx?v=111&ft=4",
+      "https://tradethatswing.com/which-is-better-average-true-range-atr-average-day-range-adr-or-intraday-range-ir/",
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "volatility expansion",
+    "variants": [
+      "range expansion",
+      "expansion day",
+      "squeeze firing",
+      "wide range bar"
+    ],
+    "family": "volatility",
+    "meaning": "Bands or ranges widening sharply after a quiet period.",
+    "measurable_as": [
+      "bb_width > 2 * max(bb_width, 5 prior bars)",
+      "(high - low) > 2 * atr14"
+    ],
+    "common_settings": [
+      "ChartSchool BandWidth expansion scan"
+    ],
+    "substitutes": [
+      "bb_percent_b > 1 AND bb_width rising"
+    ],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Prior-bar comparison.",
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/bollinger-bandwidth",
+      "https://qullamaggie.com/my-3-timeless-setups-that-have-made-me-tens-of-millions/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "beta",
+    "variants": [
+      "high beta",
+      "low beta"
+    ],
+    "family": "volatility",
+    "meaning": "Sensitivity of a stock to the market index.",
+    "measurable_as": [
+      "beta_5y > 1.5"
+    ],
+    "common_settings": [
+      "Finviz beta (5-year) filter"
+    ],
+    "substitutes": [
+      "natr14 high"
+    ],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Beta vs index.",
+    "sources": [
+      "https://finviz.com/screener.ashx?v=111&ft=4",
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "unusual volume",
+    "variants": [
+      "volume spike",
+      "volume surge",
+      "abnormal volume",
+      "big volume"
+    ],
+    "family": "volume",
+    "meaning": "Today's volume is far above its normal level for that stock.",
+    "measurable_as": [
+      "volume >= 2 * avg_volume_20",
+      "volume >= 4 * sma(volume,20)"
+    ],
+    "common_settings": [
+      "2-5 standard deviations above average (Reddit)",
+      "Volume > 4x 20-day average and price up (StockCharts Strong Volume Gainers)",
+      "3x the 10-day volume average (Reddit)",
+      "Finviz \"Unusual Volume\" signal"
+    ],
+    "substitutes": [
+      "obv rising",
+      "mfi14 > 80"
+    ],
+    "ambiguity": "Multiple of average vs standard deviations; which average length.",
+    "screenable_today": false,
+    "needs": "Current volume vs average volume (relative volume).",
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/p83qnm/",
+      "https://help.stockcharts.com/scanning-and-alerts/scan-writing-resource-center/advanced-scan-library/predefined-scans",
+      "https://finviz.com/help/screener.ashx",
+      "https://www.reddit.com/r/swingtrading/comments/1h4jxqh/",
+      "https://www.reddit.com/r/swingtrading/comments/n4tb5y/",
+      "https://www.reddit.com/r/swingtrading/comments/1sm1364/"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "RVOL",
+    "variants": [
+      "relative volume",
+      "rel vol",
+      "relative-relative volume",
+      "rvol 2",
+      "volume factor"
+    ],
+    "family": "volume",
+    "meaning": "Current volume divided by average volume.",
+    "measurable_as": [
+      "volume / avg_volume_30 >= 5",
+      "volume / sma(volume,50) >= 2",
+      "rvol >= 1.5"
+    ],
+    "common_settings": [
+      "5x vs 30-day average (Warrior five pillars)",
+      "RVOL over 1.5 for swing (RealDayTrading)",
+      "ChartSchool default 50-period SMA baseline, >2 notable",
+      "Finviz offers over 0.25 to over 10"
+    ],
+    "substitutes": [
+      "obv",
+      "mfi14"
+    ],
+    "ambiguity": "Baseline length (10, 20, 30, 50 days) and daily vs time-of-day RVOL; a backtest on r/Daytrading found high RVOL predicts movement, not direction.",
+    "screenable_today": false,
+    "needs": "Relative volume (vov20 semantics not verified; if it is volume / 20-day average it covers daily RVOL).",
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/relative-volume-rvol",
+      "https://www.tradingview.com/script/mbqMf3pF-Ross-Cameron-5-Pillars-Filter/",
+      "https://cdn.warriortrading.com/warriortrading.com/assets/Warrior%20Trading%20-%20Stock%20Selection.pdf",
+      "https://www.reddit.com/r/RealDayTrading/comments/tnyz9a/",
+      "https://www.reddit.com/r/RealDayTrading/comments/omw9rn/",
+      "https://www.reddit.com/r/Daytrading/comments/1w2kahg/",
+      "https://www.reddit.com/r/Daytrading/comments/14y4mfy/",
+      "https://finviz.com/screener.ashx?v=111&ft=4"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "RVOL at time of day",
+    "variants": [
+      "relative volume at time",
+      "volume buzz",
+      "time-of-day RVOL"
+    ],
+    "family": "volume",
+    "meaning": "Volume so far today compared with the average volume by the same time of day.",
+    "measurable_as": [
+      "cum_volume_now / avg_cum_volume_same_time >= 2"
+    ],
+    "common_settings": [
+      "TradingView Relative Volume at Time (anchor, length, cumulative)",
+      "TC2000 Volume Buzz: 0 normal, +300 very high"
+    ],
+    "substitutes": [
+      "daily RVOL"
+    ],
+    "ambiguity": "TC2000 Volume Buzz cannot be used in scan conditions, only watchlist columns.",
+    "screenable_today": false,
+    "needs": "Intraday volume history.",
+    "sources": [
+      "https://www.tradingview.com/support/solutions/43000705489-relative-volume-at-time/",
+      "https://help.tc2000.com/m/69401/l/862838-how-to-use-today-s-volume-buzz",
+      "https://www.reddit.com/r/RealDayTrading/comments/walv06/",
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/relative-volume-rvol"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "volume dry-up",
+    "variants": [
+      "drying up",
+      "VDU",
+      "light volume",
+      "quiet volume",
+      "low volume pullback"
+    ],
+    "family": "volume",
+    "meaning": "Volume falls well below normal during a pullback or base, read as sellers exhausted.",
+    "measurable_as": [
+      "volume <= 0.5 * avg_volume_50"
+    ],
+    "common_settings": [
+      "Handle and VCP bases on contracting volume"
+    ],
+    "substitutes": [
+      "obv flat while price dips"
+    ],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Relative volume.",
+    "sources": [
+      "https://www.luxalgo.com/library/concept/volatility-contraction-pattern/",
+      "https://www.luxalgo.com/library/concept/cup-and-handle/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "accumulation",
+    "variants": [
+      "institutional buying",
+      "big money buying",
+      "smart money",
+      "soaking the float"
+    ],
+    "family": "volume",
+    "meaning": "Sustained buying pressure visible in volume-based indicators.",
+    "measurable_as": [
+      "obv rising over 20 days",
+      "mfi14 > 60",
+      "up_volume > down_volume over 50 days"
+    ],
+    "common_settings": [
+      "Up/down volume (Deepvue per Reddit)",
+      "Chaikin Money Flow above 0.2 (StockCharts)",
+      "PVT (Reddit)"
+    ],
+    "substitutes": [
+      "mfi14 > 50 AND close > sma50"
+    ],
+    "ambiguity": "Hard to observe directly; each tool proxies it differently.",
+    "screenable_today": true,
+    "needs": "OBV slope, up/down volume ratio, CMF.",
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/1sm1364/",
+      "https://help.stockcharts.com/scanning-and-alerts/scan-writing-resource-center/advanced-scan-library/predefined-scans",
+      "https://www.reddit.com/r/RealDayTrading/comments/rp5rmx/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "distribution",
+    "variants": [
+      "institutional selling",
+      "distribution days"
+    ],
+    "family": "volume",
+    "meaning": "Sustained selling pressure on above-average volume.",
+    "measurable_as": [
+      "obv falling over 20 days",
+      "mfi14 < 40"
+    ],
+    "common_settings": [
+      "CMF below -0.2 (StockCharts)"
+    ],
+    "substitutes": [
+      "mfi14 < 40 AND close < sma50"
+    ],
+    "ambiguity": null,
+    "screenable_today": true,
+    "needs": "OBV slope.",
+    "sources": [
+      "https://help.stockcharts.com/scanning-and-alerts/scan-writing-resource-center/advanced-scan-library/predefined-scans"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "OBV rising",
+    "variants": [
+      "strong OBV",
+      "OBV at highs",
+      "on-balance volume up"
+    ],
+    "family": "volume",
+    "meaning": "On-balance volume trending up, used as confirmation.",
+    "measurable_as": [
+      "obv > obv[20]",
+      "obv at 50-day high"
+    ],
+    "common_settings": [],
+    "substitutes": [
+      "mfi14 > 50"
+    ],
+    "ambiguity": "OBV level alone is meaningless across stocks; only its slope or highs matter.",
+    "screenable_today": false,
+    "needs": "OBV history/slope.",
+    "sources": [
+      "https://www.reddit.com/r/Daytrading/comments/1w2kahg/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "change of character (volume)",
+    "variants": [
+      "CHoCH",
+      "volume change of character"
+    ],
+    "family": "volume",
+    "meaning": "A big daily or weekly gain on above-average volume, often with a catalyst.",
+    "measurable_as": [
+      "change_today >= 5% AND rvol >= 2"
+    ],
+    "common_settings": [],
+    "substitutes": [],
+    "ambiguity": "In SMC/ICT usage CHoCH is a market-structure break, not a volume event.",
+    "screenable_today": false,
+    "needs": "Daily % change, relative volume.",
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/18iznhl/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "in play",
+    "variants": [
+      "stocks in play",
+      "moving stocks",
+      "active names"
+    ],
+    "family": "volume",
+    "meaning": "A stock with news and unusual volume that day traders will focus on.",
+    "measurable_as": [
+      "rvol >= 2 AND (gap_pct >= 2% OR news_today)"
+    ],
+    "common_settings": [
+      "High RVOL plus relative strength vs SPY (RealDayTrading scanners)"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "RVOL, gap, news.",
+    "sources": [
+      "https://www.reddit.com/r/Daytrading/comments/1w2kahg/",
+      "https://www.reddit.com/r/RealDayTrading/comments/zaast0/",
+      "https://www.reddit.com/r/Daytrading/comments/1vb75ve/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "liquid",
+    "variants": [
+      "liquidity",
+      "average volume over 500K",
+      "avg vol > 1M",
+      "tradeable volume"
+    ],
+    "family": "liquidity",
+    "meaning": "Enough average volume that a trader can enter and exit without moving the price.",
+    "measurable_as": [
+      "avg_volume_20 >= 500000",
+      "avg_volume_20 >= 1000000"
+    ],
+    "common_settings": [
+      "Over 500K (Reddit Finviz screen)",
+      "Over 1M (Reddit, RealDayTrading)",
+      "300K daily volume (Reddit)",
+      "StockCharts predefined scans require 40K 20-day average"
+    ],
+    "substitutes": [],
+    "ambiguity": "Thresholds range from 40K to 1M shares.",
+    "screenable_today": false,
+    "needs": "Average volume field.",
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/n4tb5y/",
+      "https://www.reddit.com/r/swingtrading/comments/1vlk3qc/",
+      "https://www.reddit.com/r/RealDayTrading/comments/tnyz9a/",
+      "https://www.reddit.com/r/swingtrading/comments/18iznhl/",
+      "https://help.stockcharts.com/scanning-and-alerts/scan-writing-resource-center/advanced-scan-library/predefined-scans"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "dollar volume",
+    "variants": [
+      "$ volume",
+      "average dollar volume",
+      "ADV$"
+    ],
+    "family": "liquidity",
+    "meaning": "Average of price times volume, a liquidity floor that works across price levels.",
+    "measurable_as": [
+      "avg(close * volume, 20) >= 12000000",
+      "avg(close * volume, 20) >= 3000000"
+    ],
+    "common_settings": [
+      "$12M over 20 days (Reddit)",
+      "$3M+ (Qullamaggie scan write-ups)"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Price x volume average.",
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/1wj5h8s/",
+      "https://tikamalma.substack.com/p/qullamaggie-swing-trading-setups",
+      "https://qullamaggie.com/my-3-timeless-setups-that-have-made-me-tens-of-millions/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "price range filter",
+    "variants": [
+      "price over $5",
+      "under $20",
+      "price between 5 and 200",
+      "$1-$20"
+    ],
+    "family": "liquidity",
+    "meaning": "A last-price floor or band used to exclude penny stocks or to target small accounts.",
+    "measurable_as": [
+      "close BETWEEN 1 AND 20",
+      "close >= 5",
+      "close BETWEEN 5 AND 200"
+    ],
+    "common_settings": [
+      "$1-$20 (Warrior)",
+      "Over $5 (Finviz recipes)",
+      "Over $10 or $20 (Reddit)",
+      "$5-$200 (Reddit)"
+    ],
+    "substitutes": [],
+    "ambiguity": "Day traders want cheap small caps; swing traders set floors to avoid them.",
+    "screenable_today": false,
+    "needs": "Last price as a filter (not in the listed fields; not verified).",
+    "sources": [
+      "https://www.tradingview.com/script/mbqMf3pF-Ross-Cameron-5-Pillars-Filter/",
+      "https://www.reddit.com/r/swingtrading/comments/n4tb5y/",
+      "https://www.reddit.com/r/swingtrading/comments/1vlk3qc/",
+      "https://www.reddit.com/r/swingtrading/comments/1nzm12r/",
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/",
+      "https://www.reddit.com/r/Daytrading/comments/1tlxr9y/"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "penny stock",
+    "variants": [
+      "pennies",
+      "sub-penny",
+      "OTC junk"
+    ],
+    "family": "size",
+    "meaning": "A very low-priced, usually illiquid stock.",
+    "measurable_as": [
+      "close < 5",
+      "close < 1"
+    ],
+    "common_settings": [
+      "Under $1 vs under $5 (SEC usage is under $5; not fetched here)"
+    ],
+    "substitutes": [],
+    "ambiguity": "Price cut-off disputed; a Reddit reply mocks a 20M float as \"penny stock\" territory, mixing float and price.",
+    "screenable_today": false,
+    "needs": "Last price filter.",
+    "sources": [
+      "https://www.reddit.com/r/RealDayTrading/comments/tnyz9a/",
+      "https://www.reddit.com/r/Daytrading/comments/1tv21c0/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "cheap stocks (price)",
+    "variants": [
+      "cheap",
+      "low-priced",
+      "under $10"
+    ],
+    "family": "other",
+    "meaning": "Ambiguous: sometimes low share price, sometimes low valuation.",
+    "measurable_as": [
+      "close < 10",
+      "pe < 15"
+    ],
+    "common_settings": [],
+    "substitutes": [],
+    "ambiguity": "The same word means low price to a day trader and low valuation to an investor; the screener should ask.",
+    "screenable_today": false,
+    "needs": "Price filter or valuation (refused).",
+    "sources": [
+      "https://www.reddit.com/r/Daytrading/comments/1tlxr9y/",
+      "https://www.reddit.com/r/StockMarket/comments/1uso0yz/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "optionable",
+    "variants": [
+      "has options",
+      "weekly options",
+      "weeklies",
+      "liquid options"
+    ],
+    "family": "liquidity",
+    "meaning": "The stock has listed options, often with weekly expiries and tight spreads.",
+    "measurable_as": [
+      "has_options = true",
+      "has_weeklies = true"
+    ],
+    "common_settings": [
+      "Finviz option/short availability filter",
+      "Barchart screener filter for weekly options"
+    ],
+    "substitutes": [],
+    "ambiguity": "Reddit swing traders note many scanned names have no options or wide spreads.",
+    "screenable_today": false,
+    "needs": "Options availability and spread data.",
+    "sources": [
+      "https://finviz.com/screener.ashx?v=111&ft=4",
+      "https://www.barchart.com/options/iv-rank-percentile",
+      "https://www.reddit.com/r/swingtrading/comments/1vlk3qc/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "relative strength",
+    "variants": [
+      "RS",
+      "strong vs SPY",
+      "outperforming",
+      "RS/RW",
+      "leaders"
+    ],
+    "family": "relative_strength",
+    "meaning": "A stock is doing better than its benchmark (usually SPY) over the same window.",
+    "measurable_as": [
+      "return_n(stock) - return_n(SPY) > 0",
+      "stock_close / SPY_close rising"
+    ],
+    "common_settings": [
+      "Share price / index price trend (Reddit)",
+      "ATR-normalised change vs SPY (RealDayTrading \"real relative strength\")",
+      "Multiple windows: 1D, 1W, 1M, 3M (Deepvue per Reddit)"
+    ],
+    "substitutes": [
+      "rsi14 > 60 (wrong proxy, but commonly confused)"
+    ],
+    "ambiguity": "Reddit replies repeatedly correct users who use RSI for relative strength; RealDayTrading members argue over ATR normalisation.",
+    "screenable_today": false,
+    "needs": "Benchmark-relative returns.",
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/1l8rhi7/",
+      "https://www.reddit.com/r/swingtrading/comments/1dtoyfv/",
+      "https://www.reddit.com/r/RealDayTrading/comments/rp5rmx/",
+      "https://www.reddit.com/r/RealDayTrading/comments/tnyz9a/",
+      "https://www.reddit.com/r/RealDayTrading/comments/omw9rn/",
+      "https://www.reddit.com/r/RealDayTrading/comments/zaast0/",
+      "https://www.reddit.com/r/RealDayTrading/comments/wiu93j/",
+      "https://www.reddit.com/r/Daytrading/comments/1vb75ve/"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "RS rating",
+    "variants": [
+      "RS rank",
+      "RS 80+",
+      "IBD RS rating",
+      "relative strength rank"
+    ],
+    "family": "relative_strength",
+    "meaning": "A percentile rank (1-99) of a stock's price performance against all others.",
+    "measurable_as": [
+      "rs_rating >= 80"
+    ],
+    "common_settings": [
+      "70 minimum, 80-90 preferred (Minervini)"
+    ],
+    "substitutes": [],
+    "ambiguity": "Proprietary formulas differ (IBD vs others).",
+    "screenable_today": false,
+    "needs": "Cross-sectional ranking of returns.",
+    "sources": [
+      "https://www.chartmill.com/trading-ideas/645-Mark-Minervinis-Trend-Template-TTP",
+      "https://www.reddit.com/r/swingtrading/comments/1l8rhi7/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "relative weakness",
+    "variants": [
+      "RW",
+      "weak vs SPY",
+      "underperforming"
+    ],
+    "family": "relative_strength",
+    "meaning": "A stock doing worse than its benchmark, used for short candidates.",
+    "measurable_as": [
+      "return_n(stock) - return_n(SPY) < 0"
+    ],
+    "common_settings": [],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Benchmark-relative returns.",
+    "sources": [
+      "https://www.reddit.com/r/RealDayTrading/comments/rp5rmx/",
+      "https://www.reddit.com/r/RealDayTrading/comments/zaast0/",
+      "https://www.reddit.com/r/Daytrading/comments/1w2kahg/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "sector leaders",
+    "variants": [
+      "leading sector",
+      "strongest group",
+      "sector rotation",
+      "leading groups"
+    ],
+    "family": "relative_strength",
+    "meaning": "The strongest stocks inside the strongest sectors or industry groups.",
+    "measurable_as": [
+      "sector_rank <= 3 AND stock_rank_in_sector <= 5"
+    ],
+    "common_settings": [
+      "Check sector ETFs first, then leaders inside (Reddit)"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Sector classification and group ranking.",
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/18iznhl/",
+      "https://www.reddit.com/r/RealDayTrading/comments/tnyz9a/",
+      "https://www.reddit.com/r/swingtrading/comments/1wj5h8s/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "market leaders",
+    "variants": [
+      "leaders",
+      "leading stocks",
+      "big winners"
+    ],
+    "family": "relative_strength",
+    "meaning": "Stocks with top relative strength, near highs, often with strong growth.",
+    "measurable_as": [
+      "rs_rating >= 90 AND close >= 0.85 * high_52w"
+    ],
+    "common_settings": [
+      "CANSLIM \"L\""
+    ],
+    "substitutes": [
+      "close > sma50 AND sma50 > sma200 AND rsi14 > 60"
+    ],
+    "ambiguity": "Undefined without an RS measure.",
+    "screenable_today": false,
+    "needs": "RS rating, 52-week high.",
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/18iznhl/",
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "breakout",
+    "variants": [
+      "breaking out",
+      "range breakout",
+      "base breakout",
+      "resistance break"
+    ],
+    "family": "pattern",
+    "meaning": "Price closes above a resistance level or prior high, ideally on higher volume.",
+    "measurable_as": [
+      "close > max(high, 20 prior bars) AND rvol >= 1.5",
+      "close > level_price (resistance) AND volume > avg"
+    ],
+    "common_settings": [
+      "Finviz \"breaking out\" recipe: new 50-day high, above SMA 20/50/200, debt/equity < 1, ROE > 20%",
+      "Qullamaggie: range expansion after a 2-week to 2-month consolidation, buy the opening-range high"
+    ],
+    "substitutes": [
+      "resistance_dist_atr <= 0.25 AND bb_width low (pre-breakout)"
+    ],
+    "ambiguity": "Buy the break vs wait for a retest is argued in many threads; volume confirmation thresholds vary.",
+    "screenable_today": false,
+    "needs": "N-day high / level-cross event, relative volume (refused today).",
+    "sources": [
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/",
+      "https://qullamaggie.com/my-3-timeless-setups-that-have-made-me-tens-of-millions/",
+      "https://www.reddit.com/r/swingtrading/comments/1rp240d/",
+      "https://www.reddit.com/r/swingtrading/comments/1sm1364/",
+      "https://www.reddit.com/r/swingtrading/comments/1h4jxqh/",
+      "https://www.reddit.com/r/RealDayTrading/comments/walv06/"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "about to break out",
+    "variants": [
+      "near breakout",
+      "setting up",
+      "pre-breakout",
+      "knocking on resistance"
+    ],
+    "family": "pattern",
+    "meaning": "Price is compressing just under resistance.",
+    "measurable_as": [
+      "resistance_dist_atr <= 0.5 AND bb_width low"
+    ],
+    "common_settings": [
+      "Compression plus rising RVOL plus improving RS, kept on an \"almost ready\" list (Reddit)"
+    ],
+    "substitutes": [
+      "resistance_dist_atr <= 1 AND adx14 < 20"
+    ],
+    "ambiguity": "Separating buildup candidates from breakouts that already ran.",
+    "screenable_today": true,
+    "needs": "RVOL and RS for the fuller version.",
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/1sm1364/",
+      "https://www.reddit.com/r/Daytrading/comments/1tlxr9y/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "breakdown",
+    "variants": [
+      "breaking down",
+      "support breakdown"
+    ],
+    "family": "pattern",
+    "meaning": "Price closes below support or a prior low.",
+    "measurable_as": [
+      "close < min(low, 20 prior bars)",
+      "support_dist_atr < 0"
+    ],
+    "common_settings": [],
+    "substitutes": [
+      "hard_break_rate"
+    ],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Level-cross events.",
+    "sources": [
+      "https://www.reddit.com/r/Daytrading/comments/1t0e5lw/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "bull flag",
+    "variants": [
+      "flag",
+      "flagging",
+      "high tight flag",
+      "pennant"
+    ],
+    "family": "pattern",
+    "meaning": "A sharp advance (pole) followed by a short, shallow, downward-drifting consolidation on lighter volume.",
+    "measurable_as": [
+      "return_5d(pole) >= 10% AND pullback <= 50% of pole AND volume declining"
+    ],
+    "common_settings": [
+      "Pole 10-30% in 1-5 days on above-average volume; flag retraces no more than about half (TrendSpider)"
+    ],
+    "substitutes": [
+      "close > ema20 AND bb_width low AND rsi14 BETWEEN 50 AND 70"
+    ],
+    "ambiguity": "Pattern detection is subjective.",
+    "screenable_today": false,
+    "needs": "Pattern recognition with multi-bar returns and volume.",
+    "sources": [
+      "https://trendspider.com/learning-center/chart-patterns-flags/",
+      "https://www.reddit.com/r/RealDayTrading/comments/zaast0/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "cup and handle",
+    "variants": [
+      "cup with handle",
+      "C&H"
+    ],
+    "family": "pattern",
+    "meaning": "A rounded base followed by a small pullback (handle) in the upper half, then a breakout above the handle high.",
+    "measurable_as": [
+      "base >= 7 weeks AND depth 12-33% AND handle in upper half AND handle volume declining"
+    ],
+    "common_settings": [
+      "O'Neil: prior uptrend, cup 12-33% deep, base at least 7 weeks, handle in upper half on light volume"
+    ],
+    "substitutes": [
+      "resistance_dist_atr <= 1 AND close > sma50"
+    ],
+    "ambiguity": "Handle depth limits (a third vs half of the cup) differ between sources.",
+    "screenable_today": false,
+    "needs": "Pattern recognition.",
+    "sources": [
+      "https://www.luxalgo.com/library/concept/cup-and-handle/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "base",
+    "variants": [
+      "basing",
+      "flat base",
+      "building a base",
+      "nice base",
+      "consolidation"
+    ],
+    "family": "pattern",
+    "meaning": "A sideways consolidation after an advance, from which a breakout is expected.",
+    "measurable_as": [
+      "(max(high,35) - min(low,35)) / max(high,35) <= 0.15"
+    ],
+    "common_settings": [
+      "Consolidation 2 weeks to 2 months (Qullamaggie)",
+      "Base at least 7 weeks (O'Neil cup)"
+    ],
+    "substitutes": [
+      "adx14 < 20 AND bb_width low AND close > sma200"
+    ],
+    "ambiguity": "Depth and length rules vary by base type.",
+    "screenable_today": false,
+    "needs": "Rolling range over weeks.",
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/18iznhl/",
+      "https://qullamaggie.com/my-3-timeless-setups-that-have-made-me-tens-of-millions/",
+      "https://www.luxalgo.com/library/concept/cup-and-handle/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "channel up",
+    "variants": [
+      "upward channel",
+      "ascending channel",
+      "rising channel"
+    ],
+    "family": "pattern",
+    "meaning": "Price moves between two parallel rising trend lines.",
+    "measurable_as": [
+      "pattern = channel_up"
+    ],
+    "common_settings": [
+      "Finviz Pattern: Channel Up"
+    ],
+    "substitutes": [
+      "close > sma50 AND sma50 > sma100 AND adx14 > 20"
+    ],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Pattern recognition.",
+    "sources": [
+      "https://finviz.com/screener.ashx?v=111&ft=4",
+      "https://www.reddit.com/r/swingtrading/comments/1h4jxqh/",
+      "https://www.reddit.com/r/swingtrading/comments/n4tb5y/",
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "trend line support",
+    "variants": [
+      "TL support",
+      "trendline bounce",
+      "on the trendline"
+    ],
+    "family": "pattern",
+    "meaning": "Price is at a rising line drawn through prior lows.",
+    "measurable_as": [
+      "pattern = tl_support"
+    ],
+    "common_settings": [
+      "Finviz TL Support pattern filter"
+    ],
+    "substitutes": [
+      "support_dist_atr <= 0.5"
+    ],
+    "ambiguity": "Drawn lines are subjective.",
+    "screenable_today": false,
+    "needs": "Trend-line detection.",
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/n4tb5y/",
+      "https://finviz.com/screener.ashx?v=111&ft=4"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "wedge",
+    "variants": [
+      "falling wedge",
+      "rising wedge",
+      "wedge up"
+    ],
+    "family": "pattern",
+    "meaning": "Converging trend lines; falling wedges are read as bullish.",
+    "measurable_as": [
+      "pattern = wedge"
+    ],
+    "common_settings": [
+      "Finviz wedge filters"
+    ],
+    "substitutes": [
+      "bb_width falling"
+    ],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Pattern recognition.",
+    "sources": [
+      "https://finviz.com/screener.ashx?v=111&ft=4"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "head and shoulders",
+    "variants": [
+      "H&S",
+      "inverse head and shoulders",
+      "IHS"
+    ],
+    "family": "pattern",
+    "meaning": "Three-peak reversal pattern (inverse is bullish).",
+    "measurable_as": [
+      "pattern = head_shoulders"
+    ],
+    "common_settings": [
+      "Finviz pattern filter"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Pattern recognition.",
+    "sources": [
+      "https://finviz.com/screener.ashx?v=111&ft=4"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "ascending triangle",
+    "variants": [
+      "triangle",
+      "flat top"
+    ],
+    "family": "pattern",
+    "meaning": "Flat resistance with rising lows.",
+    "measurable_as": [
+      "pattern = triangle_ascending"
+    ],
+    "common_settings": [
+      "Finviz Triangle Ascending"
+    ],
+    "substitutes": [
+      "resistance_dist_atr <= 0.5 AND tests_365d >= 2"
+    ],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Pattern recognition.",
+    "sources": [
+      "https://finviz.com/screener.ashx?v=111&ft=4"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "candlestick reversal",
+    "variants": [
+      "hammer",
+      "doji",
+      "engulfing",
+      "morning star",
+      "reversal candle"
+    ],
+    "family": "pattern",
+    "meaning": "A one- to three-candle pattern read as a reversal.",
+    "measurable_as": [
+      "candle = hammer",
+      "candle = bullish_engulfing"
+    ],
+    "common_settings": [
+      "Finviz candlestick filter",
+      "StockCharts predefined candlestick scans",
+      "Oversold RSI plus a doji (Reddit)"
+    ],
+    "substitutes": [
+      "rsi14 < 30"
+    ],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Candlestick pattern detection.",
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/p83qnm/",
+      "https://finviz.com/screener.ashx?v=111&ft=4",
+      "https://help.stockcharts.com/scanning-and-alerts/scan-writing-resource-center/advanced-scan-library/predefined-scans"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "consecutive green days",
+    "variants": [
+      "stacking green bars",
+      "3 green days",
+      "multi-day runner",
+      "runner"
+    ],
+    "family": "pattern",
+    "meaning": "Several up closes in a row, often with volume.",
+    "measurable_as": [
+      "count(close > close[1], 3) = 3"
+    ],
+    "common_settings": [
+      "Recent runs with stacking green bars (RealDayTrading)",
+      "3-5 up days before a parabolic short (Qullamaggie)"
+    ],
+    "substitutes": [
+      "rsi14 > 65"
+    ],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Bar history.",
+    "sources": [
+      "https://www.reddit.com/r/RealDayTrading/comments/omw9rn/",
+      "https://qullamaggie.com/my-3-timeless-setups-that-have-made-me-tens-of-millions/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "fair value gap",
+    "variants": [
+      "FVG",
+      "imbalance",
+      "SMC",
+      "ICT"
+    ],
+    "family": "pattern",
+    "meaning": "A three-candle gap left by a fast move that is expected to be revisited.",
+    "measurable_as": [
+      "low[0] > high[2]"
+    ],
+    "common_settings": [],
+    "substitutes": [],
+    "ambiguity": "Replies call FVGs irrational and say real gaps are only actual price gaps.",
+    "screenable_today": false,
+    "needs": "Bar history.",
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/1rp240d/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "gap up",
+    "variants": [
+      "gapper",
+      "gapping up",
+      "gap ups",
+      "premarket gapper"
+    ],
+    "family": "event",
+    "meaning": "Today opens above yesterday's close (partial gap) or above yesterday's high (full gap).",
+    "measurable_as": [
+      "open >= prev_close * 1.02",
+      "low > prev_high * 1.026"
+    ],
+    "common_settings": [
+      "StockCharts Gap Ups: today's low above yesterday's high by 2.6%",
+      "Finviz Gap filter bands (Up, Up 0-20%, Down)",
+      "Finviz earnings gap-up recipe uses gap over 2% (r/StockMarket)",
+      "3%+ gap with 3x volume (Reddit)"
+    ],
+    "substitutes": [],
+    "ambiguity": "Full gaps (no overlap) vs any open above prior close.",
+    "screenable_today": false,
+    "needs": "Open and prior close/high (gap is refused today).",
+    "sources": [
+      "https://help.stockcharts.com/scanning-and-alerts/scan-writing-resource-center/advanced-scan-library/predefined-scans",
+      "https://finviz.com/screener.ashx?v=111&ft=4",
+      "https://chartschool.stockcharts.com/table-of-contents/chart-analysis/gaps-and-gap-analysis",
+      "https://www.reddit.com/r/swingtrading/comments/1h4jxqh/",
+      "https://www.reddit.com/r/Daytrading/comments/1biyrab/",
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "gap down",
+    "variants": [
+      "gapping down",
+      "gap downs"
+    ],
+    "family": "event",
+    "meaning": "Today opens below yesterday's close or low.",
+    "measurable_as": [
+      "open <= prev_close * 0.98",
+      "high < prev_low * 0.974"
+    ],
+    "common_settings": [
+      "StockCharts Gap Downs: high below low by 2.6%"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Open and prior close/low.",
+    "sources": [
+      "https://help.stockcharts.com/scanning-and-alerts/scan-writing-resource-center/advanced-scan-library/predefined-scans",
+      "https://chartschool.stockcharts.com/table-of-contents/chart-analysis/gaps-and-gap-analysis"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "gap and go",
+    "variants": [
+      "gap-and-go",
+      "gap & go",
+      "GnG"
+    ],
+    "family": "event",
+    "meaning": "A day trade that buys a gap-up small cap as it pushes through its premarket high at the open.",
+    "measurable_as": [
+      "gap_pct >= 4% AND rvol >= 5 AND float <= 10M AND news_today AND close BETWEEN 1 AND 20"
+    ],
+    "common_settings": [
+      "Five pillars: RVOL 5x, up 10%, news, $1-$20, float under 10M (Warrior)",
+      "RVOL > 5 and float < 10M (Reddit)"
+    ],
+    "substitutes": [],
+    "ambiguity": "Checklist traders disagree on whether the edge is the scan or the execution speed.",
+    "screenable_today": false,
+    "needs": "Gap, RVOL, float, news, intraday data.",
+    "sources": [
+      "https://www.reddit.com/r/Daytrading/comments/1uxrdba/",
+      "https://www.reddit.com/r/Daytrading/comments/1biyrab/",
+      "https://cdn.warriortrading.com/warriortrading.com/assets/Warrior%20Trading%20-%20Stock%20Selection.pdf",
+      "https://www.tradingview.com/script/mbqMf3pF-Ross-Cameron-5-Pillars-Filter/"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "gap fill",
+    "variants": [
+      "filling the gap",
+      "gap filled",
+      "fade the gap"
+    ],
+    "family": "event",
+    "meaning": "Price moves back to the prior close after a gap.",
+    "measurable_as": [
+      "low <= prev_close AFTER gap up"
+    ],
+    "common_settings": [
+      "Fade to the gap midpoint (Reddit)"
+    ],
+    "substitutes": [],
+    "ambiguity": "Breakaway and runaway gaps may never fill (ChartSchool).",
+    "screenable_today": false,
+    "needs": "Gap and intraday path.",
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/chart-analysis/gaps-and-gap-analysis",
+      "https://www.reddit.com/r/Daytrading/comments/1biyrab/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "breakaway gap",
+    "variants": [
+      "runaway gap",
+      "exhaustion gap",
+      "island reversal"
+    ],
+    "family": "event",
+    "meaning": "Gap types by where they occur in a trend.",
+    "measurable_as": [
+      "gap_up AND prior consolidation"
+    ],
+    "common_settings": [
+      "StockCharts predefined breakaway, runaway, island scans"
+    ],
+    "substitutes": [],
+    "ambiguity": "Classification needs context.",
+    "screenable_today": false,
+    "needs": "Gap events and base detection.",
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/chart-analysis/gaps-and-gap-analysis",
+      "https://help.stockcharts.com/scanning-and-alerts/scan-writing-resource-center/advanced-scan-library/predefined-scans"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "episodic pivot",
+    "variants": [
+      "EP",
+      "earnings gap",
+      "earnings gap up",
+      "news gap"
+    ],
+    "family": "event",
+    "meaning": "A 10%+ gap on unexpected news, often earnings, in a stock that had been quiet.",
+    "measurable_as": [
+      "gap_pct >= 10% AND early volume >= avg daily volume AND flat 3-6 months prior"
+    ],
+    "common_settings": [
+      "Gap 10%+, heavy early volume, strong EPS/revenue surprise (Qullamaggie)",
+      "Finviz earnings gap-up recipe: gap > 2%, earnings tomorrow after close"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Gap, earnings calendar, early-session volume.",
+    "sources": [
+      "https://qullamaggie.com/my-3-timeless-setups-that-have-made-me-tens-of-millions/",
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "earnings this week",
+    "variants": [
+      "upcoming earnings",
+      "earnings play",
+      "reporting soon",
+      "earnings before/after"
+    ],
+    "family": "event",
+    "meaning": "The company reports within a set window.",
+    "measurable_as": [
+      "days_to_earnings <= 7"
+    ],
+    "common_settings": [
+      "Finviz earnings date filters",
+      "High IV rank with earnings within the week (r/thetagang)"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Earnings calendar.",
+    "sources": [
+      "https://www.reddit.com/r/thetagang/comments/1cpuojc/",
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/",
+      "https://finviz.com/help/screener.ashx"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "catalyst",
+    "variants": [
+      "news",
+      "has news",
+      "PR",
+      "FDA",
+      "contract news"
+    ],
+    "family": "event",
+    "meaning": "A news item explaining the move.",
+    "measurable_as": [
+      "news_count_today >= 1",
+      "news within 7 days"
+    ],
+    "common_settings": [
+      "News in last 7 days (Reddit Finviz screen)",
+      "Breaking news catalyst required (Warrior)"
+    ],
+    "substitutes": [],
+    "ambiguity": "Quality of the catalyst is judged by hand.",
+    "screenable_today": false,
+    "needs": "News feed.",
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/1vlk3qc/",
+      "https://www.reddit.com/r/Daytrading/comments/1uxrdba/",
+      "https://cdn.warriortrading.com/warriortrading.com/assets/Warrior%20Trading%20-%20Stock%20Selection.pdf",
+      "https://www.reddit.com/r/swingtrading/comments/18iznhl/"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "opening range breakout",
+    "variants": [
+      "ORB",
+      "opening range high",
+      "5-minute ORB"
+    ],
+    "family": "event",
+    "meaning": "Price breaks the high of the first N minutes of the session.",
+    "measurable_as": [
+      "price > high(first 5 min)"
+    ],
+    "common_settings": [
+      "1, 5 or 60-minute opening range (Qullamaggie)"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Intraday bars.",
+    "sources": [
+      "https://qullamaggie.com/my-3-timeless-setups-that-have-made-me-tens-of-millions/",
+      "https://www.reddit.com/r/Daytrading/comments/1w2kahg/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "high of day",
+    "variants": [
+      "HOD",
+      "new high of day",
+      "NHOD",
+      "near HOD"
+    ],
+    "family": "event",
+    "meaning": "Price at the session high.",
+    "measurable_as": [
+      "price >= session_high"
+    ],
+    "common_settings": [
+      "NHOD scanners (Reddit)"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Intraday data.",
+    "sources": [
+      "https://www.reddit.com/r/RealDayTrading/comments/zaast0/",
+      "https://www.reddit.com/r/Daytrading/comments/1vb75ve/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "VWAP",
+    "variants": [
+      "above VWAP",
+      "VWAP reclaim",
+      "VWAP fail"
+    ],
+    "family": "event",
+    "meaning": "Price relative to the volume-weighted average price of the session.",
+    "measurable_as": [
+      "close > vwap"
+    ],
+    "common_settings": [
+      "Short on VWAP failure after a parabolic run (Qullamaggie)"
+    ],
+    "substitutes": [
+      "close > ema20 (daily proxy, weak)"
+    ],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Intraday VWAP.",
+    "sources": [
+      "https://qullamaggie.com/my-3-timeless-setups-that-have-made-me-tens-of-millions/",
+      "https://www.reddit.com/r/RealDayTrading/comments/omw9rn/",
+      "https://www.reddit.com/r/Daytrading/comments/1uxrdba/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "premarket movers",
+    "variants": [
+      "premarket gappers",
+      "pre-market volume"
+    ],
+    "family": "event",
+    "meaning": "Stocks moving on volume before the open.",
+    "measurable_as": [
+      "premarket_change >= 5% AND premarket_volume >= 100000"
+    ],
+    "common_settings": [
+      "Pre-market movers scan (r/swingtrading)",
+      "Pre-market focus for Gap and Go (r/Daytrading AMA)"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Extended-hours data.",
+    "sources": [
+      "https://www.reddit.com/r/Daytrading/comments/1biyrab/",
+      "https://www.reddit.com/r/swingtrading/comments/p83qnm/",
+      "https://www.reddit.com/r/Daytrading/comments/1uxrdba/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "insider buying",
+    "variants": [
+      "insiders buying",
+      "Form 4 buys",
+      "insider ownership"
+    ],
+    "family": "fundamental",
+    "meaning": "Company insiders buying shares or owning a large stake.",
+    "measurable_as": [
+      "insider_net_buy_90d > 0",
+      "insider_ownership >= 10%"
+    ],
+    "common_settings": [
+      "Insider ownership over 10% (r/investing)",
+      "SEC Form 4 tracker (r/StockMarket)"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Insider transaction data.",
+    "sources": [
+      "https://www.reddit.com/r/investing/comments/11kzewv/",
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "institutional ownership",
+    "variants": [
+      "inst own",
+      "institutions own",
+      "20% institutional"
+    ],
+    "family": "fundamental",
+    "meaning": "Share of stock held by institutions.",
+    "measurable_as": [
+      "inst_ownership >= 20%",
+      "inst_ownership >= 50%"
+    ],
+    "common_settings": [
+      "At least 20% (Reddit)",
+      "Over 50% (Reddit)",
+      "Under 50% in the Finviz short-squeeze recipe"
+    ],
+    "substitutes": [],
+    "ambiguity": "Some want high (validation), squeeze screens want low.",
+    "screenable_today": false,
+    "needs": "Ownership data.",
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/18iznhl/",
+      "https://www.reddit.com/r/swingtrading/comments/n4tb5y/",
+      "https://www.reddit.com/r/swingtrading/comments/1vlk3qc/",
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "analyst upgrades",
+    "variants": [
+      "upgrade",
+      "downgrade",
+      "analyst buy rating"
+    ],
+    "family": "event",
+    "meaning": "A broker changed its rating.",
+    "measurable_as": [
+      "rating_change_today = upgrade"
+    ],
+    "common_settings": [
+      "Finviz Upgrades/Downgrades signals; analyst recommendation filter"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Analyst data.",
+    "sources": [
+      "https://finviz.com/help/screener.ashx",
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "small cap",
+    "variants": [
+      "small caps",
+      "smallcap",
+      "small-cap stocks"
+    ],
+    "family": "size",
+    "meaning": "A company with a small market value; thresholds vary by source.",
+    "measurable_as": [
+      "market_cap BETWEEN 300e6 AND 2e9",
+      "market_cap BETWEEN 1.2e9 AND 8.0e9"
+    ],
+    "common_settings": [
+      "$300M-$2B (Finviz, most retail sources)",
+      "S&P SmallCap 600 additions: $1.2B-$8.0B (July 2025)",
+      "Morningstar: percentile-based, below the top 90% of cap"
+    ],
+    "substitutes": [],
+    "ambiguity": "Index providers put the band several times higher than retail screeners; day-trading threads say small caps for sub-$20, sub-10M-float names whose caps are usually far below $300M (inference from the Warrior rules).",
+    "screenable_today": false,
+    "needs": "An explicit number (bands are refused).",
+    "sources": [
+      "https://finviz.com/screener.ashx?v=111&ft=4",
+      "https://press.spglobal.com/2025-07-01-S-P-Dow-Jones-Indices-Announces-Update-to-S-P-Composite-1500-Market-Cap-Guidelines?asPDF=1",
+      "https://www.morningstar.com/content/dam/marketing/shared/research/methodology/678263-StyleBoxMethodolgy.pdf",
+      "https://www.vaneck.com/us/en/blogs/moat-investing/understanding-market-capitalization/",
+      "https://www.reddit.com/r/Daytrading/comments/1tv21c0/"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "mid cap",
+    "variants": [
+      "mid caps",
+      "midcap"
+    ],
+    "family": "size",
+    "meaning": "A company of middle market value; thresholds vary.",
+    "measurable_as": [
+      "market_cap BETWEEN 2e9 AND 10e9",
+      "market_cap BETWEEN 8.0e9 AND 22.7e9"
+    ],
+    "common_settings": [
+      "$2B-$10B (Finviz, common)",
+      "S&P MidCap 400 additions: $8.0B-$22.7B (July 2025)",
+      "Morningstar: next 20% after large"
+    ],
+    "substitutes": [],
+    "ambiguity": "Same disagreement as small cap; a Reddit user used \"mid caps and up\" with no number.",
+    "screenable_today": false,
+    "needs": "An explicit number (bands are refused).",
+    "sources": [
+      "https://finviz.com/screener.ashx?v=111&ft=4",
+      "https://press.spglobal.com/2025-07-01-S-P-Dow-Jones-Indices-Announces-Update-to-S-P-Composite-1500-Market-Cap-Guidelines?asPDF=1",
+      "https://www.morningstar.com/content/dam/marketing/shared/research/methodology/678263-StyleBoxMethodolgy.pdf",
+      "https://www.reddit.com/r/swingtrading/comments/1vlk3qc/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "large cap",
+    "variants": [
+      "large caps",
+      "big caps",
+      "large-cap"
+    ],
+    "family": "size",
+    "meaning": "A company with a large market value.",
+    "measurable_as": [
+      "market_cap BETWEEN 10e9 AND 200e9",
+      "market_cap >= 22.7e9"
+    ],
+    "common_settings": [
+      "$10B-$200B (Finviz)",
+      "S&P 500 additions: $22.7B+ (July 2025)",
+      "Morningstar: top 70% of market cap"
+    ],
+    "substitutes": [],
+    "ambiguity": "Threshold $10B vs $22.7B depending on source.",
+    "screenable_today": false,
+    "needs": "An explicit number.",
+    "sources": [
+      "https://finviz.com/screener.ashx?v=111&ft=4",
+      "https://press.spglobal.com/2025-07-01-S-P-Dow-Jones-Indices-Announces-Update-to-S-P-Composite-1500-Market-Cap-Guidelines?asPDF=1",
+      "https://www.morningstar.com/content/dam/marketing/shared/research/methodology/678263-StyleBoxMethodolgy.pdf",
+      "https://www.vaneck.com/us/en/blogs/moat-investing/understanding-market-capitalization/",
+      "https://www.reddit.com/r/thetagang/comments/1cd6shp/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "mega cap",
+    "variants": [
+      "mega caps",
+      "megacap",
+      "Mag 7",
+      "trillion-dollar"
+    ],
+    "family": "size",
+    "meaning": "The very largest companies.",
+    "measurable_as": [
+      "market_cap >= 200e9"
+    ],
+    "common_settings": [
+      "$200B+ (Finviz)"
+    ],
+    "substitutes": [],
+    "ambiguity": "\"Mag 7\" is a named list, not a threshold.",
+    "screenable_today": false,
+    "needs": "An explicit number.",
+    "sources": [
+      "https://finviz.com/screener.ashx?v=111&ft=4",
+      "https://www.reddit.com/r/options/comments/1nwbi0g/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "micro cap",
+    "variants": [
+      "microcap",
+      "micro caps"
+    ],
+    "family": "size",
+    "meaning": "Very small companies.",
+    "measurable_as": [
+      "market_cap BETWEEN 50e6 AND 300e6"
+    ],
+    "common_settings": [
+      "$50M-$300M (Finviz)"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "An explicit number.",
+    "sources": [
+      "https://finviz.com/screener.ashx?v=111&ft=4"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "nano cap",
+    "variants": [
+      "nano caps"
+    ],
+    "family": "size",
+    "meaning": "The smallest listed companies.",
+    "measurable_as": [
+      "market_cap < 50e6"
+    ],
+    "common_settings": [
+      "Under $50M (Finviz)",
+      "Under $50M in the r/Daytrading low-float study"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "An explicit number.",
+    "sources": [
+      "https://finviz.com/screener.ashx?v=111&ft=4",
+      "https://www.reddit.com/r/Daytrading/comments/1tv21c0/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "market cap over X",
+    "variants": [
+      "market cap above $2B",
+      "cap > 300M",
+      "at least $1B"
+    ],
+    "family": "size",
+    "meaning": "An explicit market-cap floor, which the screener already accepts.",
+    "measurable_as": [
+      "market_cap >= 2e9",
+      "market_cap >= 300e6"
+    ],
+    "common_settings": [
+      "Over $300M to avoid pennies (Reddit)",
+      "Over $1B (Reddit)",
+      "Over $2B (Reddit)",
+      "Over $5B (Reddit momentum list)"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/1qjxlq0/",
+      "https://www.reddit.com/r/swingtrading/comments/1nzm12r/",
+      "https://www.reddit.com/r/StockMarket/comments/1uso0yz/",
+      "https://www.reddit.com/r/swingtrading/comments/1sm1364/"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "low float",
+    "variants": [
+      "low-float",
+      "small float",
+      "float under 10M",
+      "tiny float"
+    ],
+    "family": "size",
+    "meaning": "Few shares available to trade, so supply shocks move price fast.",
+    "measurable_as": [
+      "float_shares <= 10e6",
+      "float_shares <= 20e6"
+    ],
+    "common_settings": [
+      "Under 10M (Warrior; 5M aggressive)",
+      "Under 20M (Reddit Finviz screen)",
+      "Under 50M (RealDayTrading wiki post)",
+      "3M-10M sweet spot; under 2M often manipulated (r/Daytrading study)"
+    ],
+    "substitutes": [],
+    "ambiguity": "Vendors report very different floats for the same ticker (TradingView vs Webull vs Warrior in one thread) because of reverse splits and restricted-share rules.",
+    "screenable_today": false,
+    "needs": "Float shares.",
+    "sources": [
+      "https://cdn.warriortrading.com/warriortrading.com/assets/Warrior%20Trading%20-%20Stock%20Selection.pdf",
+      "https://www.reddit.com/r/swingtrading/comments/n4tb5y/",
+      "https://www.reddit.com/r/RealDayTrading/comments/omw9rn/",
+      "https://www.reddit.com/r/Daytrading/comments/1tv21c0/",
+      "https://www.reddit.com/r/Daytrading/comments/1mofnzh/",
+      "https://www.reddit.com/r/Daytrading/comments/1biyrab/"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "blue chip",
+    "variants": [
+      "blue chips",
+      "quality large caps"
+    ],
+    "family": "size",
+    "meaning": "Large, established, usually profitable companies.",
+    "measurable_as": [
+      "market_cap >= 10e9 AND profitable"
+    ],
+    "common_settings": [],
+    "substitutes": [],
+    "ambiguity": "No numeric definition.",
+    "screenable_today": false,
+    "needs": "Explicit cap plus fundamentals.",
+    "sources": [
+      "https://www.reddit.com/r/thetagang/comments/1596oay/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "high short interest",
+    "variants": [
+      "heavily shorted",
+      "high short float",
+      "shorted stocks",
+      "SI"
+    ],
+    "family": "other",
+    "meaning": "A large share of the float is sold short.",
+    "measurable_as": [
+      "short_float >= 20%",
+      "short_float >= 10%"
+    ],
+    "common_settings": [
+      "Finviz High (>20%) or Over 5-30%",
+      "Deepvue: 10-20% elevated, 20-40% high, 40%+ extreme",
+      "High short 10%+ (RealDayTrading wiki post)"
+    ],
+    "substitutes": [],
+    "ambiguity": "Timeliness: a r/Daytrading study notes clean daily short-interest history is costly to obtain.",
+    "screenable_today": false,
+    "needs": "Short interest data.",
+    "sources": [
+      "https://finviz.com/screener.ashx?v=111&ft=4",
+      "https://deepvue.com/fundamentals/short-interest/",
+      "https://www.basisreport.com/resources/short-interest-guide",
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/",
+      "https://www.reddit.com/r/RealDayTrading/comments/omw9rn/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "days to cover",
+    "variants": [
+      "short ratio",
+      "DTC"
+    ],
+    "family": "other",
+    "meaning": "Shares short divided by average daily volume.",
+    "measurable_as": [
+      "days_to_cover >= 5"
+    ],
+    "common_settings": [
+      "Above 5 elevated, above 8-10 extreme (Deepvue, other guides)"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Short interest and average volume.",
+    "sources": [
+      "https://deepvue.com/fundamentals/short-interest/",
+      "https://www.basisreport.com/resources/short-interest-guide"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "short squeeze",
+    "variants": [
+      "squeeze candidate",
+      "squeeze play",
+      "shorts trapped"
+    ],
+    "family": "event",
+    "meaning": "A heavily shorted stock rising fast enough to force short covering.",
+    "measurable_as": [
+      "short_float >= 15% AND rvol >= 2 AND change_today > 0",
+      "short_float >= 20% AND days_to_cover >= 5"
+    ],
+    "common_settings": [
+      "Finviz squeeze recipe: short float over 15%, institutional ownership under 50%, price over $2",
+      "Short float 20-25%+, DTC 5+, borrow fee 20-30%+ (guides)"
+    ],
+    "substitutes": [],
+    "ambiguity": "\"Squeeze\" is ambiguous: short squeeze, TTM/Bollinger volatility squeeze, or gamma squeeze.",
+    "screenable_today": false,
+    "needs": "Short interest, borrow fee, RVOL.",
+    "sources": [
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/",
+      "https://www.basisreport.com/resources/short-interest-guide",
+      "https://deepvue.com/fundamentals/short-interest/",
+      "https://www.reddit.com/r/swingtrading/comments/1dtoyfv/"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "gamma squeeze",
+    "variants": [
+      "GEX",
+      "call wall",
+      "gamma exposure"
+    ],
+    "family": "event",
+    "meaning": "Dealer hedging of large call open interest pushes price higher.",
+    "measurable_as": [
+      "call_oi_near_money high AND price rising"
+    ],
+    "common_settings": [
+      "GEX and call/put walls mentioned alongside TTM squeeze (Reddit)"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Options open interest and dealer positioning.",
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/1dtoyfv/",
+      "https://www.reddit.com/r/options/comments/1nwbi0g/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "high IV rank",
+    "variants": [
+      "IVR",
+      "IV rank above 50",
+      "elevated IV",
+      "rich premium",
+      "high IVR"
+    ],
+    "family": "volatility",
+    "meaning": "Current implied volatility is high relative to its own 52-week range.",
+    "measurable_as": [
+      "iv_rank >= 50"
+    ],
+    "common_settings": [
+      "IVR = (IV - 52w low) / (52w high - 52w low) (Barchart, tastytrade-style)",
+      "Above 50 to sell premium; 30-50 neutral; below 30 cheap (guides)",
+      "A six-month log on r/options found IVR 40-65 did better than 80+"
+    ],
+    "substitutes": [
+      "iv / hv30 >= 1.05",
+      "iv_percentile >= 50"
+    ],
+    "ambiguity": "Traders argue IV rank ignores whether IV exceeds realised volatility, and that high-IVR regimes cluster.",
+    "screenable_today": false,
+    "needs": "Implied volatility history.",
+    "sources": [
+      "https://www.barchart.com/options/iv-rank-percentile",
+      "https://volradar.com/glossary/iv-rank",
+      "https://www.reddit.com/r/options/comments/1rxn6l4/",
+      "https://www.reddit.com/r/thetagang/comments/1icilzh/",
+      "https://www.reddit.com/r/thetagang/comments/1tpazqj/",
+      "https://www.reddit.com/r/thetagang/comments/1cpuojc/"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "IV percentile",
+    "variants": [
+      "IVP",
+      "IV percentile rank"
+    ],
+    "family": "volatility",
+    "meaning": "Share of the last year's days on which IV closed below today's IV.",
+    "measurable_as": [
+      "iv_percentile >= 50"
+    ],
+    "common_settings": [
+      "1-year lookback (Barchart)"
+    ],
+    "substitutes": [
+      "iv_rank"
+    ],
+    "ambiguity": "IVR and IVP give different answers after a single spike.",
+    "screenable_today": false,
+    "needs": "Implied volatility history.",
+    "sources": [
+      "https://www.barchart.com/options/iv-rank-percentile",
+      "https://www.reddit.com/r/options/comments/1rxn6l4/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "IV higher than HV",
+    "variants": [
+      "IV/HV",
+      "IV over realized",
+      "volatility risk premium",
+      "IV > RV"
+    ],
+    "family": "volatility",
+    "meaning": "Implied volatility exceeds recent realised volatility, so options look expensive.",
+    "measurable_as": [
+      "iv30 / hv30 > 1",
+      "iv30 / hv30 >= 1.05"
+    ],
+    "common_settings": [
+      "IV higher than 30-day realised (r/thetagang)",
+      "Normalised IV / HV30 at least 1.05 (r/options)"
+    ],
+    "substitutes": [
+      "iv_rank >= 50"
+    ],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Implied and historical volatility.",
+    "sources": [
+      "https://www.reddit.com/r/thetagang/comments/1cd6shp/",
+      "https://www.reddit.com/r/options/comments/1rxn6l4/",
+      "https://www.reddit.com/r/thetagang/comments/1icilzh/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "IV crush",
+    "variants": [
+      "vol crush",
+      "post-earnings crush",
+      "IV collapse"
+    ],
+    "family": "event",
+    "meaning": "Implied volatility falls sharply after a scheduled event such as earnings.",
+    "measurable_as": [
+      "days_to_earnings <= 1 AND iv_rank high"
+    ],
+    "common_settings": [
+      "Screen by earnings date, IV rank and expected move (OptionAlpha)",
+      "Sell premium into earnings (r/options replies)"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "IV history and earnings calendar.",
+    "sources": [
+      "https://optionalpha.com/learn/iv-crush",
+      "https://www.sofi.com/learn/content/implied-volatility-crush/",
+      "https://www.reddit.com/r/options/comments/1oijm3m/",
+      "https://www.schaeffersresearch.com/content/education/2025/07/11/the-ultimate-2025-trader-slang-glossary"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "expected move",
+    "variants": [
+      "implied move",
+      "straddle price"
+    ],
+    "family": "volatility",
+    "meaning": "Move implied by the at-the-money straddle before an event.",
+    "measurable_as": [
+      "atm_straddle / price"
+    ],
+    "common_settings": [
+      "$5 straddle on $100 stock implies about 5% (OptionAlpha)"
+    ],
+    "substitutes": [
+      "atr14 (realised proxy)"
+    ],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Options prices.",
+    "sources": [
+      "https://optionalpha.com/learn/iv-crush",
+      "https://www.reddit.com/r/thetagang/comments/1cpuojc/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "unusual options activity",
+    "variants": [
+      "UOA",
+      "options flow",
+      "unusual whales",
+      "sweeps",
+      "whale trades"
+    ],
+    "family": "event",
+    "meaning": "Option contracts trading far above their open interest, read as new large positions.",
+    "measurable_as": [
+      "option_volume / open_interest >= 1.25 AND option_volume > 500 AND open_interest > 100"
+    ],
+    "common_settings": [
+      "Barchart US: volume > 500, OI > 100, price > 0.10, vol/OI >= 1.25",
+      "$250-500K weekly expiries or $250K+ LEAPs (r/options reply)"
+    ],
+    "substitutes": [],
+    "ambiguity": "Many r/options replies say flow is unreadable because hedges and closing trades look the same.",
+    "screenable_today": false,
+    "needs": "Options volume and OI by contract.",
+    "sources": [
+      "https://www.barchart.com/options/unusual-activity",
+      "https://www.reddit.com/r/options/comments/1nwbi0g/",
+      "https://www.reddit.com/r/swingtrading/comments/p83qnm/",
+      "https://www.reddit.com/r/swingtrading/comments/18iznhl/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "wheel candidates",
+    "variants": [
+      "stocks to wheel",
+      "CSP candidates",
+      "covered call candidates"
+    ],
+    "family": "other",
+    "meaning": "Stocks a trader would accept assignment on and whose options pay enough.",
+    "measurable_as": [
+      "iv_rank >= 50 AND market_cap >= 10e9 AND has_weeklies"
+    ],
+    "common_settings": [
+      "IV rank over 50 plus a defensible hold thesis (r/thetagang)"
+    ],
+    "substitutes": [],
+    "ambiguity": "Most r/thetagang replies list tickers instead of criteria.",
+    "screenable_today": false,
+    "needs": "IV rank, options liquidity, fundamentals.",
+    "sources": [
+      "https://www.reddit.com/r/thetagang/comments/1tpazqj/",
+      "https://www.reddit.com/r/thetagang/comments/1596oay/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "bagholder",
+    "variants": [
+      "bag",
+      "bagholding",
+      "holding the bag"
+    ],
+    "family": "other",
+    "meaning": "Someone stuck in a losing position; as a screen it loosely means a stock far below its highs.",
+    "measurable_as": [
+      "close <= 0.5 * high_52w"
+    ],
+    "common_settings": [],
+    "substitutes": [],
+    "ambiguity": "Not a screening term; the drawdown size is not agreed.",
+    "screenable_today": false,
+    "needs": "52-week high.",
+    "sources": [
+      "https://www.schaeffersresearch.com/content/education/2025/07/11/the-ultimate-2025-trader-slang-glossary",
+      "https://www.reddit.com/r/stocks/comments/1v2nolz/",
+      "https://www.reddit.com/r/thetagang/comments/1tpazqj/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "whale",
+    "variants": [
+      "whales",
+      "big money",
+      "smart money"
+    ],
+    "family": "other",
+    "meaning": "A large trader whose orders can move a stock.",
+    "measurable_as": [
+      "uoa premium large"
+    ],
+    "common_settings": [],
+    "substitutes": [],
+    "ambiguity": "Slang; used for options flow and dark pools.",
+    "screenable_today": false,
+    "needs": "Options flow or block trades.",
+    "sources": [
+      "https://www.schaeffersresearch.com/content/education/2025/07/11/the-ultimate-2025-trader-slang-glossary",
+      "https://www.reddit.com/r/options/comments/1nwbi0g/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "dark pool activity",
+    "variants": [
+      "dark pool prints",
+      "block trades"
+    ],
+    "family": "volume",
+    "meaning": "Large off-exchange prints.",
+    "measurable_as": [
+      "dark_pool_volume high"
+    ],
+    "common_settings": [],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Off-exchange trade data.",
+    "sources": [
+      "https://www.reddit.com/r/options/comments/1nwbi0g/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "YOLO",
+    "variants": [
+      "diamond hands",
+      "paper hands",
+      "tendies",
+      "FD",
+      "HODL"
+    ],
+    "family": "other",
+    "meaning": "Retail slang for risk appetite and holding behaviour, not screening criteria.",
+    "measurable_as": [],
+    "common_settings": [],
+    "substitutes": [],
+    "ambiguity": "Not screenable.",
+    "screenable_today": false,
+    "needs": "Nothing measurable.",
+    "sources": [
+      "https://www.schaeffersresearch.com/content/education/2025/07/11/the-ultimate-2025-trader-slang-glossary"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "low P/E",
+    "variants": [
+      "P/E under 15",
+      "P/E under 20",
+      "cheap on earnings",
+      "low PE"
+    ],
+    "family": "fundamental",
+    "meaning": "Price is low relative to earnings.",
+    "measurable_as": [
+      "pe <= 15",
+      "pe <= 20",
+      "forward_pe <= 15"
+    ],
+    "common_settings": [
+      "Under 10 (r/investing post)",
+      "Under 15 or 20 (replies)",
+      "TTM P/E < 20 with forward P/E < 15 (r/StockMarket)",
+      "Finviz P/E Low and Profitable options (r/StockMarket recipes)"
+    ],
+    "substitutes": [],
+    "ambiguity": "Low P/E alone can mean a stagnant business; many replies say add growth.",
+    "screenable_today": false,
+    "needs": "P/E (refused).",
+    "sources": [
+      "https://www.reddit.com/r/investing/comments/11kzewv/",
+      "https://www.reddit.com/r/StockMarket/comments/1uso0yz/",
+      "https://finviz.com/screener.ashx?v=111&ft=4",
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "PEG under 1",
+    "variants": [
+      "low PEG",
+      "PEG ratio",
+      "GARP"
+    ],
+    "family": "fundamental",
+    "meaning": "P/E divided by growth rate is at or below 1.",
+    "measurable_as": [
+      "peg <= 1"
+    ],
+    "common_settings": [
+      "Lynch reference point 1.0",
+      "A reply looks for 0.6 and below"
+    ],
+    "substitutes": [],
+    "ambiguity": "Trailing vs forward growth estimates change the answer.",
+    "screenable_today": false,
+    "needs": "PEG (refused).",
+    "sources": [
+      "https://pro.stockalarm.io/blog/peg-ratio-guide",
+      "https://www.reddit.com/r/StockMarket/comments/1uso0yz/",
+      "https://www.reddit.com/r/investing/comments/11kzewv/",
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "FCF yield",
+    "variants": [
+      "free cash flow yield",
+      "P/FCF under 20",
+      "cheap on cash flow"
+    ],
+    "family": "fundamental",
+    "meaning": "Free cash flow relative to market value.",
+    "measurable_as": [
+      "fcf / market_cap >= 5%",
+      "price_to_fcf <= 20"
+    ],
+    "common_settings": [
+      "P/FCF < 20 (r/StockMarket)"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Cash-flow data.",
+    "sources": [
+      "https://www.reddit.com/r/StockMarket/comments/1uso0yz/",
+      "https://finviz.com/screener.ashx?v=111&ft=4",
+      "https://pro.stockalarm.io/blog/peg-ratio-guide"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "cash-rich",
+    "variants": [
+      "net cash",
+      "cash pile",
+      "more cash than debt",
+      "balance sheet strength"
+    ],
+    "family": "fundamental",
+    "meaning": "Cash exceeds debt.",
+    "measurable_as": [
+      "cash - total_debt > 0",
+      "current_ratio >= 1.5"
+    ],
+    "common_settings": [
+      "Current ratio > 1 (r/StockMarket)"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Balance-sheet data.",
+    "sources": [
+      "https://www.reddit.com/r/StockMarket/comments/1uso0yz/",
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "low debt",
+    "variants": [
+      "debt/equity under 0.5",
+      "LT debt/equity under 0.3",
+      "not over-levered"
+    ],
+    "family": "fundamental",
+    "meaning": "Debt is small relative to equity.",
+    "measurable_as": [
+      "debt_to_equity <= 0.5",
+      "debt_to_equity <= 1"
+    ],
+    "common_settings": [
+      "Under 0.3 (r/investing)",
+      "Under 1 (r/StockMarket)",
+      "Finviz Debt/Equity filters"
+    ],
+    "substitutes": [],
+    "ambiguity": "Replies argue debt is fine depending on sector and stage.",
+    "screenable_today": false,
+    "needs": "Debt ratios (refused).",
+    "sources": [
+      "https://www.reddit.com/r/investing/comments/11kzewv/",
+      "https://www.reddit.com/r/StockMarket/comments/1uso0yz/",
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "undervalued",
+    "variants": [
+      "cheap",
+      "value stocks",
+      "mispriced",
+      "on sale",
+      "discount"
+    ],
+    "family": "fundamental",
+    "meaning": "Priced below what the speaker believes it is worth.",
+    "measurable_as": [
+      "pe <= 15 AND peg <= 1",
+      "pb <= 1"
+    ],
+    "common_settings": [
+      "Yahoo \"undervalued growth\" preset (Reddit)"
+    ],
+    "substitutes": [],
+    "ambiguity": "Subjective; replies mock screens that claim to find undervalued stocks.",
+    "screenable_today": false,
+    "needs": "Valuation data (refused).",
+    "sources": [
+      "https://www.reddit.com/r/StockMarket/comments/vaivfp/",
+      "https://www.reddit.com/r/investing/comments/vaiuon/",
+      "https://www.reddit.com/r/stocks/comments/1v2nolz/",
+      "https://www.reddit.com/r/StockMarket/comments/1uso0yz/"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "quality",
+    "variants": [
+      "quality companies",
+      "high ROE",
+      "ROE over 15%",
+      "profitable companies"
+    ],
+    "family": "fundamental",
+    "meaning": "Profitable businesses with high returns on capital.",
+    "measurable_as": [
+      "roe >= 15%",
+      "net_margin >= 5%"
+    ],
+    "common_settings": [
+      "ROE over 15% or 20% (Finviz recipes)",
+      "Net margin over 5% (Reddit)",
+      "Value plus profitability screens (r/investing reply)"
+    ],
+    "substitutes": [],
+    "ambiguity": "No agreed definition.",
+    "screenable_today": false,
+    "needs": "Profitability data (refused).",
+    "sources": [
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/",
+      "https://www.reddit.com/r/swingtrading/comments/1vlk3qc/",
+      "https://www.reddit.com/r/investing/comments/11kzewv/",
+      "https://www.reddit.com/r/StockMarket/comments/1uso0yz/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "earnings growth",
+    "variants": [
+      "EPS growth",
+      "growing earnings",
+      "sales growth",
+      "revenue growth",
+      "growth stocks"
+    ],
+    "family": "fundamental",
+    "meaning": "Earnings or revenue rising at a stated rate.",
+    "measurable_as": [
+      "eps_growth_qoq >= 25%",
+      "sales_growth_5y >= 10%"
+    ],
+    "common_settings": [
+      "EPS and sales growth over 25% (Finviz recipes)",
+      "Positive EPS growth 3-5 years (Reddit)",
+      "Revenue over 10% a year for 5 years (r/StockMarket)"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Growth data (refused).",
+    "sources": [
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/",
+      "https://www.reddit.com/r/swingtrading/comments/1vlk3qc/",
+      "https://www.reddit.com/r/StockMarket/comments/1uso0yz/",
+      "https://www.reddit.com/r/swingtrading/comments/18iznhl/",
+      "https://www.reddit.com/r/swingtrading/comments/1wj5h8s/"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "CANSLIM",
+    "variants": [
+      "CAN SLIM",
+      "O'Neil screen"
+    ],
+    "family": "fundamental",
+    "meaning": "O'Neil's mix of earnings growth, new highs, volume, leadership and institutional sponsorship.",
+    "measurable_as": [
+      "eps_growth_qoq >= 20% AND eps_growth_5y >= 20% AND sales_growth_qoq >= 20%"
+    ],
+    "common_settings": [
+      "Finviz CANSLIM recipe: EPS/sales growth over 20%"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Growth data, RS, new highs.",
+    "sources": [
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/",
+      "https://www.reddit.com/r/Trading/comments/1fhx084/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "dividend payers",
+    "variants": [
+      "dividend yield",
+      "high yield",
+      "income stocks",
+      "pays a dividend"
+    ],
+    "family": "fundamental",
+    "meaning": "The company pays a dividend, sometimes above a yield floor.",
+    "measurable_as": [
+      "dividend_yield > 0",
+      "dividend_yield >= 3%"
+    ],
+    "common_settings": [
+      "Must pay any dividend (r/investing reply)",
+      "Undervalued dividend growth recipe: payout under 50%, P/E under 20 (Finviz)"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Dividend data (refused).",
+    "sources": [
+      "https://www.reddit.com/r/investing/comments/11kzewv/",
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/",
+      "https://www.reddit.com/r/thetagang/comments/1tpazqj/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "profitable",
+    "variants": [
+      "positive earnings",
+      "EPS positive",
+      "makes money"
+    ],
+    "family": "fundamental",
+    "meaning": "Earnings are above zero.",
+    "measurable_as": [
+      "eps_ttm > 0"
+    ],
+    "common_settings": [
+      "Finviz P/E \"Profitable\""
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Earnings data.",
+    "sources": [
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/",
+      "https://finviz.com/screener.ashx?v=111&ft=4"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "cyclical at the bottom",
+    "variants": [
+      "bottom of the cycle",
+      "cyclical low"
+    ],
+    "family": "fundamental",
+    "meaning": "A cyclical business whose price and earnings sit near a trough.",
+    "measurable_as": [
+      "close near 52w low AND sector cyclical"
+    ],
+    "common_settings": [],
+    "substitutes": [],
+    "ambiguity": "Judgement call; the r/stocks Nintendo thread argues it both ways.",
+    "screenable_today": false,
+    "needs": "Sector classification, fundamentals.",
+    "sources": [
+      "https://www.reddit.com/r/stocks/comments/1v2nolz/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "stocks above moving averages",
+    "variants": [
+      "above all MAs",
+      "above 50, 100 and 200",
+      "Barchart 100% buy"
+    ],
+    "family": "trend",
+    "meaning": "Price is above several moving averages at once.",
+    "measurable_as": [
+      "close > sma50 AND close > sma100 AND close > sma200"
+    ],
+    "common_settings": [
+      "Above 50/100/200 SMA (RealDayTrading)",
+      "Barchart \"100% Buy\" opinion list (Reddit)"
+    ],
+    "substitutes": [
+      "close > ema20 AND close > sma50"
+    ],
+    "ambiguity": null,
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://www.reddit.com/r/RealDayTrading/comments/tnyz9a/",
+      "https://www.reddit.com/r/swingtrading/comments/1wj5h8s/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "uptrend from weekly lows",
+    "variants": [
+      "bouncing in a channel",
+      "channel up with weekly pullback"
+    ],
+    "family": "trend",
+    "meaning": "A rising channel where the stock is down on the week.",
+    "measurable_as": [
+      "pattern = channel_up AND return_5d < 0"
+    ],
+    "common_settings": [
+      "Finviz recipe: channel up, 1-week performance down, average volume over 400K"
+    ],
+    "substitutes": [
+      "close > sma50 AND close < ema20"
+    ],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Pattern and performance windows.",
+    "sources": [
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "bottoming",
+    "variants": [
+      "bottoming out",
+      "basing at lows",
+      "turning up from lows"
+    ],
+    "family": "trend",
+    "meaning": "A stock that stopped falling and started to turn up.",
+    "measurable_as": [
+      "close > sma20 AND close < sma50"
+    ],
+    "common_settings": [
+      "Finviz SMA 20 above / SMA 50 below setting shared on r/swingtrading"
+    ],
+    "substitutes": [
+      "rsi14 crossing 50 from below",
+      "macd > macd_signal AND macd < 0"
+    ],
+    "ambiguity": "Early reversal vs dead-cat bounce.",
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/1h4jxqh/",
+      "https://www.reddit.com/r/StockMarket/comments/147yu6k/",
+      "https://www.reddit.com/r/swingtrading/comments/p83qnm/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "reversal",
+    "variants": [
+      "trend reversal",
+      "reversing",
+      "turning"
+    ],
+    "family": "trend",
+    "meaning": "A change in trend direction.",
+    "measurable_as": [
+      "macd > macd_signal AND close < sma50",
+      "rsi14 > 50 AND close < sma200"
+    ],
+    "common_settings": [],
+    "substitutes": [
+      "stoch_k_14_1_3 > stoch_d_14_1_3 AND stoch_k_14_1_3 < 30"
+    ],
+    "ambiguity": "Needs confirmation rules everyone sets differently.",
+    "screenable_today": true,
+    "needs": "Crossovers and swing structure for stricter versions.",
+    "sources": [
+      "https://www.reddit.com/r/Daytrading/comments/1biyrab/",
+      "https://www.reddit.com/r/swingtrading/comments/p83qnm/",
+      "https://www.reddit.com/r/thetagang/comments/1596oay/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "continuation",
+    "variants": [
+      "trend continuation",
+      "next leg up"
+    ],
+    "family": "trend",
+    "meaning": "The prior trend resumes after a pause.",
+    "measurable_as": [
+      "close > sma50 AND sma50 > sma200 AND bb_width low"
+    ],
+    "common_settings": [
+      "Buy high-probability next-leg setups (Reddit)"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/1o55odr/",
+      "https://trendspider.com/learning-center/chart-patterns-flags/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "shortable",
+    "variants": [
+      "short candidates",
+      "short setup",
+      "backside"
+    ],
+    "family": "other",
+    "meaning": "A stock with borrow available that has turned down after a run.",
+    "measurable_as": [
+      "rsi14 > 70 AND close < ema10"
+    ],
+    "common_settings": [
+      "Wait until it is clearly on the backside of the move (r/Daytrading)"
+    ],
+    "substitutes": [],
+    "ambiguity": "Borrow availability and locate fees matter to small-cap shorts.",
+    "screenable_today": false,
+    "needs": "Borrow availability, intraday data.",
+    "sources": [
+      "https://www.reddit.com/r/Daytrading/comments/1t0e5lw/",
+      "https://qullamaggie.com/my-3-timeless-setups-that-have-made-me-tens-of-millions/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "trend-following filter",
+    "variants": [
+      "only long above the 200",
+      "trend filter"
+    ],
+    "family": "trend",
+    "meaning": "Only take longs above a long moving average and shorts below.",
+    "measurable_as": [
+      "close > sma200 (longs)",
+      "close < sma200 (shorts)"
+    ],
+    "common_settings": [
+      "200-day SMA (ChartSchool RSI2, MACD, stochastic samples)",
+      "Some use 200 EMA"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": true,
+    "needs": null,
+    "sources": [
+      "https://chartschool.stockcharts.com/table-of-contents/trading-strategies-and-models/trading-strategies/rsi-2",
+      "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-indicators/macd-moving-average-convergence-divergence-oscillator",
+      "https://www.reddit.com/r/swingtrading/comments/1hbxhgo/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "weekly timeframe",
+    "variants": [
+      "weekly chart",
+      "weekly RSI",
+      "weekly EMA",
+      "higher timeframe"
+    ],
+    "family": "other",
+    "meaning": "The same condition evaluated on weekly bars.",
+    "measurable_as": [
+      "rsi14(weekly) < 30"
+    ],
+    "common_settings": [
+      "Weekly 10/20/50 EMA for dips (Reddit)",
+      "Weekly RSI backtests looked better (r/Daytrading)"
+    ],
+    "substitutes": [],
+    "ambiguity": "Screener indicators are daily only.",
+    "screenable_today": false,
+    "needs": "Weekly-bar indicators.",
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/1o55odr/",
+      "https://www.reddit.com/r/Daytrading/comments/1i23ziu/",
+      "https://www.reddit.com/r/swingtrading/comments/1hbxhgo/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "intraday timeframe",
+    "variants": [
+      "5-minute",
+      "1-hour",
+      "4-hour chart",
+      "on the 1h"
+    ],
+    "family": "other",
+    "meaning": "The condition evaluated on intraday bars.",
+    "measurable_as": [
+      "rsi14(60m) < 30"
+    ],
+    "common_settings": [
+      "1h, 4h and daily scans (Reddit)"
+    ],
+    "substitutes": [],
+    "ambiguity": "Backtests on r/Daytrading say RSI rules fail intraday.",
+    "screenable_today": false,
+    "needs": "Intraday bars.",
+    "sources": [
+      "https://www.reddit.com/r/Daytrading/comments/1tlxr9y/",
+      "https://www.reddit.com/r/Daytrading/comments/1i23ziu/",
+      "https://www.reddit.com/r/RealDayTrading/comments/walv06/",
+      "https://www.reddit.com/r/RealDayTrading/comments/wiu93j/"
+    ],
+    "popularity": "medium"
+  },
+  {
+    "phrase": "multi-timeframe alignment",
+    "variants": [
+      "MTF",
+      "daily and weekly aligned"
+    ],
+    "family": "other",
+    "meaning": "A condition true on several timeframes at once.",
+    "measurable_as": [
+      "close > sma50(daily) AND close > sma10(weekly)"
+    ],
+    "common_settings": [],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Multiple timeframes.",
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/1wj5h8s/",
+      "https://www.reddit.com/r/swingtrading/comments/1925vg5/"
+    ],
+    "popularity": "low"
+  },
+  {
+    "phrase": "chart pattern (generic)",
+    "variants": [
+      "setup",
+      "nice chart",
+      "clean chart"
+    ],
+    "family": "pattern",
+    "meaning": "Traders describe a chart as a good setup without naming a rule.",
+    "measurable_as": [],
+    "common_settings": [],
+    "substitutes": [],
+    "ambiguity": "Unmeasurable without a named pattern; screeners return lists that traders then eyeball.",
+    "screenable_today": false,
+    "needs": "A specific pattern name.",
+    "sources": [
+      "https://www.reddit.com/r/swingtrading/comments/1wj5h8s/",
+      "https://www.reddit.com/r/StockMarket/comments/1uso0yz/",
+      "https://www.reddit.com/r/swingtrading/comments/p83qnm/"
+    ],
+    "popularity": "high"
+  },
+  {
+    "phrase": "social buzz",
+    "variants": [
+      "trending",
+      "trending on StockTwits",
+      "meme stock",
+      "sentiment"
+    ],
+    "family": "event",
+    "meaning": "A stock with unusual social-media attention.",
+    "measurable_as": [
+      "mentions_today / avg_mentions >= 3"
+    ],
+    "common_settings": [
+      "Social sentiment feeds in scanner products (Reddit)"
+    ],
+    "substitutes": [],
+    "ambiguity": null,
+    "screenable_today": false,
+    "needs": "Social data.",
+    "sources": [
+      "https://www.reddit.com/r/Daytrading/comments/1vb75ve/",
+      "https://www.schaeffersresearch.com/content/education/2025/07/11/the-ultimate-2025-trader-slang-glossary"
+    ],
+    "popularity": "low"
+  }
+]

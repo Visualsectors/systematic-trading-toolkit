@@ -114,9 +114,19 @@ The three presets disclose their filters in [the methodology](docs/METHODOLOGY.m
 
 ### Screener context and AI skill
 
-After membership is frozen, `vstoolkit context --data context-dataset.json` measures the price path, industry and weighted peers, headline peers, SPY/QQQ relative movement, co-movement, and leading/challenging market narratives. It uses the exact preset-skills 0.5.0 engine, with complete fixture parity. **This optional command requires Node.js 22+; no npm package is needed.** Other commands remain Python-only.
+After membership is frozen, `vstoolkit context` measures Price, Peers and Market in **pure Python**, with exact preset-skills0.5.0 fixture parity. A full fictional card is one command: `vstoolkit context --offline --format markdown`. Live: `vstoolkit context --ticker AAPL --card aapl-context.local.md`.
 
-Context requires an authorized historical evidence packet, not the snapshot-only dataset or `screen` output alone. It does not retrieve this richer evidence from the API yet, call an AI service, pick new peers or change the screen. The [context guide](docs/SCREENER_CONTEXT.md) includes a runnable fictional example, the dataset contract, grounded analyst request/validation commands and limitations. The [analyze-screener-context skill](skills/analyze-screener-context/SKILL.md) keeps model judgment inside those measured facts and tier rules.
+Live context retrieves Price/Market data and explicitly marks missing industry peers, weights, breadth and structured news linkages **not supplied**. Full-lane replay uses an authorized [dataset.v2](docs/DATA_CONTRACT.md#v2-optional-context-fields). It never calls a model, guesses peers or changes membership. Only optional machine-validated model cards require Node22+. See [context and grounding](docs/SCREENER_CONTEXT.md).
+
+Plain-English filters are disclosed and bounded:
+
+```powershell
+vstoolkit screen --ask 'oversold above the 200' --offline
+vstoolkit screen --ask 'golden cross state and price above $10' --tickers AAPL,KMI,JPM
+vstoolkit screen --ask 'oversold with unusual volume' --interpret-only
+```
+
+The last request refuses before any network call: volume criteria are not wired in. Nothing is quietly dropped. Live custom screens require an explicit watchlist of at most five tickers; they do not imply whole-market coverage. See [supported grammar and defaults](skills/compose-screen/references/grammar.md).
 
 ### Position sizing
 
@@ -171,23 +181,31 @@ The API may be used to research, advise, or build decision tools under the appli
 
 ## Agent skills
 
-Three optional skills are included:
+Four optional skills include portable metadata and references:
 
 - `build-research-thesis` keeps an AI inside cited evidence and makes contrary evidence visible.
 - `reassess-position` interprets monitor events without replacing the saved invalidation.
 - `analyze-screener-context` reads Price, Peers and Market, including weighted/headline peers and the challenging narrative, with validated A/B/C or insufficient-data cards.
+- `compose-screen` resolves trader jargon into disclosed conditions, or refuses with specific data/clarification requirements.
 
-Install them for Claude Code in PowerShell:
+Install the Claude Code plugin from an authorized checkout with one PowerShell command (Claude Code must already be installed):
 
 ```powershell
-$profileRoot = [Environment]::GetFolderPath('UserProfile')
-New-Item -ItemType Directory -Force (Join-Path $profileRoot '.claude\skills') | Out-Null
-Copy-Item -Recurse -Force .\skills\build-research-thesis (Join-Path $profileRoot '.claude\skills\build-research-thesis')
-Copy-Item -Recurse -Force .\skills\reassess-position (Join-Path $profileRoot '.claude\skills\reassess-position')
-Copy-Item -Recurse -Force .\skills\analyze-screener-context (Join-Path $profileRoot '.claude\skills\analyze-screener-context')
+& .\scripts\install-claude-plugin.ps1
 ```
 
-For Codex, use the same commands with `.codex\skills` as the destination. In Cursor or another agent, attach the relevant `SKILL.md` as project instructions. Never paste an API key into an AI prompt.
+It registers `visualsectors` and installs `systematic-trading-toolkit@visualsectors` in project scope; restart Claude Code and try `/systematic-trading-toolkit:compose-screen`. Python installation is separate. While private, GitHub authorization is required; unrestricted installation follows the public-release gate. This is a repository-hosted catalogue, not a claim of approval by Anthropic's official directory. See [plugin documentation](https://code.claude.com/docs/en/plugin-marketplaces).
+
+For local plugin QA: `claude plugin validate .`, then start `claude --plugin-dir <absolute-checkout-path>` in a separate test project. For Codex, copy each named directory from `skills/` into your project `.agents/skills/`; each includes its own references and UI metadata ([official skills guidance](https://learn.chatgpt.com/docs/build-skills#where-codex-loads-local-skills)). For Cursor or another agent, attach the relevant `SKILL.md` as project instructions. Never paste an API key into an AI prompt.
+
+The upgraded position-review skill also measures a named entry, cost basis or strike without selecting an action:
+
+```powershell
+vstoolkit measure --ticker AAPL --price 200 --kind strike
+vstoolkit measure --ticker ALFA --price 100 --kind cost --offline
+```
+
+Distances to served levels are signed dollars/percent/ATR. Missing values stay null; historical rates read “held on N% of past tests.”
 
 ## Python API
 

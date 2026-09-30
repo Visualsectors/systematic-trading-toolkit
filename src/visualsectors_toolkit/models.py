@@ -165,9 +165,15 @@ class DatasetManifest:
     source: str
     decision_time: str
     snapshots: tuple[MarketSnapshot, ...]
+    bars: Mapping[str, Any] | None = None
+    market: Mapping[str, Any] | None = None
+    peers: Mapping[str, Any] | None = None
+    headlines: Sequence[Mapping[str, Any]] | None = None
+    headline_peers: Mapping[str, Any] | None = None
+    context_provenance: Mapping[str, Any] | None = None
 
     def __post_init__(self) -> None:
-        if self.schema_version != "visualsectors-toolkit.dataset.v1":
+        if self.schema_version not in ("visualsectors-toolkit.dataset.v1", "visualsectors-toolkit.dataset.v2"):
             raise ValueError("unsupported dataset schema_version")
         if any(
             not isinstance(item, str) or not item.strip()
@@ -197,6 +203,12 @@ class DatasetManifest:
         tickers = [row.ticker for row in self.snapshots]
         if len(tickers) != len(set(tickers)):
             raise ValueError("duplicate ticker in dataset")
+        extensions = (self.bars, self.market, self.peers, self.headlines, self.headline_peers, self.context_provenance)
+        if any(item is not None for item in extensions):
+            if self.schema_version.endswith(".v1"):
+                raise ValueError("context sections require dataset.v2; v1 stays snapshot-only")
+            from .context_dataset import dataset_context
+            dataset_context(to_dict(self))
 
 
 def _exact_keys(raw: Mapping[str, Any], allowed: set[str], label: str) -> None:
@@ -276,7 +288,8 @@ def parse_manifest(raw: Mapping[str, Any]) -> DatasetManifest:
 def to_dict(value: Any) -> Any:
     """Convert immutable toolkit outputs into JSON-safe primitives."""
     if is_dataclass(value):
-        return {key: to_dict(item) for key, item in asdict(value).items()}
+        return {key: to_dict(item) for key, item in asdict(value).items()
+                if not isinstance(value, DatasetManifest) or key not in {"bars", "market", "peers", "headlines", "headline_peers", "context_provenance"} or item is not None}
     if isinstance(value, Mapping):
         return {str(key): to_dict(item) for key, item in value.items()}
     if isinstance(value, (tuple, list)):

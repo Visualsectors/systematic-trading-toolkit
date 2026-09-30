@@ -1,14 +1,17 @@
 # Data and feature contract
 
-The local context dataset is documented in `docs/SCREENER_CONTEXT.md`. It wraps
-the fixed retrieval spec and evidence packet with dataset provenance. No live
-connector or raw SQL is part of the toolkit port; G13 owns connector retrieval.
+The dataset.v2 and legacy context envelope are documented in the repository's
+DATA_CONTRACT/SCREENER_CONTEXT guides. Both bind a fixed retrieval spec and
+evidence packet to provenance. The live adapter uses only authorized public
+API endpoints; see live-data.md for gaps. No raw SQL or warehouse credentials
+are part of the toolkit port.
 Do not manufacture a rich packet from one snapshot or silently call a different
 host/provider. Separate spec/packet files are accepted for parity and authorized
 replay, with `--retrieval-spec` and `--data`.
 
-The engine is the unchanged preset-skills 0.5.0 core, compiled for Node 22+ and
-shipped with source and hashes. It validates screen identity, candidate order,
+Computed features are a pure-Python parity port of preset-skills0.5.0. The optional
+grounded-model engine remains unchanged Node22+ code, shipped with source and
+hashes. Both validate screen identity, candidate order,
 retrieval hash, fixed policies, canonical times, source cutoffs/result lineage,
 bars, effective peer membership, full-universe aggregates and optional fields.
 Bars use raw OHLCV normalized only with split metadata available at the decision,

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Analyze Screener Context"
+  short_description: "Evidence-linked Price, Peers and Market review"
+  default_prompt: "Use $analyze-screener-context to review my authorized toolkit evidence, cite code-owned facts and identify missing coverage."
+policy:
+  allow_implicit_invocation: true

@@ -53,7 +53,17 @@ Equivalent installed command: `vstoolkit screen`.
 
 The optional [analyze-screener-context skill](../skills/analyze-screener-context/SKILL.md) reads the already-selected candidates without changing membership or order. It covers the full price path, industry median/breadth/dispersion, equal- versus cap-weighted peers, headline peers by business-line theme, both SPY and QQQ, co-movement, and leading/challenging narratives.
 
-`vstoolkit context` computes those features from an authorized context dataset. It requires **Node.js 22+**, but no npm packages or model service. The [context guide](../docs/SCREENER_CONTEXT.md) gives an immediately runnable fictional parity example and the analyst request/validation flow. An ordinary snapshot dataset or `screen` result alone cannot supply the needed historical paths, memberships and source cutoffs; missing context is not fabricated.
+`vstoolkit context` computes those features in pure Python from an authorized dataset.v2, or Price/Market live from the API with missing peer lanes explicitly marked **not supplied**. No model service or Node is needed for computed JSON/cards; optional machine-validated model cards need Node22+. The [context guide](../docs/SCREENER_CONTEXT.md) gives the complete fictional parity example and validation flow.
+
+```powershell
+vstoolkit context --offline --format markdown
+vstoolkit context --ticker AAPL --card aapl-context.local.md
+vstoolkit screen --ask "oversold above the 200" --offline
+vstoolkit screen --ask 'golden cross state and price above $10' --tickers AAPL,KMI,JPM
+vstoolkit screen --ask "oversold with unusual volume" --interpret-only
+```
+
+The last request deliberately refuses because its volume field is not wired in; no weakened screen executes. PowerShell expands dollar amounts in double quotes: use single quotes for requests containing `$`, e.g. `--ask 'price above $10'`. Custom live requests require 1–5 explicit tickers and are **not** whole-market scans. See the [compose-screen grammar](../skills/compose-screen/references/grammar.md).
 
 The code measures and renders; a model only chooses admitted contextual interpretations. Tier A/B/C describes thesis fit, not expected return or a trade recommendation. Missing critical evidence yields `INSUFFICIENT_DATA`.
 

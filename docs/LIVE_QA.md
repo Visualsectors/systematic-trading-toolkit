@@ -60,7 +60,23 @@ Inspect every result:
 - Multi-ticker sizing succeeds when source observation timestamps differ; no snapshot is placed after its manifest decision time.
 - The monitor retains its saved invalidation and deduplicates unchanged events. Same-day cached reads are not proof of fresh intraday coverage.
 
-Before launch signoff, also close the broader client-hardening gates: responses must be cached separately for each credential, insecure HTTP API hosts must be rejected before sending a key, and multi-ticker manifests must preserve valid temporal ordering. These gates are separate from the D429 API-migration fixes; the current offline suite does not establish that they are resolved.
+The client-hardening regression tests now cover credential-separated caches, HTTPS-only hosts, refusal to forward credentials through redirects, common-cutoff news filtering and multi-ticker timestamp ordering. Recheck these boundaries in a fresh install; passing unit tests does not establish production entitlement behavior.
+
+## 3a. Context and skills gate
+
+```powershell
+vstoolkit context --ticker AAPL --format markdown
+vstoolkit context --ticker KMI --format markdown
+vstoolkit context --ticker JPM --format markdown
+vstoolkit screen --ask 'oversold above the 200' --tickers AAPL,KMI,JPM
+vstoolkit screen --ask 'oversold with unusual volume' --interpret-only
+vstoolkit measure --ticker AAPL --price 200 --kind strike
+claude plugin validate .
+```
+
+Pace each live command; context normally has seven logical reads but daily-bar pagination can multiply them. Refused screen exits 2 before authentication/network. Verify every figure is present under its emitted evidence ID, every unavailable peer/cap/breadth/linkage lane says “not supplied,” and no real ticker is replaced with ALFA. News/market proxy and non-PIT caveats must survive card rendering. Named-price distances are signed; nulls stay null and the exact closing sentence is retained.
+
+The top30 jargon cases each have a test. Validation of plugin JSON alone is not an installation test: after public release, install in a clean Claude Code project, verify four skills load and exercise their namespaced commands. Do not claim marketplace validation passed unless the actual CLI was available.
 
 ## 4. Record launch evidence
 

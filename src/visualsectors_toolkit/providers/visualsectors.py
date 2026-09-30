@@ -11,15 +11,25 @@ from pathlib import Path
 from statistics import stdev
 from typing import Any, Mapping, Sequence
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlencode
-from urllib.request import Request, urlopen
+from urllib.parse import urlencode, urlsplit
+from urllib.request import HTTPRedirectHandler, Request, build_opener
 
-from ..models import DatasetManifest, Evidence, Level, MarketSnapshot, require_ticker
+from ..models import DatasetManifest, Evidence, Level, MarketSnapshot, require_iso_datetime, require_ticker
 from .base import MarketDataProvider, ProviderCapabilities
 
 DEFAULT_API_BASE_URL = "https://api.visualsectors.com"
 SIGNUP_URL = f"{DEFAULT_API_BASE_URL}/signup"
 PLAN_INDICATORS = ("atr14", "rsi14", "sma20", "sma50", "sma200")
+
+
+class _NoCredentialRedirect(HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise ApiResponseError(code, "Authenticated API redirects are refused; use the canonical HTTPS API host.")
+
+
+def urlopen(request, *, timeout):
+    """Never forward an API credential through a redirect, including to HTTP."""
+    return build_opener(_NoCredentialRedirect()).open(request, timeout=timeout)
 
 
 class VisualSectorsProviderError(RuntimeError):
@@ -98,6 +108,11 @@ def _iso_datetime(value: Any, fallback_date: str | None = None) -> str:
     raise ApiResponseError(None, "a source row contained no usable timestamp")
 
 
+def _instant(value: str) -> datetime:
+    require_iso_datetime(value, "API timestamp")
+    return datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(timezone.utc)
+
+
 def _rows(payload: Mapping[str, Any], label: str) -> list[dict[str, Any]]:
     rows = payload.get("rows")
     if not isinstance(rows, list) or any(not isinstance(row, dict) for row in rows):
@@ -134,13 +149,17 @@ class VisualSectorsProvider(MarketDataProvider):
             or file_values.get("VISUALSECTORS_API_BASE_URL")
             or DEFAULT_API_BASE_URL
         ).rstrip("/")
-        if not self._base_url.startswith(("https://", "http://")):
-            raise ValueError("VISUALSECTORS_API_BASE_URL must be an HTTP(S) URL")
+        parsed_url = urlsplit(self._base_url)
+        if (parsed_url.scheme != "https" or not parsed_url.hostname
+                or parsed_url.username is not None or parsed_url.password is not None
+                or parsed_url.query or parsed_url.fragment
+                or any(character.isspace() or ord(character) < 32 for character in self._base_url)):
+            raise ValueError("VISUALSECTORS_API_BASE_URL must be an HTTPS URL without credentials, query or fragment")
+        self._cache_namespace = sha256(b"credential-v1\0" + self._api_key.encode("utf-8")).hexdigest()
         default_cache = Path(os.environ.get("LOCALAPPDATA") or Path.home()) / "visualsectors-toolkit" / "cache"
         self._cache_dir = Path(cache_dir) if cache_dir is not None else default_cache
         self._timeout = timeout
         self._snapshots: dict[str, MarketSnapshot] = {}
-        self._decision_times: list[str] = []
 
     @property
     def capabilities(self) -> ProviderCapabilities:
@@ -157,7 +176,11 @@ class VisualSectorsProvider(MarketDataProvider):
     def manifest(self) -> DatasetManifest:
         if not self._snapshots:
             self.universe()
-        decision_time = min(self._decision_times) if self._decision_times else datetime.now(timezone.utc).isoformat()
+        decision_time = max(
+            (row.as_of for row in self._snapshots.values()),
+            key=_instant,
+            default=datetime.now(timezone.utc).isoformat(),
+        )
         return DatasetManifest(
             schema_version="visualsectors-toolkit.dataset.v1",
             dataset_id="visualsectors-api-live",
@@ -258,19 +281,24 @@ class VisualSectorsProvider(MarketDataProvider):
         ]
         if not decision_times:
             raise ApiResponseError(None, "API responses did not include an as_of decision time")
-        decision_time = min(decision_times)
-        self._decision_times.extend(decision_times)
+        decision_time = min(decision_times, key=_instant)
+        cutoff = _instant(decision_time)
+        cutoff_date = cutoff.date().isoformat()
 
-        levels = tuple(self._map_level(row) for row in _rows(levels_response, "levels"))
+        levels = tuple(self._map_level(row) for row in _rows(levels_response, "levels")
+                       if str(row.get("level_date", "")) <= cutoff_date)
         indicators: dict[str, float | None] = {}
         for indicator, response in technical_responses.items():
-            rows = sorted(_rows(response, indicator), key=lambda row: str(row.get("date", "")), reverse=True)
+            rows = sorted((row for row in _rows(response, indicator)
+                           if str(row.get("date", "")) <= cutoff_date),
+                          key=lambda row: str(row.get("date", "")), reverse=True)
             if any(row.get("indicator") != indicator for row in rows):
                 raise ApiResponseError(None, f"{indicator} response contained a different indicator")
             indicators[indicator] = _number(rows[0].get("value")) if rows else None
             if indicators[indicator] is None:
                 warnings.append(f"{indicator} is unavailable from the technicals endpoint and remains null.")
-        bars = sorted(_rows(bars_response, "timeseries"), key=lambda row: str(row.get("date", "")))
+        bars = sorted((row for row in _rows(bars_response, "timeseries")
+                       if str(row.get("date", "")) <= cutoff_date), key=lambda row: str(row.get("date", "")))
         if not bars:
             raise ApiResponseError(None, f"no daily bars were returned for {ticker}")
         latest_close = _number(bars[-1].get("close"))
@@ -287,6 +315,9 @@ class VisualSectorsProvider(MarketDataProvider):
                 item = self._map_news(source_row, ticker)
             except (VisualSectorsProviderError, ValueError):
                 warnings.append("A malformed news item was omitted; news evidence is incomplete.")
+                continue
+            if _instant(item.as_of) > cutoff:
+                warnings.append("A news item after the common source cutoff was omitted.")
                 continue
             evidence_by_id.setdefault(item.id, item)
         evidence = tuple(evidence_by_id[key] for key in sorted(evidence_by_id))
@@ -429,7 +460,7 @@ class VisualSectorsProvider(MarketDataProvider):
         cache_key = sha256(
             b"\0".join((cache_day.encode(), method.encode(), url.encode(), body_bytes or b""))
         ).hexdigest()
-        cache_path = self._cache_dir / cache_day / f"{cache_key}.json"
+        cache_path = self._cache_dir / self._cache_namespace / cache_day / f"{cache_key}.json"
         if cache and cache_path.exists():
             try:
                 cached = json.loads(cache_path.read_text(encoding="utf-8"))

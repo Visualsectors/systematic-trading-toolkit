@@ -1,8 +1,4 @@
-"""Local screener context I/O over the exact released deterministic engine.
-
-Node 22+ is optional for the toolkit but required for this command. No npm
-package, live provider, model service, credential or broker is invoked here.
-"""
+"""Context I/O; Python computes features, optional Node validates model cards."""
 from __future__ import annotations
 
 from importlib.resources import files
@@ -12,6 +8,7 @@ from pathlib import Path
 import shutil
 import subprocess
 from typing import Any
+from .context_features import compute_context
 
 MAX_FILE_BYTES = 16 * 1024 * 1024
 MAX_INPUT_BYTES = 64 * 1024 * 1024
@@ -46,8 +43,13 @@ def read_context_json(path: str | Path) -> dict[str, Any]:
     return value
 
 
-def load_context_dataset(path: str | Path) -> tuple[dict[str, Any], dict[str, Any]]:
-    raw = read_context_json(path)
+def load_context_dataset(path: str | Path | dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
+    raw = path if isinstance(path, dict) else read_context_json(path)
+    if raw.get("schema_version") == "visualsectors-toolkit.dataset.v2":
+        from .models import parse_manifest
+        from .context_dataset import dataset_context
+        parse_manifest(raw)
+        return dataset_context(raw)
     required = {"schema_version", "dataset_id", "synthetic", "license", "source",
                 "decision_time", "retrieval_spec", "evidence_packet"}
     if set(raw) != required or raw["schema_version"] != DATASET_SCHEMA:
@@ -73,6 +75,8 @@ def run_context(
 ) -> dict[str, Any]:
     if mode not in ("computed", "request", "decision"):
         raise ValueError("invalid context mode")
+    if mode == "computed":
+        return compute_context(spec, packet)
     if mode != "computed" and analysis_input is None:
         raise ValueError("analyst context requires --analysis-input")
     if mode == "decision" and (model_output is None or request is None):

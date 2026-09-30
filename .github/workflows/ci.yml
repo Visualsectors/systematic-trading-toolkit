@@ -34,6 +34,12 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Check installed requirements
         run: python -m pip check
+      - name: Prove computed context has no Node dependency
+        run: python -c "import os; os.environ['PATH']=''; from visualsectors_toolkit.cli import main; assert main(['context','--offline','--format','markdown']) == 0"
+      - name: Exercise disclosed jargon and named-price measurements
+        run: |
+          vstoolkit screen --ask "oversold above the 200" --offline
+          vstoolkit measure --ticker ALFA --price 100 --kind cost --offline
       - name: Compile source, tool launchers, and tests
         run: python -m compileall -q src tests screener position-sizer research risk-management monitoring entry-exit
       - name: Build wheel
