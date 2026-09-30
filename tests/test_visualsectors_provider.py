@@ -191,6 +191,39 @@ class VisualSectorsProviderTests(unittest.TestCase):
             self.assertEqual(schemas["FundamentalsMetricsRow"]["properties"]["pe_ratio"], {"type": "number", "nullable": True})
             self.assertEqual(schemas["TechnicalRow"]["required"], ["date", "indicator", "value"])
 
+    def test_history_uses_server_entitlement_floor_not_a_guessed_window(self):
+        with tempfile.TemporaryDirectory() as directory:
+            provider = RecordedProvider(directory)
+            provider.get("AAPL")
+            history = next(query for method, path, query, body in provider.calls if path == "/v1/timeseries/history")
+            self.assertNotIn("from", history)
+            self.assertEqual(history["limit"], "60")
+
+    def test_recent_row_bound_stops_pagination_and_preserves_earliest_cutoff(self):
+        first, second = envelope([{"id": 4}, {"id": 3}]), envelope([{"id": 2}, {"id": 1}])
+        first["next_cursor"], second["next_cursor"] = "second", "third"
+        second["as_of"] = "2026-09-22T20:00:00Z"
+        with tempfile.TemporaryDirectory() as directory:
+            provider = VisualSectorsProvider(api_key="test-only", cache_dir=directory)
+            with patch.object(provider, "_request_json", side_effect=[first, second]) as request:
+                result = provider._get_pages("/v1/timeseries/history", {"ticker": "AAPL"}, max_rows=3)
+        self.assertEqual(request.call_count, 2)
+        self.assertEqual([row["id"] for row in result["rows"]], [4, 3, 2])
+        self.assertEqual(result["as_of"], second["as_of"])
+        self.assertEqual(result["client_row_bound"], 3)
+
+    def test_runaway_pagination_is_bounded(self):
+        counter = 0
+        def page(*args, **kwargs):
+            nonlocal counter
+            counter += 1
+            return {**envelope([]), "next_cursor": f"cursor:{counter}"}
+        with tempfile.TemporaryDirectory() as directory:
+            provider = VisualSectorsProvider(api_key="test-only", cache_dir=directory)
+            with patch.object(provider, "_request_json", side_effect=page), self.assertRaisesRegex(ApiResponseError, "bounded pagination"):
+                provider._get_pages("/v1/levels", {"ticker": "AAPL"})
+        self.assertEqual(counter, 100)
+
     def test_401_ends_with_login_guidance_and_never_echoes_response(self):
         error = HTTPError("https://api.visualsectors.com/v1/levels", 401, "unauthorized", Message(),
                           BytesIO(b'{"message":"do-not-echo-this-secret"}'))

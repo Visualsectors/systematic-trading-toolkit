@@ -76,8 +76,11 @@ class ContextLiveV2Tests(unittest.TestCase):
     def fake(self, fail_benchmark=None):
         outer = self
         class Provider:
-            def _get_pages(self, path, query):
+            def _get_pages(self, path, query, **kwargs):
                 name = query["ticker"]
+                if path.endswith("history"):
+                    outer.assertNotIn("from", query)
+                    outer.assertEqual(kwargs["max_rows"], 254)
                 if name == fail_benchmark: raise ApiResponseError(403, "not entitled")
                 if path == "/v1/news": return {"as_of": outer.raw["decision_time"], "rows": []}
                 series = outer.raw["bars"]["ALFA"] if name == "AAPL" else next(item for item in outer.raw["market"]["series"] if item["ticker"] == name)

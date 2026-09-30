@@ -16,10 +16,11 @@ def live_context(provider, ticker):
                 "MARKET_CAP_NOT_SUPPLIED", "HEADLINE_PEERS_NOT_SUPPLIED", "NEWS_LINKAGE_RELEVANCE_NOT_SUPPLIED",
                 "MARKET_NEWS_IS_SPY_LINKED_PROXY", "API_LINEAGE_HASHES_ARE_CLIENT_READ_FINGERPRINTS"]
     for name in dict.fromkeys((ticker, "SPY", "QQQ", "IWM", "RSP")):
-        query = {"ticker": name, "view": "daily", "from": (today - timedelta(days=370)).isoformat(),
-                 "to": today.isoformat(), "limit": "100"}
+        # API 2.2 defaults `from` to this key's history floor. A hardcoded year
+        # would refuse ordinary free keys rather than return partial coverage.
+        query = {"ticker": name, "view": "daily", "to": today.isoformat(), "limit": "100"}
         try:
-            responses[name] = provider._get_pages("/v1/timeseries/history", query)
+            responses[name] = provider._get_pages("/v1/timeseries/history", query, max_rows=254)
         except ApiResponseError as exc:
             if name == ticker or exc.status == 401:
                 raise

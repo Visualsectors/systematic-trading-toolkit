@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from hashlib import sha256
 import json
 import math
@@ -244,7 +244,6 @@ class VisualSectorsProvider(MarketDataProvider):
 
     def _load_snapshot(self, ticker: str, *, cache: bool = True) -> MarketSnapshot:
         today = datetime.now(timezone.utc).date()
-        start = today - timedelta(days=75)
         warnings = [
             "Daily prices are raw and unadjusted; corporate actions can distort derived returns and volatility.",
             "Stage 1 API data is date-bounded but non-point-in-time; do not use it as a historical backtest feed.",
@@ -258,8 +257,9 @@ class VisualSectorsProvider(MarketDataProvider):
         }
         bars_response = self._get_pages(
             "/v1/timeseries/history",
-            {"ticker": ticker, "view": "daily", "from": start.isoformat(), "to": today.isoformat(), "limit": "100"},
+            {"ticker": ticker, "view": "daily", "to": today.isoformat(), "limit": "60"},
             cache=cache,
+            max_rows=60,
         )
         metrics_response = self._optional_pages(
             "/v1/fundamentals", {"ticker": ticker, "view": "metrics"}, warnings, cache=cache
@@ -418,19 +418,31 @@ class VisualSectorsProvider(MarketDataProvider):
             url=str(row["url"]) if row.get("url") else None,
         )
 
-    def _get_pages(self, path: str, query: Mapping[str, str], *, cache: bool = True) -> dict[str, Any]:
+    def _get_pages(self, path: str, query: Mapping[str, str], *, cache: bool = True, max_rows: int | None = None) -> dict[str, Any]:
+        if max_rows is not None and (type(max_rows) is not int or not 1 <= max_rows <= 1000):
+            raise ValueError("max_rows must be an integer from 1 to 1000")
         combined: list[dict[str, Any]] = []
         cursor: str | None = None
         envelope: dict[str, Any] | None = None
         seen: set[str] = set()
+        page_count = 0
         while True:
+            page_count += 1
+            if page_count > 100:
+                raise ApiResponseError(None, f"{path} exceeded the bounded pagination allowance")
             page_query = dict(query)
             if cursor:
                 page_query["cursor"] = cursor
             page = self._request_json("GET", path, query=page_query, cache=cache)
             if envelope is None:
                 envelope = dict(page)
+            elif isinstance(page.get("as_of"), str) and isinstance(envelope.get("as_of"), str):
+                envelope["as_of"] = min((envelope["as_of"], page["as_of"]), key=_instant)
             combined.extend(_rows(page, path))
+            if max_rows is not None and len(combined) >= max_rows:
+                combined = combined[:max_rows]
+                envelope["client_row_bound"] = max_rows
+                break
             next_cursor = page.get("next_cursor")
             if next_cursor is None:
                 break

@@ -2,7 +2,7 @@
 
 The public origin and signup host are https://api.visualsectors.com. Keep API keys in environment/ignored .env, never prompts or command arguments.
 
-Computed context is dependency-free Python. Only the optional frozen model-request and model-answer validation paths need Node 22+.
+Computed context is dependency-free Python. Only the optional frozen model-request and model-answer validation paths need Node 22+. History uses the server's entitlement floor and at most 254 recent rows per series; a free account's shorter window leaves one-year baseline fields unavailable rather than requesting forbidden history.
 
 Until a server-side evidence endpoint exists, context fetches daily bars for the ticker and SPY/QQQ/IWM/RSP plus ticker/SPY news. Pagination increases request count. Stage 1 responses are date-bounded, **not point in time**; do not use them to simulate historical availability. A free key may cap history, requests or endpoints; response entitlements are authoritative. Missing history downgrades coverage.
 

@@ -64,6 +64,10 @@ vstoolkit context --ticker JPM
 
 This fetches candidate and SPY/QQQ/IWM/RSP daily bars plus candidate/SPY-linked
 news. Each paginated response is metered; pace calls using current entitlements.
+History defaults to the server's per-key floor, not a guessed one-year allowance;
+retrieval stops at 254 recent rows (allowing removal of an unfinished session).
+Ordinary free history cannot establish the full one-year baseline; its missing
+percentiles remain null with coverage codes.
 Live data is non-PIT; SPY-linked news is only a market proxy. Missing industry
 membership, market caps, breadth and structured news linkages mean **not supplied**.
 Peers abstain; no taxonomy or co-mentions are invented. Missing benchmark
