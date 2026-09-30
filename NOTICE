@@ -1,6 +1,13 @@
 Visual Sectors Systematic Trading Toolkit
 Copyright 2026 Visual Sectors
 
-Toolkit code is available under the MIT License. Documentation in README.md,
-docs/, and skills/ is available under CC BY 4.0. Connected datasets retain
-their own terms and are not relicensed by this repository.
+Toolkit code is available under the MIT License. All README.md files and the
+documentation in docs/ and skills/ are available under CC BY 4.0. Connected
+datasets retain their own terms and are not relicensed by this repository.
+
+The screener context engine and skill are adapted from Visual Sectors'
+preset-skills 0.5.0 (vs-intelligence commit
+863489f2b111fe88ab7fd3827413cff46cda8f49). The bundled engine source, generated
+runtime, adapters and synthetic tests are MIT licensed under this repository's
+LICENSE. The adapted skill, references and guides are CC BY 4.0 under
+LICENSE-DOCS. This attribution does not grant rights to connected market data.

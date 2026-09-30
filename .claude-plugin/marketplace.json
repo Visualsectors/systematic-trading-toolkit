@@ -1,0 +1,9 @@
+{
+  "name": "visualsectors",
+  "owner": { "name": "Visual Sectors" },
+  "plugins": [{
+    "name": "systematic-trading-toolkit",
+    "source": "./",
+    "description": "Evidence-first screening, Price/Peers/Market context, thesis and position-review skills."
+  }]
+}

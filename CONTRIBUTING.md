@@ -22,6 +22,9 @@ Requirements for changes:
 - Do not commit credentials, licensed market data, generated reports, or
   proprietary indicator-generation methods.
 - Document provider fields, units, timing and redistribution rights.
+- Keep the six top-level tool folders discoverable. Update the tool README,
+  examples, shared CLI and launcher tests together; do not duplicate calculation
+  logic in folder scripts.
 
 By contributing, you agree that code contributions are licensed under MIT and
 documentation contributions under CC BY 4.0, as included in this repository.

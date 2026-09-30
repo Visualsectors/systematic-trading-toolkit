@@ -1,0 +1,6 @@
+interface:
+  display_name: "Reassess Position"
+  short_description: "Review conditions and named-price measurements"
+  default_prompt: "Use $reassess-position to review my authorized toolkit evidence, cite code-owned facts and identify missing coverage."
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Compose Screen"
+  short_description: "Disclosed jargon filters and explicit refusals"
+  default_prompt: "Use $compose-screen to review my authorized toolkit evidence, cite code-owned facts and identify missing coverage."
+policy:
+  allow_implicit_invocation: true

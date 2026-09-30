@@ -7,6 +7,7 @@
 - Stop-risk sizing can materially understate realized loss when price gaps through a stop.
 - Volatility estimates are backward-looking and depend on provider definitions and adjustment choices.
 - The research brief is bounded by supplied evidence. Missing evidence is a gap, not a neutral signal.
+- The live API 2.2.0 mapping has no earnings calendar: `days_to_earnings` remains null. Fundamentals and news can be unavailable independently, with explicit warnings. None of these gaps clears earnings or headline risk.
 - Risk flags are incomplete by construction and do not cover every market, liquidity, operational, legal, tax, concentration, leverage, short-sale, or counterparty risk.
 - Monitoring detects changes in supplied risk flags. It cannot detect what the provider does not supply.
 - No broker integration or automated order placement exists.

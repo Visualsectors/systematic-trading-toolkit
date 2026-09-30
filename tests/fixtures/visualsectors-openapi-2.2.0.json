@@ -1,0 +1,979 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Visual Sectors Data API",
+    "version": "2.2.0",
+    "description": "Visual Sectors API 2.2.0 request and row-schema excerpt."
+  },
+  "x-fixture": "Contract excerpt captured 2026-09-30 from API 2.2.0. Paths retain request parameters and security; row schemas are unmodified. No licensed market data.",
+  "paths": {
+    "/v1/health": {
+      "get": {
+        "parameters": [],
+        "security": []
+      }
+    },
+    "/v1/levels": {
+      "get": {
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "description": "Recommended when bought calls may be used. Reusing it for the same request prevents a replay from spending twice.",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9._:-]+$"
+            }
+          },
+          {
+            "name": "ticker",
+            "in": "query",
+            "required": false,
+            "description": "One US ticker. Latest routes accept either ticker or tickers; history requires ticker.",
+            "schema": {
+              "type": "string",
+              "example": "AAPL"
+            }
+          },
+          {
+            "name": "tickers",
+            "in": "query",
+            "required": false,
+            "description": "Latest routes only. Each distinct ticker consumes one call from every rate bucket.",
+            "schema": {
+              "type": "string",
+              "example": "AAPL,MSFT"
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "required": false,
+            "description": "Date-bounded query ceiling. Blank means the latest eligible source row; each view documents its PIT semantics.",
+            "schema": {
+              "type": "string",
+              "example": "2026-06-01"
+            }
+          },
+          {
+            "name": "side",
+            "in": "query",
+            "required": false,
+            "description": "Support or Resistance.",
+            "schema": {
+              "type": "string",
+              "example": "Support"
+            }
+          },
+          {
+            "name": "level_type",
+            "in": "query",
+            "required": false,
+            "description": "Level family such as ma, gex, pivot, or swing.",
+            "schema": {
+              "type": "string",
+              "example": "ma"
+            }
+          },
+          {
+            "name": "only_best",
+            "in": "query",
+            "required": false,
+            "description": "Return only rows marked as the selected level.",
+            "schema": {
+              "type": "boolean",
+              "example": true
+            }
+          },
+          {
+            "name": "fields",
+            "in": "query",
+            "required": false,
+            "description": "Response projection. Unknown fields return 400 with the documented allowed list.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Maximum rows in this page.",
+            "schema": {
+              "type": "integer",
+              "example": 100
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "description": "Opaque continuation cursor returned by a previous page.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v1/technicals/{indicator}": {
+      "get": {
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "description": "Recommended when bought calls may be used. Reusing it for the same request prevents a replay from spending twice.",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9._:-]+$"
+            }
+          },
+          {
+            "name": "indicator",
+            "in": "path",
+            "required": true,
+            "description": "One technicals indicator id.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "adx14",
+                "atr14",
+                "bb_percent_b",
+                "bb_width",
+                "ema20",
+                "ema21",
+                "macd",
+                "macd_hist",
+                "macd_signal",
+                "mfi14",
+                "natr14",
+                "obv",
+                "rsi14",
+                "sma20",
+                "sma50",
+                "sma100",
+                "sma200",
+                "stoch_d_14_1_3",
+                "stoch_k_14_1_3",
+                "vov20"
+              ]
+            }
+          },
+          {
+            "name": "ticker",
+            "in": "query",
+            "required": false,
+            "description": "One US ticker. Latest routes accept either ticker or tickers; history requires ticker.",
+            "schema": {
+              "type": "string",
+              "example": "AAPL"
+            }
+          },
+          {
+            "name": "tickers",
+            "in": "query",
+            "required": false,
+            "description": "Latest routes only. Each distinct ticker consumes one call from every rate bucket.",
+            "schema": {
+              "type": "string",
+              "example": "AAPL,MSFT"
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "required": false,
+            "description": "Date-bounded query ceiling. Blank means the latest eligible source row; each view documents its PIT semantics.",
+            "schema": {
+              "type": "string",
+              "example": "2026-06-01"
+            }
+          },
+          {
+            "name": "fields",
+            "in": "query",
+            "required": false,
+            "description": "Response projection. Unknown fields return 400 with the documented allowed list.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Maximum rows in this page.",
+            "schema": {
+              "type": "integer",
+              "example": 100
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "description": "Opaque continuation cursor returned by a previous page.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v1/timeseries/history": {
+      "get": {
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "description": "Recommended when bought calls may be used. Reusing it for the same request prevents a replay from spending twice.",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9._:-]+$"
+            }
+          },
+          {
+            "name": "ticker",
+            "in": "query",
+            "required": true,
+            "description": "One US ticker. Latest routes accept either ticker or tickers; history requires ticker.",
+            "schema": {
+              "type": "string",
+              "example": "AAPL"
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "required": false,
+            "description": "Date-bounded query ceiling. Blank means the latest eligible source row; each view documents its PIT semantics.",
+            "schema": {
+              "type": "string",
+              "example": "2026-06-01"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "description": "Inclusive history start, subject to the caller history floor.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "description": "Inclusive history end. Blank means date or today.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "view",
+            "in": "query",
+            "required": false,
+            "description": "daily or diff.",
+            "schema": {
+              "type": "string",
+              "example": "daily"
+            }
+          },
+          {
+            "name": "fields",
+            "in": "query",
+            "required": false,
+            "description": "Response projection. Unknown fields return 400 with the documented allowed list.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "description": "History routes only. csv returns the selected rows as RFC 4180-compatible text.",
+            "schema": {
+              "type": "string",
+              "example": "csv"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Maximum rows in this page.",
+            "schema": {
+              "type": "integer",
+              "example": 100
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "description": "Opaque continuation cursor returned by a previous page.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v1/fundamentals": {
+      "get": {
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "description": "Recommended when bought calls may be used. Reusing it for the same request prevents a replay from spending twice.",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9._:-]+$"
+            }
+          },
+          {
+            "name": "ticker",
+            "in": "query",
+            "required": false,
+            "description": "One US ticker. Latest routes accept either ticker or tickers; history requires ticker.",
+            "schema": {
+              "type": "string",
+              "example": "AAPL"
+            }
+          },
+          {
+            "name": "tickers",
+            "in": "query",
+            "required": false,
+            "description": "Latest routes only. Each distinct ticker consumes one call from every rate bucket.",
+            "schema": {
+              "type": "string",
+              "example": "AAPL,MSFT"
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "required": false,
+            "description": "Date-bounded query ceiling. Blank means the latest eligible source row; each view documents its PIT semantics.",
+            "schema": {
+              "type": "string",
+              "example": "2026-06-01"
+            }
+          },
+          {
+            "name": "view",
+            "in": "query",
+            "required": false,
+            "description": "metrics (default), statements, or insider.",
+            "schema": {
+              "type": "string",
+              "example": "metrics"
+            }
+          },
+          {
+            "name": "fields",
+            "in": "query",
+            "required": false,
+            "description": "Response projection. Unknown fields return 400 with the documented allowed list.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Maximum rows in this page.",
+            "schema": {
+              "type": "integer",
+              "example": 100
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "description": "Opaque continuation cursor returned by a previous page.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v1/news": {
+      "get": {
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "description": "Recommended when bought calls may be used. Reusing it for the same request prevents a replay from spending twice.",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "pattern": "^[A-Za-z0-9._:-]+$"
+            }
+          },
+          {
+            "name": "ticker",
+            "in": "query",
+            "required": false,
+            "description": "One US ticker. Latest routes accept either ticker or tickers; history requires ticker.",
+            "schema": {
+              "type": "string",
+              "example": "AAPL"
+            }
+          },
+          {
+            "name": "tickers",
+            "in": "query",
+            "required": false,
+            "description": "Latest routes only. Each distinct ticker consumes one call from every rate bucket.",
+            "schema": {
+              "type": "string",
+              "example": "AAPL,MSFT"
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "required": false,
+            "description": "Date-bounded query ceiling. Blank means the latest eligible source row; each view documents its PIT semantics.",
+            "schema": {
+              "type": "string",
+              "example": "2026-06-01"
+            }
+          },
+          {
+            "name": "view",
+            "in": "query",
+            "required": false,
+            "description": "headlines or reactions.",
+            "schema": {
+              "type": "string",
+              "example": "headlines"
+            }
+          },
+          {
+            "name": "fields",
+            "in": "query",
+            "required": false,
+            "description": "Response projection. Unknown fields return 400 with the documented allowed list.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Maximum rows in this page.",
+            "schema": {
+              "type": "integer",
+              "example": 100
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "description": "Opaque continuation cursor returned by a previous page.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "FundamentalsMetricsRow": {
+        "type": "object",
+        "required": [
+          "ticker",
+          "quote_date",
+          "period_end",
+          "period_type",
+          "filed",
+          "accn",
+          "reported_currency",
+          "staleness_days",
+          "quality_flag",
+          "metrics_version",
+          "created_at",
+          "event_date"
+        ],
+        "properties": {
+          "ticker": {
+            "type": "string"
+          },
+          "quote_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "period_end": {
+            "type": "string",
+            "format": "date"
+          },
+          "period_type": {
+            "type": "string"
+          },
+          "filed": {
+            "type": "string",
+            "format": "date"
+          },
+          "accn": {
+            "type": "string"
+          },
+          "reported_currency": {
+            "type": "string"
+          },
+          "staleness_days": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "revenue_ttm": {
+            "type": "number",
+            "nullable": true
+          },
+          "ebitda_ttm": {
+            "type": "number",
+            "nullable": true
+          },
+          "ebit_ttm": {
+            "type": "number",
+            "nullable": true
+          },
+          "net_income_ttm": {
+            "type": "number",
+            "nullable": true
+          },
+          "fcf_ttm": {
+            "type": "number",
+            "nullable": true
+          },
+          "shares_outstanding": {
+            "type": "number",
+            "nullable": true
+          },
+          "market_cap": {
+            "type": "number",
+            "nullable": true
+          },
+          "enterprise_value": {
+            "type": "number",
+            "nullable": true
+          },
+          "pe_ratio": {
+            "type": "number",
+            "nullable": true
+          },
+          "pb_ratio": {
+            "type": "number",
+            "nullable": true
+          },
+          "ps_ratio": {
+            "type": "number",
+            "nullable": true
+          },
+          "ev_to_ebitda": {
+            "type": "number",
+            "nullable": true
+          },
+          "fcf_yield": {
+            "type": "number",
+            "nullable": true
+          },
+          "gross_margin": {
+            "type": "number",
+            "nullable": true
+          },
+          "operating_margin": {
+            "type": "number",
+            "nullable": true
+          },
+          "net_margin": {
+            "type": "number",
+            "nullable": true
+          },
+          "debt_to_equity": {
+            "type": "number",
+            "nullable": true
+          },
+          "net_debt_to_ebitda": {
+            "type": "number",
+            "nullable": true
+          },
+          "current_ratio": {
+            "type": "number",
+            "nullable": true
+          },
+          "interest_coverage": {
+            "type": "number",
+            "nullable": true
+          },
+          "quality_flag": {
+            "type": "string"
+          },
+          "metrics_version": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "RFC 3339 timestamp with an explicit UTC offset."
+          },
+          "event_date": {
+            "type": "string",
+            "format": "date"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TechnicalRow": {
+        "type": "object",
+        "required": [
+          "date",
+          "indicator",
+          "value"
+        ],
+        "properties": {
+          "ticker": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "indicator": {
+            "type": "string",
+            "enum": [
+              "adx14",
+              "atr14",
+              "bb_percent_b",
+              "bb_width",
+              "ema20",
+              "ema21",
+              "macd",
+              "macd_hist",
+              "macd_signal",
+              "mfi14",
+              "natr14",
+              "obv",
+              "rsi14",
+              "sma20",
+              "sma50",
+              "sma100",
+              "sma200",
+              "stoch_d_14_1_3",
+              "stoch_k_14_1_3",
+              "vov20"
+            ]
+          },
+          "value": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "TimeSeriesRow": {
+        "type": "object",
+        "required": [
+          "ticker"
+        ],
+        "properties": {
+          "ticker": {
+            "type": "string"
+          },
+          "ticker_id": {
+            "type": "integer",
+            "nullable": true
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "datetime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "RFC 3339 timestamp with an explicit UTC offset."
+          },
+          "open": {
+            "type": "number",
+            "nullable": true
+          },
+          "high": {
+            "type": "number",
+            "nullable": true
+          },
+          "low": {
+            "type": "number",
+            "nullable": true
+          },
+          "close": {
+            "type": "number",
+            "nullable": true
+          },
+          "volume": {
+            "type": "integer",
+            "nullable": true
+          },
+          "divident_amount": {
+            "type": "number",
+            "nullable": true
+          },
+          "split_coefficient": {
+            "type": "number",
+            "nullable": true
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "RFC 3339 timestamp with an explicit UTC offset."
+          },
+          "event_date": {
+            "type": "string",
+            "description": "Date for daily/diff views; RFC 3339 timestamp for the 15min view."
+          },
+          "cur_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "prev_date": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "prev_5_date": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "prev_30_date": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "prev_close": {
+            "type": "number",
+            "nullable": true
+          },
+          "prev_5_day_close": {
+            "type": "number",
+            "nullable": true
+          },
+          "prev_30_day_close": {
+            "type": "number",
+            "nullable": true
+          },
+          "diff_1_day_close": {
+            "type": "number"
+          },
+          "diff_5_day_close": {
+            "type": "number"
+          },
+          "diff_30_day_close": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string"
+          },
+          "atr": {
+            "type": "number",
+            "nullable": true
+          },
+          "atr_percent": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "LevelRow": {
+        "type": "object",
+        "required": [
+          "level_date",
+          "side",
+          "level_type",
+          "approach"
+        ],
+        "properties": {
+          "level_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "side": {
+            "type": "string",
+            "enum": [
+              "Support",
+              "Resistance"
+            ]
+          },
+          "level_type": {
+            "type": "string"
+          },
+          "approach": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number",
+            "nullable": true
+          },
+          "score": {
+            "type": "number",
+            "nullable": true
+          },
+          "p_hold_7d_pct": {
+            "type": "number",
+            "nullable": true
+          },
+          "exp_bounce_pct": {
+            "type": "number",
+            "nullable": true
+          },
+          "expected_bounce_usd": {
+            "type": "number",
+            "nullable": true
+          },
+          "hard_break_price": {
+            "type": "number",
+            "nullable": true
+          },
+          "hard_break_pct": {
+            "type": "number",
+            "nullable": true
+          },
+          "reward_risk": {
+            "type": "number",
+            "nullable": true
+          },
+          "dist_atr": {
+            "type": "number",
+            "nullable": true
+          },
+          "confluence_count": {
+            "type": "integer",
+            "nullable": true
+          },
+          "num_tests_365d": {
+            "type": "integer",
+            "nullable": true
+          }
+        },
+        "additionalProperties": true
+      },
+      "NewsHeadlineRow": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "teaser",
+          "url",
+          "author",
+          "topics",
+          "image",
+          "overall_sentiment_label",
+          "overall_sentiment_score",
+          "created",
+          "relevance_score",
+          "ticker_sentiment_score",
+          "ticker_sentiment_label",
+          "event_date"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "teaser": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "author": {
+            "type": "string"
+          },
+          "topics": {
+            "type": "string"
+          },
+          "image": {
+            "type": "string"
+          },
+          "overall_sentiment_label": {
+            "type": "string"
+          },
+          "overall_sentiment_score": {
+            "type": "number"
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time",
+            "description": "RFC 3339 timestamp with an explicit UTC offset."
+          },
+          "relevance_score": {
+            "type": "number"
+          },
+          "ticker_sentiment_score": {
+            "type": "number"
+          },
+          "ticker_sentiment_label": {
+            "type": "number"
+          },
+          "event_date": {
+            "type": "string",
+            "format": "date"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}

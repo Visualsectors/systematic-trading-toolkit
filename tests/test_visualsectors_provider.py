@@ -3,12 +3,15 @@ from datetime import date, timedelta
 from email.message import Message
 from io import BytesIO
 import os
+import json
+from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
 from urllib.error import HTTPError
 
-from visualsectors_toolkit.providers import MissingApiKeyError, RateLimitError, VisualSectorsProvider
+from visualsectors_toolkit.providers import ApiResponseError, MissingApiKeyError, RateLimitError, VisualSectorsProvider
+from visualsectors_toolkit.providers.visualsectors import PLAN_INDICATORS
 
 
 AS_OF = "2026-09-23T23:59:59Z"
@@ -43,6 +46,7 @@ class RecordedProvider(VisualSectorsProvider):
             for index in range(21)
         ]
         self.calls = []
+        self.cache_flags = []
         self.recorded = {
             ("GET", "/v1/health", None): {"ok": True, "service": "recorded"},
             ("GET", "/v1/levels", None): envelope([
@@ -55,17 +59,8 @@ class RecordedProvider(VisualSectorsProvider):
                     "num_tests_365d": 9,
                 }
             ]),
-            ("GET", "/v1/technicals", None): envelope([
-                {"date": "2026-09-23", "indicators": {
-                    "atr14": 2.5, "rsi14": 33, "sma20": 115,
-                    "sma50": 110, "sma200": 90,
-                }}
-            ]),
             ("GET", "/v1/timeseries/history", "daily"): envelope(bars),
-            ("GET", "/v1/fundamentals", "overview"): envelope([{"PERatio": 29.5}]),
-            ("GET", "/v1/fundamentals", "earnings_calendar"): envelope([
-                {"report_date": "2026-09-30", "estimate": 1.2, "currency": "USD"}
-            ]),
+            ("GET", "/v1/fundamentals", "metrics"): envelope([{"pe_ratio": 29.5}]),
             ("GET", "/v1/news", "headlines"): envelope([
                 {
                     "id": "story-1", "title": "Recorded product announcement", "author": "Publisher",
@@ -77,11 +72,19 @@ class RecordedProvider(VisualSectorsProvider):
                 "version": 1, "results": [{"ticker": "AAPL"}], "next_cursor": None, "row_cap": 100,
             },
         }
+        for indicator, value in {"atr14": 2.5, "rsi14": 33, "sma20": 115, "sma50": 110, "sma200": 90}.items():
+            self.recorded[("GET", f"/v1/technicals/{indicator}", None)] = envelope([
+                {"date": "2026-09-23", "indicator": indicator, "value": value}
+            ])
 
     def _request_json(self, method, path, *, query=None, body=None, cache=True):
         self.calls.append((method, path, copy.deepcopy(query), copy.deepcopy(body)))
+        self.cache_flags.append(cache)
         view = query.get("view") if query else None
-        return copy.deepcopy(self.recorded[(method, path, view)])
+        payload = self.recorded[(method, path, view)]
+        if isinstance(payload, Exception):
+            raise payload
+        return copy.deepcopy(payload)
 
 
 class VisualSectorsProviderTests(unittest.TestCase):
@@ -92,7 +95,8 @@ class VisualSectorsProviderTests(unittest.TestCase):
             self.assertEqual(row.price, 120)
             self.assertEqual(row.rsi14, 33)
             self.assertEqual(row.pe_ratio, 29.5)
-            self.assertEqual(row.days_to_earnings, 7)
+            self.assertIsNone(row.days_to_earnings)
+            self.assertIn("earnings calendar data is not served", " ".join(row.warnings))
             self.assertGreater(row.momentum_20d_pct, 0)
             self.assertGreater(row.volatility_20d_pct, 0)
             self.assertEqual(row.average_dollar_volume_20d, 110_500_000)
@@ -110,14 +114,181 @@ class VisualSectorsProviderTests(unittest.TestCase):
             self.assertEqual((method, path), ("POST", "/v1/screen"))
             self.assertEqual(body["limit"], 10)
 
-    def test_verify_makes_exactly_health_and_one_levels_request(self):
+    def test_verify_exercises_every_plan_endpoint_without_cache(self):
+        with tempfile.TemporaryDirectory() as directory:
+            provider = RecordedProvider(directory)
+            provider.get("AAPL")  # A warm in-memory/disk cache must not validate a different key.
+            provider.calls.clear()
+            provider.cache_flags.clear()
+            warnings = provider.verify()
+            self.assertEqual(
+                [(method, path) for method, path, _query, _body in provider.calls],
+                [("GET", "/v1/health"), ("GET", "/v1/levels")]
+                + [("GET", f"/v1/technicals/{indicator}") for indicator in PLAN_INDICATORS]
+                + [("GET", "/v1/timeseries/history"), ("GET", "/v1/fundamentals"), ("GET", "/v1/news")],
+            )
+            self.assertTrue(all(flag is False for flag in provider.cache_flags))
+            self.assertIn("Days to earnings", " ".join(warnings))
+
+    def test_optional_endpoint_failures_degrade_with_explicit_gaps(self):
+        for path, view in (("/v1/fundamentals", "metrics"), ("/v1/news", "headlines")):
+            for failure in (ApiResponseError(403, "unavailable"), ApiResponseError(503, "outage"), {"rows": "bad"}):
+                with self.subTest(path=path, failure=failure), tempfile.TemporaryDirectory() as directory:
+                    provider = RecordedProvider(directory)
+                    provider.recorded[("GET", path, view)] = failure
+                    row = provider.get("AAPL")
+                    self.assertEqual(row.price, 120)
+                    self.assertIn(path, " ".join(row.warnings))
+                    if path == "/v1/fundamentals":
+                        self.assertIsNone(row.pe_ratio)
+                    else:
+                        self.assertEqual(row.evidence, ())
+
+    def test_optional_endpoints_never_hide_authentication_or_rate_limits(self):
+        for path, view in (("/v1/fundamentals", "metrics"), ("/v1/news", "headlines")):
+            for failure in (ApiResponseError(401, "invalid key"), RateLimitError("42")):
+                with self.subTest(path=path, failure=failure), tempfile.TemporaryDirectory() as directory:
+                    provider = RecordedProvider(directory)
+                    provider.recorded[("GET", path, view)] = failure
+                    with self.assertRaises(type(failure)):
+                        provider.verify()
+
+    def test_core_endpoint_failure_still_fails_closed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            provider = RecordedProvider(directory)
+            provider.recorded[("GET", "/v1/technicals/atr14", None)] = ApiResponseError(503, "outage")
+            with self.assertRaises(ApiResponseError):
+                provider.verify()
+
+    def test_malformed_optional_news_is_not_fabricated(self):
+        with tempfile.TemporaryDirectory() as directory:
+            provider = RecordedProvider(directory)
+            provider.recorded[("GET", "/v1/news", "headlines")] = envelope([{"id": "bad", "title": "Unknown date"}])
+            row = provider.get("AAPL")
+            self.assertEqual(row.evidence, ())
+            self.assertIn("malformed news", " ".join(row.warnings))
+
+    def test_plan_requests_match_captured_220_openapi(self):
+        contract = json.loads((Path(__file__).parent / "fixtures/visualsectors-openapi-2.2.0.json").read_text(encoding="utf-8"))
+        self.assertEqual(contract["info"]["version"], "2.2.0")
         with tempfile.TemporaryDirectory() as directory:
             provider = RecordedProvider(directory)
             provider.verify()
-            self.assertEqual(
-                [(method, path) for method, path, _query, _body in provider.calls],
-                [("GET", "/v1/health"), ("GET", "/v1/levels")],
-            )
+            for method, path, query, _body in provider.calls:
+                template = "/v1/technicals/{indicator}" if path.startswith("/v1/technicals/") else path
+                operation = contract["paths"][template][method.lower()]
+                parameters = operation["parameters"]
+                allowed = {parameter["name"] for parameter in parameters if parameter["in"] == "query"}
+                self.assertFalse(set(query or {}) - allowed, path)
+                if template != path:
+                    indicator = next(parameter for parameter in parameters if parameter["name"] == "indicator")
+                    self.assertIn(path.rsplit("/", 1)[-1], indicator["schema"]["enum"])
+                if path == "/v1/fundamentals":
+                    view = next(parameter for parameter in parameters if parameter["name"] == "view")
+                    self.assertEqual(query["view"], view["schema"]["example"])
+                    self.assertNotIn("earnings_calendar", view["description"])
+            schemas = contract["components"]["schemas"]
+            self.assertEqual(schemas["FundamentalsMetricsRow"]["properties"]["pe_ratio"], {"type": "number", "nullable": True})
+            self.assertEqual(schemas["TechnicalRow"]["required"], ["date", "indicator", "value"])
+
+    def test_history_uses_server_entitlement_floor_not_a_guessed_window(self):
+        with tempfile.TemporaryDirectory() as directory:
+            provider = RecordedProvider(directory)
+            provider.get("AAPL")
+            history = next(query for method, path, query, body in provider.calls if path == "/v1/timeseries/history")
+            self.assertNotIn("from", history)
+            self.assertEqual(history["limit"], "60")
+
+    def test_recent_row_bound_stops_pagination_and_preserves_earliest_cutoff(self):
+        first, second = envelope([{"id": 4}, {"id": 3}]), envelope([{"id": 2}, {"id": 1}])
+        first["next_cursor"], second["next_cursor"] = "second", "third"
+        second["as_of"] = "2026-09-22T20:00:00Z"
+        with tempfile.TemporaryDirectory() as directory:
+            provider = VisualSectorsProvider(api_key="test-only", cache_dir=directory)
+            with patch.object(provider, "_request_json", side_effect=[first, second]) as request:
+                result = provider._get_pages("/v1/timeseries/history", {"ticker": "AAPL"}, max_rows=3)
+        self.assertEqual(request.call_count, 2)
+        self.assertEqual([row["id"] for row in result["rows"]], [4, 3, 2])
+        self.assertEqual(result["as_of"], second["as_of"])
+        self.assertEqual(result["client_row_bound"], 3)
+
+    def test_runaway_pagination_is_bounded(self):
+        counter = 0
+        def page(*args, **kwargs):
+            nonlocal counter
+            counter += 1
+            return {**envelope([]), "next_cursor": f"cursor:{counter}"}
+        with tempfile.TemporaryDirectory() as directory:
+            provider = VisualSectorsProvider(api_key="test-only", cache_dir=directory)
+            with patch.object(provider, "_request_json", side_effect=page), self.assertRaisesRegex(ApiResponseError, "bounded pagination"):
+                provider._get_pages("/v1/levels", {"ticker": "AAPL"})
+        self.assertEqual(counter, 100)
+
+    def test_401_ends_with_login_guidance_and_never_echoes_response(self):
+        error = HTTPError("https://api.visualsectors.com/v1/levels", 401, "unauthorized", Message(),
+                          BytesIO(b'{"message":"do-not-echo-this-secret"}'))
+        with tempfile.TemporaryDirectory() as directory:
+            provider = VisualSectorsProvider(api_key="recorded-test-key", cache_dir=directory)
+            with patch("visualsectors_toolkit.providers.visualsectors.urlopen", side_effect=error):
+                with self.assertRaises(ApiResponseError) as caught:
+                    provider._request_json("GET", "/v1/levels", cache=False)
+            self.assertTrue(str(caught.exception).endswith("run: vstoolkit login"))
+            self.assertIn("https://api.visualsectors.com/signup", str(caught.exception))
+            self.assertNotIn("do-not-echo", str(caught.exception))
+
+    def test_key_file_is_rejected_without_echoing_its_contents(self):
+        with self.assertRaisesRegex(ValueError, "single token"):
+            VisualSectorsProvider(api_key="-----BEGIN OPENSSH PRIVATE KEY-----\nnot-a-secret")
+
+    def test_api_hosts_reject_insecure_or_credential_bearing_urls_before_io(self):
+        for host in ("http://api.example.com", "ftp://api.example.com", "https://user:password@example.com",
+                     "https://example.com?secret=yes", "https://example.com#fragment", "https://example.com\n"):
+            with self.subTest(host=host), patch("visualsectors_toolkit.providers.visualsectors.urlopen") as http:
+                with self.assertRaisesRegex(ValueError, "HTTPS"):
+                    VisualSectorsProvider(api_key="test-only", base_url=host)
+                http.assert_not_called()
+
+    def test_authenticated_redirects_are_refused_without_forwarding_a_key(self):
+        from visualsectors_toolkit.providers.visualsectors import _NoCredentialRedirect
+        from urllib.request import Request
+        request = Request("https://api.visualsectors.com/v1/levels", headers={"Authorization": "Bearer test-only"})
+        for target in ("http://api.visualsectors.com/v1/levels", "https://untrusted.example/v1/levels"):
+            with self.subTest(target=target), self.assertRaisesRegex(ApiResponseError, "redirects are refused"):
+                _NoCredentialRedirect().redirect_request(request, None, 302, "redirect", {}, target)
+
+    def test_cache_is_separate_for_each_key_and_does_not_use_legacy_cache(self):
+        with tempfile.TemporaryDirectory() as directory:
+            first = VisualSectorsProvider(api_key="first-test-key", cache_dir=directory)
+            second = VisualSectorsProvider(api_key="second-test-key", cache_dir=directory)
+            with patch("visualsectors_toolkit.providers.visualsectors.urlopen",
+                       side_effect=[BytesIO(b'{"account":"first"}'), BytesIO(b'{"account":"second"}')]) as http:
+                self.assertEqual(first._request_json("GET", "/v1/levels"), {"account": "first"})
+                self.assertEqual(second._request_json("GET", "/v1/levels"), {"account": "second"})
+                self.assertEqual(first._request_json("GET", "/v1/levels"), {"account": "first"})
+                self.assertEqual(http.call_count, 2)
+            self.assertNotEqual(first._cache_namespace, second._cache_namespace)
+            paths = [str(path) for path in Path(directory).rglob("*.json")]
+            self.assertEqual(len(paths), 2)
+            self.assertTrue(all("test-key" not in path for path in paths))
+
+    def test_multi_ticker_manifest_uses_latest_valid_snapshot_time(self):
+        with tempfile.TemporaryDirectory() as directory:
+            provider = RecordedProvider(directory)
+            provider.get("AAPL")
+            for payload in provider.recorded.values():
+                if isinstance(payload, dict) and "as_of" in payload:
+                    payload["as_of"] = "2026-09-24T23:59:59Z"
+            provider.get("MSFT")
+            self.assertEqual(provider.manifest.decision_time, "2026-09-24T23:59:59Z")
+            self.assertEqual(len(provider.manifest.snapshots), 2)
+
+    def test_news_and_observations_after_common_cutoff_are_not_used(self):
+        with tempfile.TemporaryDirectory() as directory:
+            provider = RecordedProvider(directory)
+            provider.recorded[("GET", "/v1/levels", None)]["as_of"] = "2026-09-23T12:00:00Z"
+            row = provider.get("AAPL")
+            self.assertEqual(row.evidence, ())
+            self.assertIn("after the common source cutoff", " ".join(row.warnings))
 
     def test_missing_key_has_signup_guidance(self):
         with tempfile.TemporaryDirectory() as directory, patch.dict(

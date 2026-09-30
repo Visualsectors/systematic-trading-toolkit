@@ -10,10 +10,16 @@ import os
 import sys
 import tempfile
 import webbrowser
+from importlib.resources import files
 from pathlib import Path
 from typing import Sequence
 
 from . import __version__
+from .context import load_context_dataset, read_context_json, run_context
+from .context_card import render_context_card
+from .context_live import live_context
+from .jargon import compile_screen, run_composed_screen
+from .named_price import measure_named_price
 from .levels import build_level_plan
 from .models import Severity, to_dict
 from .monitoring import MonitorState, TrackedPlan, TrackedRisk, evaluate_monitor
@@ -196,26 +202,46 @@ def _build_parser() -> argparse.ArgumentParser:
 
     screen = commands.add_parser("screen", help="Run a disclosed screen and emit JSON.")
     _add_data_source(screen)
-    screen.add_argument("--preset", choices=sorted(PRESETS), default="oversold_at_support", help="Named disclosed filter set.")
+    screen_choice = screen.add_mutually_exclusive_group()
+    screen_choice.add_argument("--preset", choices=sorted(PRESETS), help="Named disclosed filter set; default oversold_at_support.")
+    screen_choice.add_argument("--ask", help="Closed plain-English filter request; unsupported conditions refuse before any network call.")
+    screen.add_argument("--interpret-only", action="store_true", help="Show the disclosed --ask conditions without fetching data.")
+    screen.add_argument("--tickers", help="Comma-separated explicit live watchlist for --ask (maximum five); no whole-market claim.")
     screen.add_argument("--limit", type=_limit, default=25, help="Maximum returned tickers (1-100).")
+
+    context = commands.add_parser("context", help="Compute evidence-linked Price, Peers and Market context in Python.")
+    _add_data_source(context)
+    context.add_argument("--ticker", help="US-listed ticker for live context or a selected dataset card.")
+    context.add_argument("--format", choices=("json", "markdown"), default="json", help="Computed JSON or an evidence-linked Markdown card.")
+    context.add_argument("--card", help="Also save the computed Markdown card to this local path.")
+    context.add_argument("--retrieval-spec", help="Fixed retrieval-spec JSON for a separately supplied evidence packet.")
+    context.add_argument("--analysis-input", help="Frozen analyst metadata JSON; emit a grounded model request instead of features.")
+    context.add_argument("--model-output", help="Raw analyst response JSON to validate and render; requires --analysis-input and --request.")
+    context.add_argument("--request", help="Exact saved dispatched request JSON; required with --model-output.")
+
+    measure = commands.add_parser("measure", help="Measure served levels above and below an entry, cost basis or strike.")
+    _add_data_source(measure)
+    measure.add_argument("--ticker", required=True, help="US-listed ticker.")
+    measure.add_argument("--price", type=float, required=True, help="Positive user-named price in dollars.")
+    measure.add_argument("--kind", choices=("entry", "cost", "strike"), default="entry", help="Meaning of the user-named price; no position recommendation.")
 
     plan = commands.add_parser("plan", help="Build a conditional entry, invalidation, and reassessment plan.")
     _add_data_source(plan)
     plan.add_argument("ticker", help="US-listed ticker, for example AAPL.")
     plan.add_argument("--direction", choices=("long", "short"), default="long", help="Scenario direction.")
     plan.add_argument("--capital", type=float, default=100_000, help="Portfolio capital in account currency.")
-    plan.add_argument("--risk-fraction", type=float, default=0.005, help="Fraction at risk; 0.005 means 0.5%.")
-    plan.add_argument("--max-allocation", type=float, default=0.10, help="Capital cap; 0.10 means 10%.")
-    plan.add_argument("--yes", action="store_true", help="Confirm a risk fraction over 5% or allocation over 50%.")
+    plan.add_argument("--risk-fraction", type=float, default=0.005, help="Fraction at risk; 0.005 means 0.5%%.")
+    plan.add_argument("--max-allocation", type=float, default=0.10, help="Capital cap; 0.10 means 10%%.")
+    plan.add_argument("--yes", action="store_true", help="Confirm a risk fraction over 5%% or allocation over 50%%.")
 
     stop = commands.add_parser("size-stop", help="Size a position from entry/stop risk and an allocation cap.")
     stop.add_argument("--capital", type=float, required=True, help="Portfolio capital in account currency.")
-    stop.add_argument("--risk-fraction", type=float, required=True, help="Fraction of capital at risk; 0.01 means 1%.")
+    stop.add_argument("--risk-fraction", type=float, required=True, help="Fraction of capital at risk; 0.01 means 1%%.")
     stop.add_argument("--entry", type=float, required=True, help="Planned entry price per share.")
     stop.add_argument("--stop", type=float, required=True, help="Scenario invalidation price per share.")
-    stop.add_argument("--max-allocation", type=float, required=True, help="Maximum capital fraction; 0.10 means 10%.")
+    stop.add_argument("--max-allocation", type=float, required=True, help="Maximum capital fraction; 0.10 means 10%%.")
     stop.add_argument("--side", choices=("long", "short"), default="long", help="Position direction.")
-    stop.add_argument("--yes", action="store_true", help="Confirm a risk fraction over 5% or allocation over 50%.")
+    stop.add_argument("--yes", action="store_true", help="Confirm a risk fraction over 5%% or allocation over 50%%.")
 
     slots = commands.add_parser("size-portfolio", help="Apply the portfolio-slot/inverse-volatility method.")
     _add_data_source(slots)
@@ -228,6 +254,11 @@ def _build_parser() -> argparse.ArgumentParser:
     research.add_argument("--ticker", required=True, help="US-listed ticker, for example AAPL.")
     research.add_argument("--thesis", help="Falsifiable thesis text to examine.")
     research.add_argument("--direction", choices=("long", "short"), default="long", help="Scenario direction.")
+
+    risk = commands.add_parser("risk", help="Build an evidence-linked tailwind, headwind, and uncertainty register.")
+    _add_data_source(risk)
+    risk.add_argument("--ticker", required=True, help="US-listed ticker, for example AAPL.")
+    risk.add_argument("--direction", choices=("long", "short"), default="long", help="Scenario direction.")
 
     monitor = commands.add_parser("monitor", help="Update a local change-detection state file.")
     _add_data_source(monitor)
@@ -246,9 +277,13 @@ def _run(args: argparse.Namespace) -> int:
         if not args.no_open:
             webbrowser.open(SIGNUP_URL)
         key = getpass.getpass("Visual Sectors API key (input hidden): ").strip()
+        if not key:
+            raise ValueError("No API key was entered; run: vstoolkit login")
+        warnings = VisualSectorsProvider(api_key=key).verify()
         _save_api_key(key)
-        VisualSectorsProvider(api_key=key).verify()
-        print("Saved VISUALSECTORS_API_KEY to .env and verified live AAPL levels; .env is excluded from Git.")
+        print("Saved VISUALSECTORS_API_KEY to .env; verified all live AAPL plan endpoints. .env is excluded from Git.")
+        for warning in warnings:
+            print(f"vstoolkit: data gap/limitation: {warning}", file=sys.stderr)
         return 0
     if args.command == "demo":
         provider = SyntheticFixtureProvider()
@@ -265,17 +300,69 @@ def _run(args: argparse.Namespace) -> int:
         print(f"Wrote synthetic report to {output.resolve()}")
         return 0
     if args.command == "screen":
+        if args.ask:
+            interpretation = compile_screen(args.ask)
+            if interpretation["status"] == "refused" or args.interpret_only:
+                _print(interpretation)
+                return 2 if interpretation["status"] == "refused" else 0
+            tickers = list(dict.fromkeys(item.strip().upper() for item in (args.tickers or "").split(",") if item.strip()))
+            if not args.data and not args.offline and not 1 <= len(tickers) <= 5:
+                raise ValueError("Live --ask requires --tickers with 1–5 explicit tickers. API scalar screens cannot express every field comparison; no whole-market scan is implied.")
+            provider = _provider(args.data, args.offline)
+            universe = tuple(provider.get(ticker) for ticker in tickers) if tickers else provider.universe()
+            _print(run_composed_screen(universe, interpretation, limit=args.limit))
+            return 0
+        if args.interpret_only or args.tickers:
+            raise ValueError("--interpret-only and --tickers require --ask")
+        preset = args.preset or "oversold_at_support"
         provider = _provider(args.data, args.offline)
         universe = (
-            provider.screen_universe(args.preset, limit=args.limit)
+            provider.screen_universe(preset, limit=args.limit)
             if isinstance(provider, VisualSectorsProvider)
             else provider.universe()
         )
-        _print(run_screen(universe, args.preset, limit=args.limit))
+        _print(run_screen(universe, preset, limit=args.limit))
+        return 0
+    if args.command == "measure":
+        _print(measure_named_price(_provider(args.data, args.offline).get(args.ticker), args.price, kind=args.kind))
+        return 0
+    if args.command == "context":
+        synthetic = bool(args.offline)
+        if bool(args.model_output) != bool(args.request):
+            raise ValueError("--model-output and --request must be supplied together")
+        if args.model_output and not args.analysis_input:
+            raise ValueError("--model-output requires --analysis-input")
+        if args.retrieval_spec:
+            if not args.data:
+                raise ValueError("--retrieval-spec requires --data with an evidence packet")
+            spec, packet = read_context_json(args.retrieval_spec), read_context_json(args.data)
+        elif args.data:
+            context_dataset = read_context_json(args.data)
+            synthetic = context_dataset.get("synthetic") is True
+            spec, packet = load_context_dataset(context_dataset)
+        elif args.offline:
+            spec, packet = load_context_dataset(Path(str(files("visualsectors_toolkit").joinpath("fixtures/context_demo.json"))))
+        else:
+            if not args.ticker:
+                raise ValueError("context requires --ticker, --data or --offline")
+            spec, packet = live_context(VisualSectorsProvider(), args.ticker)
+        mode = "decision" if args.model_output else "request" if args.analysis_input else "computed"
+        result = run_context(spec, packet, mode=mode,
+            analysis_input=read_context_json(args.analysis_input) if args.analysis_input else None,
+            model_output=read_context_json(args.model_output) if args.model_output else None,
+            request=read_context_json(args.request) if args.request else None)
+        if args.card or args.format == "markdown":
+            if mode != "computed":
+                raise ValueError("--format markdown and --card require computed context, not a model request")
+            card = render_context_card(result, args.ticker, synthetic=synthetic)
+            if args.card:
+                Path(args.card).write_text(card, encoding="utf-8", newline="\n")
+        # Preserve object order in exact dispatched requests; sorting changes request bindings.
+        print(card if args.format == "markdown" else json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False))
         return 0
     if args.command == "plan":
         provider = _provider(args.data, args.offline)
-        _row, plan = _plan(provider, args.ticker, args.direction)
+        row, plan = _plan(provider, args.ticker, args.direction)
         _confirm_high_risk(args)
         stop_size = None
         if plan.entry_zone is not None and plan.invalidation_price is not None:
@@ -288,7 +375,7 @@ def _run(args: argparse.Namespace) -> int:
                 max_allocation_fraction=args.max_allocation,
                 side=plan.direction,
             )
-        _print({"plan": plan, "stop_risk_size": stop_size})
+        _print({"plan": plan, "stop_risk_size": stop_size, "data_warnings": row.warnings})
         return 0
     if args.command == "size-stop":
         _confirm_high_risk(args)
@@ -312,10 +399,13 @@ def _run(args: argparse.Namespace) -> int:
         ]
         _print(size_by_portfolio_slots(portfolio=args.portfolio, intended_holdings=args.intended_holdings, picks=picks))
         return 0
-    if args.command == "research":
+    if args.command in ("research", "risk"):
         provider = _provider(args.data, args.offline)
         row, plan = _plan(provider, args.ticker, args.direction)
-        _print(build_research_brief(row, thesis=args.thesis, level_plan=plan))
+        if args.command == "risk":
+            _print(build_risk_register(row, level_plan=plan))
+        else:
+            _print(build_research_brief(row, thesis=args.thesis, level_plan=plan))
         return 0
     if args.command == "monitor":
         state_path = Path(args.state)
