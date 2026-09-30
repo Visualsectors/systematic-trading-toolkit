@@ -4,6 +4,7 @@ All notable changes will be documented here. This project uses semantic versioni
 
 ## [Unreleased]
 
+- Added six discoverable top-level tool folders, structured quickstarts, runnable launchers, and a standalone `risk` command.
 - Updated the live adapter for API 2.2.0 SEC metrics and per-indicator technicals; withdrawn earnings timing stays null with a visible gap.
 - Added graceful optional-evidence failures, uncached full-path login verification, and safe 401 login guidance.
 - Fixed all CLI help paths, documented a working source install and served quotas, and added contract/live launch QA checks.

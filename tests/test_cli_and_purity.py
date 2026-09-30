@@ -117,6 +117,18 @@ class CliTests(unittest.TestCase):
         result = json.loads(output.getvalue())
         self.assertEqual(result["plan"]["direction"], "short")
 
+    def test_risk_command_exposes_real_register_with_evidence_and_triggers(self):
+        output = StringIO()
+        with redirect_stdout(output):
+            self.assertEqual(main(("risk", "--ticker", "ALFA", "--offline")), 0)
+        result = json.loads(output.getvalue())
+        self.assertEqual(result["ticker"], "ALFA")
+        self.assertTrue(result["flags"])
+        for flag in result["flags"]:
+            self.assertIn(flag["kind"], ("headwind", "tailwind", "uncertainty"))
+            self.assertTrue(flag["trigger"])
+            self.assertTrue(flag["reassessment_action"])
+
 
 class PurityTests(unittest.TestCase):
     def test_calculation_modules_do_not_import_io_or_nondeterminism(self):

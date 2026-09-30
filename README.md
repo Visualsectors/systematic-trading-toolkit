@@ -1,12 +1,44 @@
 # Systematic Trading Toolkit
 
+[![CI](https://github.com/Visualsectors/systematic-trading-toolkit/actions/workflows/ci.yml/badge.svg)](https://github.com/Visualsectors/systematic-trading-toolkit/actions/workflows/ci.yml)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB)](pyproject.toml)
+[![Code license: MIT](https://img.shields.io/badge/Code-MIT-15803D)](LICENSE)
+[![Docs license: CC BY 4.0](https://img.shields.io/badge/Docs-CC_BY_4.0-64748B)](LICENSE-DOCS)
+
 **S/R levels with measured hold, bounce and break rates**—plus screening, position sizing, evidence-linked research, risk registers, and change-based monitoring for US-listed equities.
 
 This is an inspectable, dependency-free Python toolkit for builders using Claude Code, Codex, Cursor, or their own automation. It connects to the Visual Sectors Data API with a free key, keeps credentials outside prompts and shell history, and contains no broker connection or order execution.
 
+**[Get a free Visual Sectors API key](https://api.visualsectors.com/signup)** · [API documentation](https://api.visualsectors.com) · [Try the offline demo](#offline-demo) · [Review the methodology](docs/METHODOLOGY.md)
+
+## Choose a tool
+
+All six tools have their own top-level folder. Open one for its quickstart, runnable scripts, calculation source, and reference tests:
+
+| Tool folder | Outcome | Installed command |
+| --- | --- | --- |
+| [screener/](screener/) | Filtered, ranked watchlists with exclusion reasons | `vstoolkit screen` |
+| [position-sizer/](position-sizer/) | Whole-share stop-risk sizes or portfolio-slot allocations | `vstoolkit size-stop` / `size-portfolio` |
+| [research/](research/) | Evidence-linked briefs, contrary evidence, and data gaps | `vstoolkit research` |
+| [risk-management/](risk-management/) | Tailwinds, headwinds, uncertainty, and reassessment triggers | `vstoolkit risk` |
+| [monitoring/](monitoring/) | Changes in risks and saved plan boundaries | `vstoolkit monitor` |
+| [entry-exit/](entry-exit/) | Conditional entry, invalidation, and reassessment zones | `vstoolkit plan` |
+
+The folder scripts call the same tested package as `vstoolkit`; calculations are not duplicated. Shared implementation lives in [`src/visualsectors_toolkit/`](src/visualsectors_toolkit/), documentation in [`docs/`](docs/), and optional AI instructions in [`skills/`](skills/).
+
+## Use the Visual Sectors API for live data
+
+The Visual Sectors API is the built-in live provider: one key connects screening, S/R levels, daily prices, technical readings, SEC metrics, and news. Start with the fictional offline examples, then connect your own free key through `vstoolkit login`.
+
+- **Get started:** [free-key signup](https://api.visualsectors.com/signup), followed by hidden-input login. Never paste the key into a prompt.
+- **Know the limits:** live calls are metered; [published entitlements](https://api.visualsectors.com/v1/docs.json) and response headers are authoritative. Begin with a small watchlist.
+- **Keep control:** the code is MIT licensed. Use your own dataset with `--data` or implement another provider; connecting to our API is not mandatory.
+
+Live launch is pending while the public host serves the older contract. The code targets API 2.2.0; [live QA](docs/LIVE_QA.md) must pass before public release. The offline examples work without signup or a network connection.
+
 ## Run it on AAPL
 
-Requirements: Python 3.10 or newer and Git. **Live launch is pending:** this client needs API 2.2.0 on the public host; production still serves the older contract as of 2026-09-30. The offline demo works now. In PowerShell, start in a directory where you keep projects:
+Requirements: Python 3.10 or newer and Git. **Live launch is pending:** this client needs API 2.2.0 on the public host; production still serves the older contract as of 2026-09-30. The offline demo works now. In PowerShell, start in a project directory outside synced folders such as OneDrive:
 
 ```powershell
 git clone https://github.com/Visualsectors/systematic-trading-toolkit.git
@@ -98,6 +130,7 @@ vstoolkit size-portfolio --tickers AAPL,MSFT --portfolio 100000 --intended-holdi
 
 ```powershell
 vstoolkit research --ticker AAPL --direction long --thesis "Margins improve while price holds structural support"
+vstoolkit risk --ticker AAPL --direction long
 vstoolkit monitor --ticker AAPL --direction long --state monitor-state.json
 ```
 
@@ -202,6 +235,6 @@ Live launch QA is separate from fixture tests: see [the API contract and real-ke
 
 ## License
 
-Code is MIT licensed. README, `docs/`, and `skills/` are CC BY 4.0. Dataset and API rights remain separate; see [LICENSE](LICENSE), [LICENSE-DOCS](LICENSE-DOCS), and [NOTICE](NOTICE).
+Code is MIT licensed. All README files, `docs/`, and `skills/` are CC BY 4.0. Dataset and API rights remain separate; see [LICENSE](LICENSE), [LICENSE-DOCS](LICENSE-DOCS), and [NOTICE](NOTICE).
 
 This software supports research and education. It does not provide investment, legal, tax, or accounting advice.

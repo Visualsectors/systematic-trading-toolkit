@@ -15,7 +15,7 @@ python -m unittest discover -s tests -v
 python -m pip check
 ```
 
-All nine subcommands' help paths are tested offline, including literal percent signs. The captured schema-only `tests/fixtures/visualsectors-openapi-2.2.0.json` checks every request used by login/plan against API 2.2.0 paths, parameter names and indicator IDs, plus the SEC `pe_ratio` field. It contains no licensed market values and does not make a network call during CI. Recorded response payloads are synthetic.
+All subcommands' help paths are tested offline, including literal percent signs. The captured schema-only `tests/fixtures/visualsectors-openapi-2.2.0.json` checks every request used by login/plan against API 2.2.0 paths, parameter names and indicator IDs, plus the SEC `pe_ratio` field. It contains no licensed market values and does not make a network call during CI. Recorded response payloads are synthetic.
 
 ## 2. Confirm production is ready (no key needed)
 
@@ -40,6 +40,9 @@ vstoolkit login
 vstoolkit plan AAPL --capital 25000 --risk-fraction 0.005 --max-allocation 0.10
 vstoolkit plan MSFT --capital 25000 --risk-fraction 0.005 --max-allocation 0.10
 vstoolkit research --ticker AAPL --thesis "Price holds structural support while margins remain resilient"
+vstoolkit risk --ticker AAPL --direction long
+vstoolkit size-portfolio --tickers AAPL,MSFT --portfolio 100000 --intended-holdings 10
+vstoolkit monitor --ticker AAPL --direction long --state .\monitoring\aapl-state.local.json
 vstoolkit screen --preset near_support --limit 5
 ```
 
@@ -54,6 +57,10 @@ Inspect every result:
 - Whole-share arithmetic agrees with `min(floor(capital × risk / abs(entry − stop)), floor(capital × max_allocation / entry))` when a plan is available. Gaps, fees and slippage are excluded.
 - With a bogus/revoked key, the CLI exits 2, contains no key, and ends its authentication message with `run: vstoolkit login`.
 - Failed login preserves the previous `.env` key. Successful login never prints the new one. Confirm `.env` is ignored before any commit.
+- Multi-ticker sizing succeeds when source observation timestamps differ; no snapshot is placed after its manifest decision time.
+- The monitor retains its saved invalidation and deduplicates unchanged events. Same-day cached reads are not proof of fresh intraday coverage.
+
+Before launch signoff, also close the broader client-hardening gates: responses must be cached separately for each credential, insecure HTTP API hosts must be rejected before sending a key, and multi-ticker manifests must preserve valid temporal ordering. These gates are separate from the D429 API-migration fixes; the current offline suite does not establish that they are resolved.
 
 ## 4. Record launch evidence
 

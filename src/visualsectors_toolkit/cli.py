@@ -229,6 +229,11 @@ def _build_parser() -> argparse.ArgumentParser:
     research.add_argument("--thesis", help="Falsifiable thesis text to examine.")
     research.add_argument("--direction", choices=("long", "short"), default="long", help="Scenario direction.")
 
+    risk = commands.add_parser("risk", help="Build an evidence-linked tailwind, headwind, and uncertainty register.")
+    _add_data_source(risk)
+    risk.add_argument("--ticker", required=True, help="US-listed ticker, for example AAPL.")
+    risk.add_argument("--direction", choices=("long", "short"), default="long", help="Scenario direction.")
+
     monitor = commands.add_parser("monitor", help="Update a local change-detection state file.")
     _add_data_source(monitor)
     monitor.add_argument("--ticker", required=True, help="US-listed ticker, for example AAPL.")
@@ -316,10 +321,13 @@ def _run(args: argparse.Namespace) -> int:
         ]
         _print(size_by_portfolio_slots(portfolio=args.portfolio, intended_holdings=args.intended_holdings, picks=picks))
         return 0
-    if args.command == "research":
+    if args.command in ("research", "risk"):
         provider = _provider(args.data, args.offline)
         row, plan = _plan(provider, args.ticker, args.direction)
-        _print(build_research_brief(row, thesis=args.thesis, level_plan=plan))
+        if args.command == "risk":
+            _print(build_risk_register(row, level_plan=plan))
+        else:
+            _print(build_research_brief(row, thesis=args.thesis, level_plan=plan))
         return 0
     if args.command == "monitor":
         state_path = Path(args.state)
