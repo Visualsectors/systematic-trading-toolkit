@@ -204,18 +204,18 @@ def _build_parser() -> argparse.ArgumentParser:
     plan.add_argument("ticker", help="US-listed ticker, for example AAPL.")
     plan.add_argument("--direction", choices=("long", "short"), default="long", help="Scenario direction.")
     plan.add_argument("--capital", type=float, default=100_000, help="Portfolio capital in account currency.")
-    plan.add_argument("--risk-fraction", type=float, default=0.005, help="Fraction at risk; 0.005 means 0.5%.")
-    plan.add_argument("--max-allocation", type=float, default=0.10, help="Capital cap; 0.10 means 10%.")
-    plan.add_argument("--yes", action="store_true", help="Confirm a risk fraction over 5% or allocation over 50%.")
+    plan.add_argument("--risk-fraction", type=float, default=0.005, help="Fraction at risk; 0.005 means 0.5%%.")
+    plan.add_argument("--max-allocation", type=float, default=0.10, help="Capital cap; 0.10 means 10%%.")
+    plan.add_argument("--yes", action="store_true", help="Confirm a risk fraction over 5%% or allocation over 50%%.")
 
     stop = commands.add_parser("size-stop", help="Size a position from entry/stop risk and an allocation cap.")
     stop.add_argument("--capital", type=float, required=True, help="Portfolio capital in account currency.")
-    stop.add_argument("--risk-fraction", type=float, required=True, help="Fraction of capital at risk; 0.01 means 1%.")
+    stop.add_argument("--risk-fraction", type=float, required=True, help="Fraction of capital at risk; 0.01 means 1%%.")
     stop.add_argument("--entry", type=float, required=True, help="Planned entry price per share.")
     stop.add_argument("--stop", type=float, required=True, help="Scenario invalidation price per share.")
-    stop.add_argument("--max-allocation", type=float, required=True, help="Maximum capital fraction; 0.10 means 10%.")
+    stop.add_argument("--max-allocation", type=float, required=True, help="Maximum capital fraction; 0.10 means 10%%.")
     stop.add_argument("--side", choices=("long", "short"), default="long", help="Position direction.")
-    stop.add_argument("--yes", action="store_true", help="Confirm a risk fraction over 5% or allocation over 50%.")
+    stop.add_argument("--yes", action="store_true", help="Confirm a risk fraction over 5%% or allocation over 50%%.")
 
     slots = commands.add_parser("size-portfolio", help="Apply the portfolio-slot/inverse-volatility method.")
     _add_data_source(slots)
@@ -246,9 +246,13 @@ def _run(args: argparse.Namespace) -> int:
         if not args.no_open:
             webbrowser.open(SIGNUP_URL)
         key = getpass.getpass("Visual Sectors API key (input hidden): ").strip()
+        if not key:
+            raise ValueError("No API key was entered; run: vstoolkit login")
+        warnings = VisualSectorsProvider(api_key=key).verify()
         _save_api_key(key)
-        VisualSectorsProvider(api_key=key).verify()
-        print("Saved VISUALSECTORS_API_KEY to .env and verified live AAPL levels; .env is excluded from Git.")
+        print("Saved VISUALSECTORS_API_KEY to .env; verified all live AAPL plan endpoints. .env is excluded from Git.")
+        for warning in warnings:
+            print(f"vstoolkit: data gap/limitation: {warning}", file=sys.stderr)
         return 0
     if args.command == "demo":
         provider = SyntheticFixtureProvider()
@@ -275,7 +279,7 @@ def _run(args: argparse.Namespace) -> int:
         return 0
     if args.command == "plan":
         provider = _provider(args.data, args.offline)
-        _row, plan = _plan(provider, args.ticker, args.direction)
+        row, plan = _plan(provider, args.ticker, args.direction)
         _confirm_high_risk(args)
         stop_size = None
         if plan.entry_zone is not None and plan.invalidation_price is not None:
@@ -288,7 +292,7 @@ def _run(args: argparse.Namespace) -> int:
                 max_allocation_fraction=args.max_allocation,
                 side=plan.direction,
             )
-        _print({"plan": plan, "stop_risk_size": stop_size})
+        _print({"plan": plan, "stop_risk_size": stop_size, "data_warnings": row.warnings})
         return 0
     if args.command == "size-stop":
         _confirm_high_risk(args)

@@ -4,6 +4,9 @@ All notable changes will be documented here. This project uses semantic versioni
 
 ## [Unreleased]
 
+- Updated the live adapter for API 2.2.0 SEC metrics and per-indicator technicals; withdrawn earnings timing stays null with a visible gap.
+- Added graceful optional-evidence failures, uncached full-path login verification, and safe 401 login guidance.
+- Fixed all CLI help paths, documented a working source install and served quotas, and added contract/live launch QA checks.
 - Added the live Visual Sectors Data API provider, free-key login, live planning, and daily response cache.
 - Added saved-plan monitoring events for entry, reassessment, and invalidation crossings.
 - Added historical level base rates, reward-to-reassessment R, and ATR stop distance to plans.

@@ -6,13 +6,15 @@ This is an inspectable, dependency-free Python toolkit for builders using Claude
 
 ## Run it on AAPL
 
-Requirements: Python 3.10 or newer. In PowerShell:
+Requirements: Python 3.10 or newer and Git. **Live launch is pending:** this client needs API 2.2.0 on the public host; production still serves the older contract as of 2026-09-30. The offline demo works now. In PowerShell, start in a directory where you keep projects:
 
 ```powershell
+git clone https://github.com/Visualsectors/systematic-trading-toolkit.git
+Set-Location systematic-trading-toolkit
 py -m venv .venv
 Set-ExecutionPolicy -Scope Process Bypass
 .\.venv\Scripts\Activate.ps1
-python -m pip install visualsectors-toolkit
+python -m pip install .
 vstoolkit plan AAPL
 ```
 
@@ -29,7 +31,9 @@ vstoolkit login
 vstoolkit plan AAPL
 ```
 
-`login` opens signup, reads the key through hidden input, saves it to the ignored `.env` file, and verifies the service plus one AAPL levels request. A successful plan includes:
+The repository is currently private, so cloning requires authorized GitHub access. There is no PyPI release yet: do not use `pip install visualsectors-toolkit`. After the repository becomes public, this same source install works without GitHub authentication.
+
+`login` opens signup, reads the key through hidden input, and checks health plus every endpoint used by `plan AAPL`, bypassing the local cache. Only then does it save the key to the ignored `.env` file; a failed check preserves any previous key. Optional fundamentals/news failures are printed as data gaps, not reported as complete coverage. A successful plan includes:
 
 - entry and reassessment zones built from the newest eligible served levels;
 - a scenario invalidation and stop distance in ATR units;
@@ -37,10 +41,10 @@ vstoolkit plan AAPL
 - served hold, bounce, and hard-break measurements labelled `historical_base_rate`; and
 - whole-share `stop_risk/v1` arithmetic with every input visible.
 
-Until the package is published, install the repository checkout instead:
+To install without a checkout (Git still required):
 
 ```powershell
-python -m pip install .
+python -m pip install git+https://github.com/Visualsectors/systematic-trading-toolkit.git
 ```
 
 ## Offline demo
@@ -67,12 +71,14 @@ The report contains all six outcomes in one Markdown file.
 ### Screening
 
 ```powershell
-vstoolkit screen --preset near_support --limit 10
-vstoolkit screen --preset oversold_at_support --limit 10
-vstoolkit screen --preset trend_continuation --limit 10
+vstoolkit screen --preset near_support --limit 5
+vstoolkit screen --preset oversold_at_support --limit 5
+vstoolkit screen --preset trend_continuation --limit 5
 ```
 
-The live provider starts with `POST /v1/screen`, then loads the fields needed to validate the returned names locally. The three presets disclose their filters in [the methodology](docs/METHODOLOGY.md). Distance is measured to the computed support-zone edge.
+The live provider starts with `POST /v1/screen`, then loads the fields needed to validate the returned names locally. Start with `--limit 5` on a free key. A cold screen takes roughly `1 + 9 × returned tickers` requests, before extra pagination: 5 tickers need about 46 calls, but 25 can need 226. The default limit is 25, not a guarantee that a free key can hydrate it in one burst. A 429 stops the command and displays `Retry-After`; it does not silently retry or buy more calls. Wait before retrying; completed reads may be reused from the same-day cache.
+
+The three presets disclose their filters in [the methodology](docs/METHODOLOGY.md). Distance is measured to the computed support-zone edge.
 
 ### Position sizing
 
@@ -112,13 +118,15 @@ Historical hold, bounce, and break rates describe the served level family; they 
 
 ## Live data scope and rights
 
-The default host and signup surface are both `https://api.visualsectors.com`.
+The default host and signup surface are both `https://api.visualsectors.com`. Every live request needs an API key; there is no anonymous live tier or public demo-data endpoint. The offline fixture remains key-free.
 
-- Anonymous free access: 500 requests/minute, 10,000/day, 100,000/month, and a 6-month history allowance.
-- LinkedIn-approved free access: the same request allowance and a 3-year history allowance.
-- Capacity access: 1,000 requests/minute, 25,000/day, 500,000/month, and a 15-year history allowance.
+Production's published contract, checked 2026-09-30, is still `2.1.0-dev`: a free key has **60 requests/minute, 1,000/day, 5,000/month and a 30-day levels-history window**. Its LinkedIn tier is documented as 1,000/minute, 10,000/day, 100,000/month and five years of levels history. These are the served figures, not a promise of unreleased tiers. Consult [the live catalogue](https://api.visualsectors.com/v1/docs.json) and response rate-limit headers for the current offer and your key's limits.
 
-Returned rows remain limited by retained source history. The August 2026 audit found daily bars beginning on 2025-08-11, technicals beginning on 2021-01-04, and shorter coverage for some fundamentals and news views. The live adapter therefore derives 20-session momentum, annualized 20-session volatility, and 20-session average dollar volume from available raw, unadjusted bars and carries that limitation in every snapshot.
+This client targets the **2.2.0 contract**. That release documents six months of free history at the same 60/1,000/5,000 request limits; LinkedIn-approved free access has 500/10,000/100,000 calls and three years; Data API Pro has 1,000/25,000/500,000 calls and up to 15 years. These newer figures are not yet production entitlements. The repo stays private until 2.2.0 is promoted to the public host and `login` plus real-ticker plans work with a genuinely free key. Do not work around a 404/410 by using withdrawn datasets.
+
+Returned rows remain limited by retained source history and key entitlements. The adapter derives 20-session momentum, annualized 20-session volatility, and 20-session average dollar volume from available raw, unadjusted bars. If fewer than 21 valid sessions are returned, those derived fields remain null.
+
+P/E comes from `/v1/fundamentals?view=metrics` (`pe_ratio`). Earnings-calendar data is withdrawn: `days_to_earnings` is always null, with a warning. Optional fundamentals/news outages produce explicit gaps. Unknown earnings timing or missing headlines must never be read as clearance of event risk. The `plan` JSON includes `data_warnings`; research and risk output retain the same limitations.
 
 The API may be used to research, advise, or build decision tools under the applicable terms. Do not redistribute raw API values. Code and data rights are separate; connecting a dataset does not relicense it.
 
@@ -157,7 +165,7 @@ plan = build_level_plan(
 )
 ```
 
-Provider I/O is isolated from deterministic calculation modules. The live adapter uses the standard library, Bearer authentication, cursor paging, `Retry-After`, and a per-day local cache. One fully hydrated ticker normally uses about six API requests before cache hits.
+Provider I/O is isolated from deterministic calculation modules. The live adapter uses the standard library, Bearer authentication, cursor paging, explicit `Retry-After` errors, and a per-day local cache. A cold ticker normally uses nine requests: levels, five individual technical indicators (ATR14, RSI14, SMA20/50/200), daily bar history, SEC metrics, and news. Login adds a health check and bypasses cached responses, so normally uses ten requests. Pagination can add more. `/v1/technicals` is an indicator catalogue in 2.2.0, not a bundled value feed.
 
 ## Trust boundary
 
@@ -189,6 +197,8 @@ python -m visualsectors_toolkit demo --offline --output toolkit-report.md
 ```
 
 CI covers Windows, macOS, and Linux on Python 3.10–3.13. See [methodology](docs/METHODOLOGY.md), [limitations](docs/LIMITATIONS.md), [contribution guidance](CONTRIBUTING.md), and [security policy](SECURITY.md).
+
+Live launch QA is separate from fixture tests: see [the API contract and real-key checklist](docs/LIVE_QA.md). Passing offline tests does not prove that production is deployed or that a free account can access the data.
 
 ## License
 

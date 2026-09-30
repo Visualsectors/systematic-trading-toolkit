@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 from hashlib import sha256
 import json
 import math
@@ -19,6 +19,7 @@ from .base import MarketDataProvider, ProviderCapabilities
 
 DEFAULT_API_BASE_URL = "https://api.visualsectors.com"
 SIGNUP_URL = f"{DEFAULT_API_BASE_URL}/signup"
+PLAN_INDICATORS = ("atr14", "rsi14", "sma20", "sma50", "sma200")
 
 
 class VisualSectorsProviderError(RuntimeError):
@@ -42,6 +43,9 @@ class RateLimitError(VisualSectorsProviderError):
 class ApiResponseError(VisualSectorsProviderError):
     def __init__(self, status: int | None, message: str) -> None:
         self.status = status
+        if status == 401:
+            # Never echo an authentication response that could contain the key.
+            message = f"Key is missing, invalid, revoked, or expired. Get a free key at {SIGNUP_URL}, then run: vstoolkit login"
         prefix = f"Visual Sectors API returned HTTP {status}: " if status else "Visual Sectors API failed: "
         super().__init__(prefix + message)
 
@@ -122,6 +126,8 @@ class VisualSectorsProvider(MarketDataProvider):
         ).strip()
         if not self._api_key:
             raise MissingApiKeyError()
+        if any(character.isspace() for character in self._api_key):
+            raise ValueError("API key must be a single token, not a key file or multiline text; run: vstoolkit login")
         self._base_url = (
             base_url
             or os.environ.get("VISUALSECTORS_API_BASE_URL")
@@ -166,15 +172,14 @@ class VisualSectorsProvider(MarketDataProvider):
     def universe(self) -> tuple[MarketSnapshot, ...]:
         return self.screen_universe("oversold_at_support", limit=25)
 
-    def verify(self) -> None:
-        """Verify the service and key without printing or returning the secret."""
+    def verify(self) -> tuple[str, ...]:
+        """Exercise every plan endpoint uncached; return any explicit data gaps."""
         health = self._request_json("GET", "/v1/health", cache=False)
         if health.get("ok") is not True:
             raise ApiResponseError(None, "health check did not report ok=true")
-        levels = self._request_json(
-            "GET", "/v1/levels", query={"ticker": "AAPL", "limit": "1"}, cache=False
-        )
-        _rows(levels, "levels verification")
+        snapshot = self._load_snapshot("AAPL", cache=False)
+        self._snapshots["AAPL"] = snapshot
+        return snapshot.warnings
 
     def screen_universe(self, preset: str, *, limit: int) -> tuple[MarketSnapshot, ...]:
         if not 1 <= limit <= 100:
@@ -214,33 +219,39 @@ class VisualSectorsProvider(MarketDataProvider):
             self._snapshots[normalized] = self._load_snapshot(normalized)
         return self._snapshots[normalized]
 
-    def _load_snapshot(self, ticker: str) -> MarketSnapshot:
+    def _load_snapshot(self, ticker: str, *, cache: bool = True) -> MarketSnapshot:
         today = datetime.now(timezone.utc).date()
         start = today - timedelta(days=75)
-        levels_response = self._get_pages("/v1/levels", {"ticker": ticker})
-        technicals_response = self._get_pages("/v1/technicals", {"ticker": ticker})
+        warnings = [
+            "Daily prices are raw and unadjusted; corporate actions can distort derived returns and volatility.",
+            "Stage 1 API data is date-bounded but non-point-in-time; do not use it as a historical backtest feed.",
+            "Earnings growth is unavailable from the Stage 1 public mapping and remains null.",
+            "Days to earnings is unavailable: earnings calendar data is not served by API 2.2.0; no event-risk clearance is implied.",
+        ]
+        levels_response = self._get_pages("/v1/levels", {"ticker": ticker}, cache=cache)
+        technical_responses = {
+            indicator: self._get_pages(f"/v1/technicals/{indicator}", {"ticker": ticker}, cache=cache)
+            for indicator in PLAN_INDICATORS
+        }
         bars_response = self._get_pages(
             "/v1/timeseries/history",
             {"ticker": ticker, "view": "daily", "from": start.isoformat(), "to": today.isoformat(), "limit": "100"},
+            cache=cache,
         )
-        overview_response = self._get_pages(
-            "/v1/fundamentals", {"ticker": ticker, "view": "overview"}
+        metrics_response = self._optional_pages(
+            "/v1/fundamentals", {"ticker": ticker, "view": "metrics"}, warnings, cache=cache
         )
-        calendar_response = self._get_pages(
-            "/v1/fundamentals", {"ticker": ticker, "view": "earnings_calendar", "limit": "100"}
-        )
-        news_response = self._get_pages(
-            "/v1/news", {"ticker": ticker, "view": "headlines", "limit": "25"}
+        news_response = self._optional_pages(
+            "/v1/news", {"ticker": ticker, "view": "headlines", "limit": "25"}, warnings, cache=cache
         )
 
         decision_times = [
             str(response.get("as_of"))
             for response in (
                 levels_response,
-                technicals_response,
+                *technical_responses.values(),
                 bars_response,
-                overview_response,
-                calendar_response,
+                metrics_response,
                 news_response,
             )
             if isinstance(response.get("as_of"), str)
@@ -251,12 +262,14 @@ class VisualSectorsProvider(MarketDataProvider):
         self._decision_times.extend(decision_times)
 
         levels = tuple(self._map_level(row) for row in _rows(levels_response, "levels"))
-        technical_rows = sorted(
-            _rows(technicals_response, "technicals"), key=lambda row: str(row.get("date", "")), reverse=True
-        )
-        indicators = technical_rows[0].get("indicators", {}) if technical_rows else {}
-        if not isinstance(indicators, dict):
-            indicators = {}
+        indicators: dict[str, float | None] = {}
+        for indicator, response in technical_responses.items():
+            rows = sorted(_rows(response, indicator), key=lambda row: str(row.get("date", "")), reverse=True)
+            if any(row.get("indicator") != indicator for row in rows):
+                raise ApiResponseError(None, f"{indicator} response contained a different indicator")
+            indicators[indicator] = _number(rows[0].get("value")) if rows else None
+            if indicators[indicator] is None:
+                warnings.append(f"{indicator} is unavailable from the technicals endpoint and remains null.")
         bars = sorted(_rows(bars_response, "timeseries"), key=lambda row: str(row.get("date", "")))
         if not bars:
             raise ApiResponseError(None, f"no daily bars were returned for {ticker}")
@@ -264,16 +277,21 @@ class VisualSectorsProvider(MarketDataProvider):
         if latest_close is None or latest_close <= 0:
             raise ApiResponseError(None, f"the latest daily close for {ticker} is invalid")
         momentum, volatility, adv = self._derived_bar_fields(bars)
-        overview = _rows(overview_response, "fundamentals overview")
-        pe_ratio = _number(overview[0].get("PERatio")) if overview else None
-        days_to_earnings = self._days_to_earnings(
-            _rows(calendar_response, "earnings calendar"), date.fromisoformat(decision_time[:10])
-        )
+        metrics = _rows(metrics_response, "fundamentals metrics")
+        pe_ratio = _number(metrics[0].get("pe_ratio")) if metrics else None
+        if pe_ratio is None:
+            warnings.append("P/E is unavailable from fundamentals metrics and remains null.")
         evidence_by_id: dict[str, Evidence] = {}
         for source_row in _rows(news_response, "news"):
-            item = self._map_news(source_row, ticker)
+            try:
+                item = self._map_news(source_row, ticker)
+            except (VisualSectorsProviderError, ValueError):
+                warnings.append("A malformed news item was omitted; news evidence is incomplete.")
+                continue
             evidence_by_id.setdefault(item.id, item)
         evidence = tuple(evidence_by_id[key] for key in sorted(evidence_by_id))
+        if not evidence:
+            warnings.append("No usable news evidence was returned; absence of evidence is not absence of risk.")
         return MarketSnapshot(
             ticker=ticker,
             as_of=decision_time,
@@ -288,15 +306,24 @@ class VisualSectorsProvider(MarketDataProvider):
             volatility_20d_pct=volatility,
             pe_ratio=pe_ratio,
             earnings_growth_pct=None,
-            days_to_earnings=days_to_earnings,
+            days_to_earnings=None,
             levels=levels,
             evidence=evidence,
-            warnings=(
-                "Daily prices are raw and unadjusted; corporate actions can distort derived returns and volatility.",
-                "Stage 1 API data is date-bounded but non-point-in-time; do not use it as a historical backtest feed.",
-                "Earnings growth is unavailable from the Stage 1 public mapping and remains null.",
-            ),
+            warnings=tuple(dict.fromkeys(warnings)),
         )
+
+    def _optional_pages(
+        self, path: str, query: Mapping[str, str], warnings: list[str], *, cache: bool
+    ) -> dict[str, Any]:
+        """Optional evidence may degrade, but authentication and quota never do."""
+        try:
+            return self._get_pages(path, query, cache=cache)
+        except ApiResponseError as exc:
+            if exc.status == 401:
+                raise
+            reason = f"HTTP {exc.status}" if exc.status else "invalid response or connection failure"
+            warnings.append(f"{path} view={query.get('view')} is unavailable ({reason}); continuing with a data gap.")
+            return {"rows": []}
 
     @staticmethod
     def _map_level(row: Mapping[str, Any]) -> Level:
@@ -339,21 +366,6 @@ class VisualSectorsProvider(MarketDataProvider):
         return momentum, volatility, adv
 
     @staticmethod
-    def _days_to_earnings(rows: Sequence[Mapping[str, Any]], decision_date: date) -> int | None:
-        candidates: list[date] = []
-        for row in rows:
-            value = row.get("report_date") or row.get("event_date")
-            if not isinstance(value, str):
-                continue
-            try:
-                report_date = date.fromisoformat(value[:10])
-            except ValueError:
-                continue
-            if report_date >= decision_date:
-                candidates.append(report_date)
-        return min((item - decision_date).days for item in candidates) if candidates else None
-
-    @staticmethod
     def _map_news(row: Mapping[str, Any], ticker: str) -> Evidence:
         """Map sentiment >= +0.15 to support, <= -0.15 to opposition, otherwise neutral."""
         score = _number(row.get("ticker_sentiment_score"))
@@ -375,7 +387,7 @@ class VisualSectorsProvider(MarketDataProvider):
             url=str(row["url"]) if row.get("url") else None,
         )
 
-    def _get_pages(self, path: str, query: Mapping[str, str]) -> dict[str, Any]:
+    def _get_pages(self, path: str, query: Mapping[str, str], *, cache: bool = True) -> dict[str, Any]:
         combined: list[dict[str, Any]] = []
         cursor: str | None = None
         envelope: dict[str, Any] | None = None
@@ -384,7 +396,7 @@ class VisualSectorsProvider(MarketDataProvider):
             page_query = dict(query)
             if cursor:
                 page_query["cursor"] = cursor
-            page = self._request_json("GET", path, query=page_query)
+            page = self._request_json("GET", path, query=page_query, cache=cache)
             if envelope is None:
                 envelope = dict(page)
             combined.extend(_rows(page, path))
