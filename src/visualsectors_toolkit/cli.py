@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Sequence
 
 from . import __version__
+from .context import load_context_dataset, read_context_json, run_context
 from .levels import build_level_plan
 from .models import Severity, to_dict
 from .monitoring import MonitorState, TrackedPlan, TrackedRisk, evaluate_monitor
@@ -199,6 +200,13 @@ def _build_parser() -> argparse.ArgumentParser:
     screen.add_argument("--preset", choices=sorted(PRESETS), default="oversold_at_support", help="Named disclosed filter set.")
     screen.add_argument("--limit", type=_limit, default=25, help="Maximum returned tickers (1-100).")
 
+    context = commands.add_parser("context", help="Compute frozen-screen Price, Peers and Market features locally (Node 22+).")
+    context.add_argument("--data", required=True, help="Context dataset JSON, or an evidence packet with --retrieval-spec.")
+    context.add_argument("--retrieval-spec", help="Fixed retrieval-spec JSON for a separately supplied evidence packet.")
+    context.add_argument("--analysis-input", help="Frozen analyst metadata JSON; emit a grounded model request instead of features.")
+    context.add_argument("--model-output", help="Raw analyst response JSON to validate and render; requires --analysis-input and --request.")
+    context.add_argument("--request", help="Exact saved dispatched request JSON; required with --model-output.")
+
     plan = commands.add_parser("plan", help="Build a conditional entry, invalidation, and reassessment plan.")
     _add_data_source(plan)
     plan.add_argument("ticker", help="US-listed ticker, for example AAPL.")
@@ -281,6 +289,23 @@ def _run(args: argparse.Namespace) -> int:
             else provider.universe()
         )
         _print(run_screen(universe, args.preset, limit=args.limit))
+        return 0
+    if args.command == "context":
+        if bool(args.model_output) != bool(args.request):
+            raise ValueError("--model-output and --request must be supplied together")
+        if args.model_output and not args.analysis_input:
+            raise ValueError("--model-output requires --analysis-input")
+        if args.retrieval_spec:
+            spec, packet = read_context_json(args.retrieval_spec), read_context_json(args.data)
+        else:
+            spec, packet = load_context_dataset(args.data)
+        mode = "decision" if args.model_output else "request" if args.analysis_input else "computed"
+        result = run_context(spec, packet, mode=mode,
+            analysis_input=read_context_json(args.analysis_input) if args.analysis_input else None,
+            model_output=read_context_json(args.model_output) if args.model_output else None,
+            request=read_context_json(args.request) if args.request else None)
+        # Preserve object order in exact dispatched requests; sorting changes request bindings.
+        print(json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False))
         return 0
     if args.command == "plan":
         provider = _provider(args.data, args.offline)

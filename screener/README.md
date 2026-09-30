@@ -49,6 +49,14 @@ python .\screener\run.py --help
 
 Equivalent installed command: `vstoolkit screen`.
 
+## Add Price Peers and Market context
+
+The optional [analyze-screener-context skill](../skills/analyze-screener-context/SKILL.md) reads the already-selected candidates without changing membership or order. It covers the full price path, industry median/breadth/dispersion, equal- versus cap-weighted peers, headline peers by business-line theme, both SPY and QQQ, co-movement, and leading/challenging narratives.
+
+`vstoolkit context` computes those features from an authorized context dataset. It requires **Node.js 22+**, but no npm packages or model service. The [context guide](../docs/SCREENER_CONTEXT.md) gives an immediately runnable fictional parity example and the analyst request/validation flow. An ordinary snapshot dataset or `screen` result alone cannot supply the needed historical paths, memberships and source cutoffs; missing context is not fabricated.
+
+The code measures and renders; a model only chooses admitted contextual interpretations. Tier A/B/C describes thesis fit, not expected return or a trade recommendation. Missing critical evidence yields `INSUFFICIENT_DATA`.
+
 ## How it works—and how to check it
 
 - [Calculation source](../src/visualsectors_toolkit/screening.py)—the actual rules, not a duplicated folder-specific implementation.

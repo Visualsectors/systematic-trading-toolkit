@@ -17,7 +17,7 @@ All six tools have their own top-level folder. Open one for its quickstart, runn
 
 | Tool folder | Outcome | Installed command |
 | --- | --- | --- |
-| [screener/](screener/) | Filtered, ranked watchlists with exclusion reasons | `vstoolkit screen` |
+| [screener/](screener/) | Ranked watchlists and grounded Price/Peers/Market context | `vstoolkit screen` / `vstoolkit context` |
 | [position-sizer/](position-sizer/) | Whole-share stop-risk sizes or portfolio-slot allocations | `vstoolkit size-stop` / `size-portfolio` |
 | [research/](research/) | Evidence-linked briefs, contrary evidence, and data gaps | `vstoolkit research` |
 | [risk-management/](risk-management/) | Tailwinds, headwinds, uncertainty, and reassessment triggers | `vstoolkit risk` |
@@ -112,6 +112,12 @@ The live provider starts with `POST /v1/screen`, then loads the fields needed to
 
 The three presets disclose their filters in [the methodology](docs/METHODOLOGY.md). Distance is measured to the computed support-zone edge.
 
+### Screener context and AI skill
+
+After membership is frozen, `vstoolkit context --data context-dataset.json` measures the price path, industry and weighted peers, headline peers, SPY/QQQ relative movement, co-movement, and leading/challenging market narratives. It uses the exact preset-skills 0.5.0 engine, with complete fixture parity. **This optional command requires Node.js 22+; no npm package is needed.** Other commands remain Python-only.
+
+Context requires an authorized historical evidence packet, not the snapshot-only dataset or `screen` output alone. It does not retrieve this richer evidence from the API yet, call an AI service, pick new peers or change the screen. The [context guide](docs/SCREENER_CONTEXT.md) includes a runnable fictional example, the dataset contract, grounded analyst request/validation commands and limitations. The [analyze-screener-context skill](skills/analyze-screener-context/SKILL.md) keeps model judgment inside those measured facts and tier rules.
+
 ### Position sizing
 
 The two methods answer different questions:
@@ -165,10 +171,11 @@ The API may be used to research, advise, or build decision tools under the appli
 
 ## Agent skills
 
-Two optional skills are included:
+Three optional skills are included:
 
 - `build-research-thesis` keeps an AI inside cited evidence and makes contrary evidence visible.
 - `reassess-position` interprets monitor events without replacing the saved invalidation.
+- `analyze-screener-context` reads Price, Peers and Market, including weighted/headline peers and the challenging narrative, with validated A/B/C or insufficient-data cards.
 
 Install them for Claude Code in PowerShell:
 
@@ -177,6 +184,7 @@ $profileRoot = [Environment]::GetFolderPath('UserProfile')
 New-Item -ItemType Directory -Force (Join-Path $profileRoot '.claude\skills') | Out-Null
 Copy-Item -Recurse -Force .\skills\build-research-thesis (Join-Path $profileRoot '.claude\skills\build-research-thesis')
 Copy-Item -Recurse -Force .\skills\reassess-position (Join-Path $profileRoot '.claude\skills\reassess-position')
+Copy-Item -Recurse -Force .\skills\analyze-screener-context (Join-Path $profileRoot '.claude\skills\analyze-screener-context')
 ```
 
 For Codex, use the same commands with `.codex\skills` as the destination. In Cursor or another agent, attach the relevant `SKILL.md` as project instructions. Never paste an API key into an AI prompt.
@@ -217,7 +225,7 @@ Visual Sectors API or strict local JSON
        JSON / Markdown / AI display
 ```
 
-Proprietary options-derived indicators, market-regime methods, credentials, raw licensed datasets, entitlements, and broker execution stay outside this repository.
+Proprietary options-derived indicator implementations, production warehouse/regime methods, credentials, raw licensed datasets, entitlements, and broker execution stay outside this repository. The released screener context's basic regime and narrative classifiers are inspectable in the bundled source; they do not reproduce proprietary server-side data generation.
 
 ## Development and QA
 

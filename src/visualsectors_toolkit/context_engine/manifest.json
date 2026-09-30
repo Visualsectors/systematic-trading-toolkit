@@ -1,0 +1,24 @@
+{
+  "source_repository": "Visualsectors/vs-intelligence",
+  "source_commit": "863489f2b111fe88ab7fd3827413cff46cda8f49",
+  "preset_skills_version": "0.5.0",
+  "feature_release": "screener-context-features-v2.4.0",
+  "analysis_release": "screener-context-analyst-v2.6.0",
+  "engine_sha256": "bfb6761504116bfbd94fca2aad8e6b517ab178f045a81ca440e5d904707e4d8a",
+  "build_esbuild_version": "0.28.1",
+  "source_sha256": {
+    "evidence.ts": "6bfcf6e5114df6d6790640b72f2940514dec3029b2ea520272453fa570940272",
+    "math.ts": "3cc7811db42138ecc54498a62f25160e559e1c0aa586590f1a8713c11239a908",
+    "retrieval-spec.ts": "9f60a7c690172449536a346ae85de6e2a4d6d01cd6ea46bfa619007fef3c9e13",
+    "sha256.ts": "d10f86dc1314b1f493d593d8982f7b4315012bb0d43389f63d56e939e5dcad01",
+    "types.ts": "609f1470fd97fad9d7f12e2bf094907ff7ac269afc7df632c3e68e1686bfc012",
+    "analyst.ts": "8a98f87cfb1a0c127fb421b0d5ab24bcbe142a3765ff2a7029db29b14eb30dea"
+  },
+  "fixture_sha256": {
+    "retrieval-spec.json": "7365271dd2f822fcf895380ac89c8c306b692d75a4190c6401baceb1da833218",
+    "evidence-packet.json": "6bf17d712b10c9d5b5b6284d26cefd27dd102263b6ad0b2398a45647b7b6f7a9",
+    "computed-context.json": "f33d2f7caf1a18015a429b6f8fe33bbbb2f1359b765452e17da5c66cd4026fcb",
+    "analyst-request-user.json": "aa435717bdb5726d5e18d96cb13267f94f1ad037b49b318b71849e68697c08c2",
+    "parsed-decision.json": "4de4dcd69e56e7ca32183f3fa18694171719ec224f5404bda440cb16ebe1aeae"
+  }
+}

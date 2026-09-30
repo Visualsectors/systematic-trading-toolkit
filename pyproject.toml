@@ -41,4 +41,4 @@ include-package-data = true
 where = ["src"]
 
 [tool.setuptools.package-data]
-visualsectors_toolkit = ["fixtures/*.json"]
+visualsectors_toolkit = ["fixtures/*.json", "context_engine/*.mjs", "context_engine/*.json", "context_engine/source/*.ts"]
