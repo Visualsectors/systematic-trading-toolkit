@@ -1,4 +1,4 @@
-"""Run entry & exit planning through the shared toolkit CLI."""
+"""Inspect support/resistance scenario geometry through the shared toolkit CLI."""
 
 import sys
 

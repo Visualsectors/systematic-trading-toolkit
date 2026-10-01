@@ -1,10 +1,22 @@
-# Entry & Exit Planning
+# Support & Resistance
 
 [← All tools](../README.md#choose-a-tool) · [Methodology](../docs/METHODOLOGY.md) · [Data contract](../docs/DATA_CONTRACT.md)
 
-**Turn dated support/resistance observations into conditional entry, invalidation, and reassessment zones, with stop-risk sizing and disclosed historical level base rates.**
+**Understand the served support/resistance levels around a stock, how those levels behaved historically, and which price boundaries define your research scenario.**
 
 > **Recommended live provider: Visual Sectors.** Connect our API for the served S/R levels and measured hold, bounce, and break statistics that differentiate this workflow from price-only support/resistance examples. [Get a free API key](https://api.visualsectors.com/signup) · [Explore the API](https://api.visualsectors.com).
+
+## When to use it
+
+Use this folder when you want to turn a stock's dated levels into an inspectable price map—not a buy/sell instruction.
+
+- See conditional entry and reassessment bands, the scenario's invalidation boundary, and distances in ATR units.
+- Inspect the historical hold, bounce, and break measurements supplied for the level family, with their limitations.
+- Measure the nearest served levels above and below a price you name, such as an entry, cost basis, or strike.
+
+## AI skill
+
+A dedicated toolkit-compatible support/resistance skill is not bundled yet. The calculation commands work independently; a skill will be added separately. No placeholder skill or automatic advice is included.
 
 ## Quickstart
 
@@ -15,7 +27,7 @@ Follow the [one-time installation](../README.md#run-it-on-aapl) first. Run the c
 The offline tickers and observations are fictional; they require no network connection.
 
 ```powershell
-python .\entry-exit\run.py ALFA --offline --direction long --capital 25000 --risk-fraction 0.005 --max-allocation 0.10
+python .\support-resistance\run.py ALFA --offline --direction long --capital 25000 --risk-fraction 0.005 --max-allocation 0.10
 ```
 
 ### 2. Connect the Visual Sectors API
@@ -24,7 +36,7 @@ Get your own free key through signup, then enter it with hidden input. Never pas
 
 ```powershell
 vstoolkit login
-python .\entry-exit\run.py AAPL --direction long --capital 25000 --risk-fraction 0.005 --max-allocation 0.10
+python .\support-resistance\run.py AAPL --direction long --capital 25000 --risk-fraction 0.005 --max-allocation 0.10
 ```
 
 Live use requires a supported production API. The toolkit targets API 2.2.0; [current release status and live QA](../docs/LIVE_QA.md) remain authoritative. API calls are metered; consult [the live catalogue](https://api.visualsectors.com/v1/docs.json) and respect `Retry-After`. No command here buys extra calls automatically.
@@ -44,10 +56,19 @@ Entry and reassessment bands, invalidation price, ATR stop distance, reward-to-r
 Output is JSON, suitable for inspection, saving locally, or feeding into your own builder workflow. For every available flag and its unit:
 
 ```powershell
-python .\entry-exit\run.py --help
+python .\support-resistance\run.py --help
 ```
 
 Equivalent installed command: `vstoolkit plan`.
+
+To measure levels from a user-named price instead of calculating scenario zones:
+
+```powershell
+vstoolkit measure --ticker ALFA --price 100 --kind cost --offline
+vstoolkit measure --ticker AAPL --price 200 --kind strike
+```
+
+This returns signed dollar, percent, and ATR distances; a strike also gets its distance from the latest close in ATR. It uses served level prices, not generated targets. Unavailable levels, ATR, or historical rates remain null.
 
 ## How it works—and how to check it
 
