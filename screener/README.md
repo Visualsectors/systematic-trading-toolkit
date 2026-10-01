@@ -2,9 +2,22 @@
 
 [← All tools](../README.md#choose-a-tool) · [Methodology](../docs/METHODOLOGY.md) · [Data contract](../docs/DATA_CONTRACT.md)
 
-**Turn a broad US-equity universe into a filtered, ranked watchlist—with every inclusion rule and exclusion reason inspectable.**
+**Find stocks that match your research criteria, see why each name qualified or was excluded, and add Price, Peers, and Market context to the shortlist.**
 
 > **Recommended live provider: Visual Sectors.** Connect our API for live screener results, served S/R levels, and the readings needed to validate candidates locally. [Get a free API key](https://api.visualsectors.com/signup) · [Explore the API](https://api.visualsectors.com).
+
+## When to use it
+
+Use this folder to narrow research coverage before developing a thesis—not to generate a buy list.
+
+- Run one of three disclosed presets: near support, oversold at support, or trend continuation.
+- Translate supported trader jargon into explicit filters, or get a refusal explaining what the dataset cannot express. Custom live requests use a watchlist of 1–5 tickers, not a whole-market scan.
+- Inspect ranked matches, exclusions, missing inputs, and truncation; then review the selected names in Price, Peers, and Market lanes without silently reranking them.
+
+## AI skills
+
+- [compose-screen](skills/compose-screen/SKILL.md): disclose every requested condition and default before running a supported screen; refuse unsupported combinations rather than weakening them.
+- [analyze-screener-context](skills/analyze-screener-context/SKILL.md): interpret the frozen shortlist against code-owned observations, contrary evidence, and coverage gaps.
 
 ## Quickstart
 
@@ -51,7 +64,7 @@ Equivalent installed command: `vstoolkit screen`.
 
 ## Add Price Peers and Market context
 
-The optional [analyze-screener-context skill](../skills/analyze-screener-context/SKILL.md) reads the already-selected candidates without changing membership or order. It covers the full price path, industry median/breadth/dispersion, equal- versus cap-weighted peers, headline peers by business-line theme, both SPY and QQQ, co-movement, and leading/challenging narratives.
+The optional [analyze-screener-context skill](skills/analyze-screener-context/SKILL.md) reads the already-selected candidates without changing membership or order. It covers the full price path, industry median/breadth/dispersion, equal- versus cap-weighted peers, headline peers by business-line theme, both SPY and QQQ, co-movement, and leading/challenging narratives.
 
 `vstoolkit context` computes those features in pure Python from an authorized dataset.v2, or Price/Market live from the API with missing peer lanes explicitly marked **not supplied**. No model service or Node is needed for computed JSON/cards; optional machine-validated model cards need Node22+. The [context guide](../docs/SCREENER_CONTEXT.md) gives the complete fictional parity example and validation flow.
 
@@ -63,7 +76,7 @@ vstoolkit screen --ask 'golden cross state and price above $10' --tickers AAPL,K
 vstoolkit screen --ask "oversold with unusual volume" --interpret-only
 ```
 
-The last request deliberately refuses because its volume field is not wired in; no weakened screen executes. PowerShell expands dollar amounts in double quotes: use single quotes for requests containing `$`, e.g. `--ask 'price above $10'`. Custom live requests require 1–5 explicit tickers and are **not** whole-market scans. See the [compose-screen grammar](../skills/compose-screen/references/grammar.md).
+The last request deliberately refuses because its volume field is not wired in; no weakened screen executes. PowerShell expands dollar amounts in double quotes: use single quotes for requests containing `$`, e.g. `--ask 'price above $10'`. Custom live requests require 1–5 explicit tickers and are **not** whole-market scans. See the [compose-screen grammar](skills/compose-screen/references/grammar.md).
 
 The code measures and renders; a model only chooses admitted contextual interpretations. Tier A/B/C describes thesis fit, not expected return or a trade recommendation. Missing critical evidence yields `INSUFFICIENT_DATA`.
 
