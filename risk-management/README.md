@@ -2,9 +2,21 @@
 
 [← All tools](../README.md#choose-a-tool) · [Methodology](../docs/METHODOLOGY.md) · [Data contract](../docs/DATA_CONTRACT.md)
 
-**Create an evidence-linked register of headwinds, tailwinds, and uncertainties, each with a condition that prompts reassessment.**
+**Identify the stock-specific headwinds, tailwinds, and unknowns that matter to your scenario—and record what would require a fresh review.**
 
 > **Recommended live provider: Visual Sectors.** Connect our API for the observations behind risk flags; combine served levels, technical readings, SEC metrics, and news without filling gaps with invented values. [Get a free API key](https://api.visualsectors.com/signup) · [Explore the API](https://api.visualsectors.com).
+
+## When to use it
+
+Use this folder when you need a structured risk checklist for one stock, before or during a position review.
+
+- Inspect technical, fundamental, and headline evidence as headwinds, tailwinds, or uncertainties.
+- See severity, evidence IDs, and the condition behind each reassessment flag.
+- Pass the register to [monitoring](../monitoring/) to detect changes later; missing coverage remains a risk to investigate, not an all-clear.
+
+## AI skill
+
+A dedicated risk-management skill is not bundled yet. The deterministic `vstoolkit risk` command works independently; agent instructions will be added separately. Research and monitoring skills are not presented as a substitute for a dedicated risk skill.
 
 ## Quickstart
 
