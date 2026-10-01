@@ -12,6 +12,10 @@ Screens apply disclosed hard filters, record every exclusion reason, and sort by
 
 Only observations from the newest `level_date` are eligible for a plan. Each level becomes a band with a default half-width of 0.25 ATR. Overlapping bands are clustered only with levels of the same served side. Entry, invalidation, and opposite-side reassessment zones are conditional geometry—not probability estimates.
 
+A permanent data-quality gate excludes any row with `exp_bounce_pct > 100` before zone construction, score summaries or ATR estimation. Live responses disclose a warning naming the rejected level; file-backed snapshots and direct planning functions enforce the same rule. Other valid rows, including other approaches at the same price, remain usable. The newest session is selected before applying the gate, so a wholly invalid current session never silently falls back to older levels. This is a disclosed toolkit threshold, not a claim that all values below it are reliable.
+
+Both historical base-rate lists group by exact `(side, level_type, level_price)` and list distinct source `approaches` in sorted order. Identical supplied statistics are kept once, missing statistics remain null, and conflicting non-null values become null with an explicit note. No mean, maximum or favorable-approach selection is used. Zone members still preserve the valid source observations; consolidation changes the descriptive base-rate display, not the identity of those source rows.
+
 ## Stop-risk sizing
 
 For portfolio capital `P`, risk fraction `r`, entry `E`, stop `S`, and maximum allocation fraction `a`:

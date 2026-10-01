@@ -13,7 +13,10 @@ from decimal import Decimal, ROUND_HALF_UP
 from math import isfinite
 from typing import Literal, Sequence
 
-from .models import Level, LevelSide, require_finite, require_iso_datetime, require_ticker
+from .models import (
+    Level, LevelSide, is_usable_level, level_data_gap_warnings,
+    require_finite, require_iso_datetime, require_ticker,
+)
 
 DEFAULT_HALF_WIDTH_ATR = 0.25
 PRICE_TICK = Decimal("0.01")
@@ -64,6 +67,7 @@ class HistoricalBaseRate:
     p_hold_7d_pct: float | None
     exp_bounce_pct: float | None
     hard_break_pct: float | None
+    approaches: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -89,6 +93,8 @@ def _positive(value: float, name: str) -> float:
 
 
 def zone_for(level: Level, atr: float, *, half_width_atr: float = DEFAULT_HALF_WIDTH_ATR) -> tuple[float, float]:
+    if not is_usable_level(level):
+        raise ValueError(level_data_gap_warnings((level,))[0])
     scale = _positive(atr, "atr")
     half = require_finite(half_width_atr, "half_width_atr")
     if half < 0:
@@ -123,13 +129,17 @@ def latest_levels(
     if not eligible:
         return ()
     latest = max(level.level_date for level in eligible)
-    return tuple(level for level in eligible if level.level_date == latest)
+    # Choose the newest date before excluding bad rows: never resurrect older
+    # levels when the entire latest session fails the quality gate.
+    return tuple(level for level in eligible if level.level_date == latest and is_usable_level(level))
 
 
 def derive_atr(levels: Sequence[Level], reference_price: float) -> float | None:
     reference = _positive(reference_price, "reference_price")
     candidates: list[float] = []
     for level in levels:
+        if not is_usable_level(level):
+            continue
         distance = level.dist_atr
         if distance is None or not isfinite(distance) or distance == 0:
             continue
@@ -180,25 +190,39 @@ def _finish(low: float, high: float, members: Sequence[Level], atr: float) -> Zo
     )
 
 
-def _base_rates(zone: Zone | None) -> tuple[HistoricalBaseRate, ...]:
+def _base_rates(zone: Zone | None, notes: list[str]) -> tuple[HistoricalBaseRate, ...]:
     if zone is None:
         return ()
-    return tuple(
-        HistoricalBaseRate(
+    groups: dict[tuple[LevelSide, str, float], list[Level]] = {}
+    for member in zone.members:
+        if is_usable_level(member):
+            groups.setdefault((member.side, member.level_type, member.price), []).append(member)
+    rates: list[HistoricalBaseRate] = []
+    fields = ("p_hold_7d_pct", "exp_bounce_pct", "hard_break_pct")
+    for (side, level_type, level_price), members in sorted(groups.items()):
+        values = {field: {getattr(member, field) for member in members
+                          if getattr(member, field) is not None} for field in fields}
+        if not any(values.values()):
+            continue
+        conflicts = [field for field in fields if len(values[field]) > 1]
+        if conflicts:
+            notes.append(
+                f"Data gap: conflicting historical base rates for {side} {level_type} at {level_price:.15g}; "
+                f"{', '.join(conflicts)} remain null. Approach statistics were not averaged or ranked."
+            )
+        common = {field: next(iter(values[field])) if len(values[field]) == 1 else None for field in fields}
+        rates.append(HistoricalBaseRate(
             label="historical_base_rate",
-            side=member.side,
-            level_type=member.level_type,
-            level_price=member.price,
-            p_hold_7d_pct=member.p_hold_7d_pct,
-            exp_bounce_pct=member.exp_bounce_pct,
-            hard_break_pct=member.hard_break_pct,
-        )
-        for member in zone.members
-        if any(
-            value is not None
-            for value in (member.p_hold_7d_pct, member.exp_bounce_pct, member.hard_break_pct)
-        )
-    )
+            side=side,
+            level_type=level_type,
+            level_price=level_price,
+            p_hold_7d_pct=common["p_hold_7d_pct"],
+            exp_bounce_pct=common["exp_bounce_pct"],
+            hard_break_pct=common["hard_break_pct"],
+            approaches=tuple(sorted({member.approach for member in members
+                                    if isinstance(member.approach, str) and member.approach.strip()})),
+        ))
+    return tuple(rates)
 
 
 def cluster_levels(
@@ -211,6 +235,7 @@ def cluster_levels(
 ) -> tuple[Zone, ...]:
     scale = _positive(atr, "atr")
     max_width = _positive(max_zone_width_atr, "max_zone_width_atr") * scale
+    levels = tuple(level for level in levels if is_usable_level(level))
     if not levels:
         return ()
     entries = []
@@ -300,6 +325,7 @@ def build_level_plan(
     current = _positive(current_price, "current_price")
     if direction not in ("long", "short"):
         raise ValueError("direction must be long or short")
+    data_gaps = level_data_gap_warnings(levels, ticker=normalized_ticker)
     if atr is None or not levels:
         return LevelPlan(
             ticker=normalized_ticker,
@@ -315,7 +341,7 @@ def build_level_plan(
             entry_historical_base_rates=(),
             reassessment_historical_base_rates=(),
             status="insufficient_data",
-            notes=("A positive ATR and dated levels are required; no levels were invented.",),
+            notes=("A positive ATR and dated levels are required; no levels were invented.", *data_gaps),
         )
     scale = require_finite(atr, "atr")
     if scale <= 0:
@@ -333,7 +359,7 @@ def build_level_plan(
             entry_historical_base_rates=(),
             reassessment_historical_base_rates=(),
             status="insufficient_data",
-            notes=("A positive ATR and dated levels are required; no levels were invented.",),
+            notes=("A positive ATR and dated levels are required; no levels were invented.", *data_gaps),
         )
     buffer = require_finite(invalidation_buffer_atr, "invalidation_buffer_atr")
     if buffer < 0:
@@ -354,7 +380,7 @@ def build_level_plan(
             entry_historical_base_rates=(),
             reassessment_historical_base_rates=(),
             status="insufficient_data",
-            notes=("No level dated on or before the decision time was available.",),
+            notes=("No usable level dated on or before the decision time was available.", *data_gaps),
         )
     nearest = nearest_zones(current, latest, scale)
     entry_side = "Support" if direction == "long" else "Resistance"
@@ -379,7 +405,8 @@ def build_level_plan(
     stop_distance_atr = None
     notes = [
         "Zones are computed from dated level observations and an ATR grouping width; "
-        "they are scenarios, not fill or outcome forecasts."
+        "they are scenarios, not fill or outcome forecasts.",
+        *data_gaps,
     ]
     if entry is not None:
         invalidation = _price(
@@ -415,8 +442,8 @@ def build_level_plan(
         risk_per_share=risk,
         reward_to_reassessment_R=reward_r,
         stop_distance_atr=stop_distance_atr,
-        entry_historical_base_rates=_base_rates(entry),
-        reassessment_historical_base_rates=_base_rates(review),
+        entry_historical_base_rates=_base_rates(entry, notes),
+        reassessment_historical_base_rates=_base_rates(review, notes),
         status="ready" if entry is not None else "insufficient_data",
         notes=tuple(notes),
     )

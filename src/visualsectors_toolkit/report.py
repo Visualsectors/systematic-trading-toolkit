@@ -141,8 +141,8 @@ def render_markdown(run: ToolkitRun, monitor: MonitorResult) -> str:
         "",
         "Served historical base rates (descriptive, not a setup forecast):",
         "",
-        "| Zone | Level family | Hold 7d | Bounce | Hard break | Label |",
-        "| --- | --- | ---: | ---: | ---: | --- |",
+        "| Zone | Level family | Level price | Approaches | Hold 7d | Bounce | Hard break | Label |",
+        "| --- | --- | ---: | --- | ---: | ---: | ---: | --- |",
     ])
     for zone_name, base_rates in (
         ("entry", plan.entry_historical_base_rates),
@@ -150,11 +150,12 @@ def render_markdown(run: ToolkitRun, monitor: MonitorResult) -> str:
     ):
         for rate in base_rates:
             lines.append(
-                f"| {zone_name} | {_cell(rate.level_type)} | {_fmt(rate.p_hold_7d_pct)}% | "
+                f"| {zone_name} | {_cell(rate.level_type)} | {_fmt(rate.level_price)} | "
+                f"{_cell(', '.join(rate.approaches) or 'not supplied')} | {_fmt(rate.p_hold_7d_pct)}% | "
                 f"{_fmt(rate.exp_bounce_pct)}% | {_fmt(rate.hard_break_pct)}% | {rate.label} |"
             )
     if not plan.entry_historical_base_rates and not plan.reassessment_historical_base_rates:
-        lines.append("| unavailable | unavailable | unavailable | unavailable | unavailable | historical_base_rate |")
+        lines.append("| unavailable | unavailable | unavailable | not supplied | unavailable | unavailable | unavailable | historical_base_rate |")
     lines.extend([
         "",
         "These are conditional scenarios derived from served levels and ATR geometry. "
@@ -163,5 +164,7 @@ def render_markdown(run: ToolkitRun, monitor: MonitorResult) -> str:
         "## Limitations",
         "",
     ])
-    lines.extend(f"- {warning}" for warning in (*run.screen.warnings, *run.stop_risk_size.warnings, *run.risk.warnings))
+    lines.extend(f"- {warning}" for warning in (
+        *run.screen.warnings, *run.stop_risk_size.warnings, *run.risk.warnings, *plan.notes,
+    ))
     return "\n".join(lines) + "\n"
