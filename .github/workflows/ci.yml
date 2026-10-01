@@ -41,7 +41,7 @@ jobs:
           vstoolkit screen --ask "oversold above the 200" --offline
           vstoolkit measure --ticker ALFA --price 100 --kind cost --offline
       - name: Compile source, tool launchers, and tests
-        run: python -m compileall -q src tests screener position-sizer research risk-management monitoring entry-exit
+        run: python -m compileall -q src tests screener position-sizer research risk-management monitoring support-resistance
       - name: Build wheel
         run: python -m pip wheel --no-cache-dir --no-deps . --wheel-dir dist
       - name: Exercise the offline demo

@@ -11,7 +11,7 @@ import unittest
 
 
 ROOT = Path(__file__).parents[1]
-FOLDERS = ("screener", "position-sizer", "research", "risk-management", "monitoring", "entry-exit")
+FOLDERS = ("screener", "position-sizer", "research", "risk-management", "monitoring", "support-resistance")
 
 
 class ToolFolderTests(unittest.TestCase):
@@ -56,7 +56,7 @@ class ToolFolderTests(unittest.TestCase):
                 ("research/run.py", ("--offline", "--ticker", "ALFA", "--thesis", "Price holds structural support")),
                 ("risk-management/run.py", ("--offline", "--ticker", "ALFA")),
                 ("monitoring/run.py", ("--offline", "--ticker", "ALFA", "--state", str(Path(directory) / "monitor.json"))),
-                ("entry-exit/run.py", ("ALFA", "--offline", "--capital", "25000")),
+                ("support-resistance/run.py", ("ALFA", "--offline", "--capital", "25000")),
             )
             for path, arguments in cases:
                 with self.subTest(path=path):
@@ -78,6 +78,12 @@ class ToolFolderTests(unittest.TestCase):
         self.assertLess(root_text.index("## Choose a tool"), root_text.index("## Run it on AAPL"))
         for folder in FOLDERS:
             self.assertIn(f"[{folder}/]({folder}/)", root_text)
+
+    def test_support_resistance_replaces_the_old_launcher_path(self):
+        self.assertFalse((ROOT / "entry-exit/run.py").exists())
+        workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+        self.assertIn("support-resistance", workflow)
+        self.assertNotIn("entry-exit", workflow)
 
 
 if __name__ == "__main__":

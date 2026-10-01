@@ -2,9 +2,21 @@
 
 [← All tools](../README.md#choose-a-tool) · [Methodology](../docs/METHODOLOGY.md) · [Data contract](../docs/DATA_CONTRACT.md)
 
-**Detect meaningful changes in a position's risk register and saved plan boundaries, while retaining prior state during provider failures.**
+**See what changed since your last position review: new risks, changed severity, crossed price boundaries, and missing or recovered data.**
 
 > **Recommended live provider: Visual Sectors.** Connect our API for market observations. The monitor compares available observations with local state and emits structured events for your alerting system. [Get a free API key](https://api.visualsectors.com/signup) · [Explore the API](https://api.visualsectors.com).
+
+## When to use it
+
+Use this folder after you have a stock scenario to track. Each run compares available observations with a saved local state file.
+
+- Identify new, changed, and resolved risk flags without repeating unchanged events.
+- Detect arrivals at saved entry/reassessment bands or a breach of the original invalidation boundary.
+- Feed structured events into your own scheduler or notifier; provider failures preserve the prior plan and risks.
+
+## AI skill
+
+[reassess-position](skills/reassess-position/SKILL.md) explains emitted changes against the existing thesis and saved plan, including evidence gaps and user-named price measurements. It does not schedule checks, send alerts, or decide what to do with a position.
 
 ## Quickstart
 
@@ -61,7 +73,7 @@ Import `evaluate_monitor` to integrate event detection into your own scheduler/n
 
 ## Important boundaries
 
-Each invocation evaluates once; it does not start a daemon, schedule itself, or send email/chat alerts. Your scheduler can repeat the command and your notifier can consume its JSON. Unchanged events are deduplicated. The original invalidation remains active when new levels move or the provider fails. The optional [reassess-position skill](../skills/reassess-position/SKILL.md) explains events to an AI.
+Each invocation evaluates once; it does not start a daemon, schedule itself, or send email/chat alerts. Your scheduler can repeat the command and your notifier can consume its JSON. Unchanged events are deduplicated. The original invalidation remains active when new levels move or the provider fails. The optional [reassess-position skill](skills/reassess-position/SKILL.md) explains events to an AI.
 
 The built-in provider caches successful reads by day. Repeating this command does not guarantee a fresh network read or intraday alerts. Inspect observation timestamps and choose an appropriate provider and schedule for your use case.
 
