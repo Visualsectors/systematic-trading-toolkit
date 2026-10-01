@@ -358,6 +358,39 @@ class VisualSectorsProviderTests(unittest.TestCase):
             self.assertEqual(row.levels, ())
             self.assertIn("No current selected levels", " ".join(row.warnings))
 
+    def test_reported_aapl_and_msft_bounce_outliers_are_removed_with_named_gaps(self):
+        for ticker, kind, price, bounce in (("AAPL", "donchian", 328.7, 4420),
+                                           ("MSFT", "pivot", 497.09, 33196824404)):
+            for all_bad in (False, True):
+                with self.subTest(ticker=ticker, all_bad=all_bad), tempfile.TemporaryDirectory() as directory:
+                    provider = RecordedProvider(directory)
+                    response = provider.recorded[("GET", "/v1/levels", None)]
+                    good = response["rows"][0]
+                    bad = {**good, "level_type": kind, "price": price, "exp_bounce_pct": bounce,
+                           "score": 1e12, "reward_risk": 1e12, "approach": "risk_reward"}
+                    response["rows"] = [bad] if all_bad else [good, bad]
+                    row = provider.get(ticker)
+                    self.assertEqual(len(row.levels), 0 if all_bad else 1)
+                    self.assertNotIn(kind, [level.level_type for level in row.levels])
+                    warning = " ".join(row.warnings)
+                    self.assertIn(f"{ticker} Support {kind} at {price:g}", warning)
+                    self.assertIn(f"exp_bounce_pct={bounce}", warning)
+                    self.assertIn("excluded from scoring and zones", warning)
+                    if all_bad:
+                        self.assertIn("No current selected levels", warning)
+
+    def test_login_reports_the_level_guard_without_following_any_extra_pages(self):
+        with tempfile.TemporaryDirectory() as directory:
+            provider = RecordedProvider(directory)
+            response = provider.recorded[("GET", "/v1/levels", None)]
+            response["rows"][0]["exp_bounce_pct"] = "4420"
+            warnings = provider.verify()
+            self.assertIn("AAPL Support ma at 118", " ".join(warnings))
+            self.assertIn("exp_bounce_pct=4420", " ".join(warnings))
+            self.assertEqual(provider._snapshots["AAPL"].levels, ())
+            self.assertEqual(len(provider.calls), 10)
+            self.assertTrue(all(flag is False for flag in provider.cache_flags))
+
     def test_optional_endpoints_never_hide_authentication_or_rate_limits(self):
         for path, view in (("/v1/fundamentals", "metrics"), ("/v1/news", "headlines")):
             for failure in (ApiResponseError(401, "invalid key"), RateLimitError("42")):

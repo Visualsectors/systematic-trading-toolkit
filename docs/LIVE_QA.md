@@ -116,6 +116,14 @@ The provider regressions cover 0/1/10/100 advertised pages for **each** indicato
 
 **G14.1 API investigation:** determine independently whether an undated individual indicator route, such as `/v1/technicals/atr14?ticker=AAPL&limit=1`, serves one latest observation or historical pagination. Compare with the explicitly dated request above; the `/v1/technicals` catalogue itself is not the value endpoint. Report dates/counts, cursors and deployment commit only. The client fix neither proves nor repairs the API's undated behavior. Route that finding to G14.1 and the merge desk separately; do not require a full-history fetch to diagnose it.
 
+## 3d. Production plan output and implausible level inputs
+
+After installing the reviewed fix, rerun AAPL/MSFT plans on production. In each of `entry_historical_base_rates` and `reassessment_historical_base_rates`, verify every `(side, level_type, level_price)` occurs once and its `approaches` array lists the contributing approaches. Different sides/types/exact source prices must remain separate. Conflicting historical values must be null with a plan note, not averaged.
+
+Before the source correction, any supplied `exp_bounce_pct > 100` must produce a level-naming `data_warnings` entry and must not appear in either zone's members or affect its score. Tests reproduce the reported AAPL donchian 328.7 / 4,420 and MSFT pivot 497.09 / 33,196,824,404 cases. If the connector has already masked those fields to null, do not expect the raw-outlier client warning: the permanent toolkit guard is exercised by the synthetic tests, while the production response now contains a missing statistic. Do not infer that missing bounce/reward data has been repaired at source.
+
+Exactly 100, zero and missing bounce values remain permitted by this gate. If all current levels are rejected, insufficient-data output is valid; using older rejected-session substitutes is not. Per-indicator cursor warnings remain expected until the API latest-route fix is promoted and are separate from the level-quality checks. Return the toolkit/API commits, exit codes and redacted warning summaries; never include credentials or raw licensed tables.
+
 ## 4. Record launch evidence
 
 Record the toolkit commit, API deployment version/commit, date, Python/OS version, observed free-tier limits, commands and exit codes. Retain only redacted derived summaries and warnings in a private QA record, not raw licensed API rows. A contract fixture, green CI or dev-host test is not proof that the production/free-key gate passed.

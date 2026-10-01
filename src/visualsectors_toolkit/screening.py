@@ -219,5 +219,6 @@ def run_screen(
             "Candidates meet disclosed filters; the screen does not predict returns or suitability.",
             "Historical level metrics are not used as cross-instrument probabilities.",
             "Support distance is measured to the computed zone edge, not to the source level midpoint.",
+            *sorted({warning for row in snapshots for warning in row.warnings}),
         ),
     )

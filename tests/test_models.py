@@ -68,6 +68,18 @@ class ModelTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "invalid ticker"):
             parse_manifest(raw)
 
+    def test_file_backed_implausible_levels_keep_a_named_warning_without_duplication(self):
+        raw = copy.deepcopy(self.raw)
+        source = raw["snapshots"][0]["levels"][0]
+        source.update(exp_bounce_pct=4420, reward_risk=1e12, approach="risk_reward")
+        parsed = parse_manifest(raw)
+        row = parsed.snapshots[0]
+        warnings = [warning for warning in row.warnings if "exp_bounce_pct=4420" in warning]
+        self.assertEqual(len(warnings), 1)
+        self.assertIn(f"{row.ticker} {source['side']} {source['level_type']}", warnings[0])
+        self.assertIn("excluded from scoring and zones", warnings[0])
+        self.assertEqual(parse_manifest(to_dict(parsed)).snapshots[0].warnings, row.warnings)
+
 
 if __name__ == "__main__":
     unittest.main()

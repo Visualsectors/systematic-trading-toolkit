@@ -53,6 +53,10 @@ Live use requires a supported production API. The toolkit targets API 2.2.0; [cu
 
 Entry and reassessment bands, invalidation price, ATR stop distance, reward-to-reassessment R, whole-share sizing, and `data_warnings`. Served rates are labelled `historical_base_rate`.
 
+Historical base-rate rows are consolidated by `(side, level_type, level_price)`, with a sorted `approaches` list on each row. Conflicting statistics remain null with a note; they are not averaged or selected for the most favorable value. Exact source prices define identity, not rounded display prices.
+
+The toolkit permanently treats `exp_bounce_pct > 100` as a data gap. The entire offending row is excluded from scoring, ATR estimation and zones, and a warning names its ticker, side, type, price and approach. Exactly 100 is accepted; missing values stay missing. If all current levels fail the guard, the plan reports insufficient data rather than reviving older levels. This client guard remains in place after upstream corrections.
+
 Output is JSON, suitable for inspection, saving locally, or feeding into your own builder workflow. For every available flag and its unit:
 
 ```powershell

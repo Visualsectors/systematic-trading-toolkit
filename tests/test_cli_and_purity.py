@@ -1,5 +1,6 @@
 import ast
 from contextlib import redirect_stderr, redirect_stdout
+from dataclasses import replace
 from io import StringIO
 import json
 import os
@@ -9,7 +10,11 @@ from unittest.mock import patch
 from pathlib import Path
 
 from visualsectors_toolkit.cli import _build_parser, main
-from visualsectors_toolkit.providers import ApiResponseError, MissingApiKeyError, VisualSectorsProviderError
+from visualsectors_toolkit.models import Level
+from visualsectors_toolkit.monitoring import evaluate_monitor
+from visualsectors_toolkit.providers import ApiResponseError, MissingApiKeyError, SyntheticFixtureProvider, VisualSectorsProviderError
+from visualsectors_toolkit.report import render_markdown
+from visualsectors_toolkit.workflow import run_reference_workflow
 
 
 class CliTests(unittest.TestCase):
@@ -116,6 +121,45 @@ class CliTests(unittest.TestCase):
             self.assertEqual(main(("plan", "BRVO", "--direction", "short", "--offline")), 0)
         result = json.loads(output.getvalue())
         self.assertEqual(result["plan"]["direction"], "short")
+
+    def test_plan_json_merges_approaches_and_discloses_excluded_level(self):
+        base = SyntheticFixtureProvider().get("ALFA")
+        support = Level(base.as_of[:10], "Support", "dex", 98,
+                        exp_bounce_pct=3, p_hold_7d_pct=60, approach="quality")
+        resistance = replace(support, side="Resistance", price=105)
+        bad = replace(support, level_type="donchian", price=100,
+                      exp_bounce_pct=4420, reward_risk=1e12, score=1e12, approach="risk_reward")
+        levels = tuple(replace(row, approach=approach) for row in (support, resistance)
+                       for approach in ("quality", "distance", "risk_reward")) + (bad,)
+        row = replace(base, ticker="AAPL", price=100, atr14=4, levels=levels)
+        output = StringIO()
+        with patch("visualsectors_toolkit.cli._provider") as provider, redirect_stdout(output):
+            provider.return_value.get.return_value = row
+            self.assertEqual(main(("plan", "AAPL")), 0)
+        result = json.loads(output.getvalue())
+        for name in ("entry_historical_base_rates", "reassessment_historical_base_rates"):
+            self.assertEqual(len(result["plan"][name]), 1)
+            self.assertEqual(result["plan"][name][0]["approaches"], ["distance", "quality", "risk_reward"])
+        self.assertIn("AAPL Support donchian at 100", " ".join(result["data_warnings"]))
+        for name in ("entry_zone", "reassessment_zone"):
+            self.assertNotIn("donchian", result["plan"][name]["level_types"])
+            self.assertTrue(all(member["exp_bounce_pct"] <= 100 for member in result["plan"][name]["members"]))
+        self.assertLess(result["plan"]["reward_to_reassessment_R"], 10)
+
+    def test_markdown_report_displays_consolidated_prices_approaches_and_conflict_notes(self):
+        run = run_reference_workflow(SyntheticFixtureProvider())
+        rates = run.level_plan.entry_historical_base_rates
+        self.assertTrue(rates)
+        first = replace(rates[0], approaches=("quality", "risk_reward"))
+        plan = replace(run.level_plan, entry_historical_base_rates=(first,),
+                       notes=(*run.level_plan.notes, "Data gap: conflicting historical base rates remain null."))
+        monitor = evaluate_monitor(None, observed_at=run.manifest.decision_time, register=run.risk,
+                                   current_price=run.selected.price, level_plan=plan)
+        text = render_markdown(replace(run, level_plan=plan), monitor)
+        self.assertIn("| Level price | Approaches |", text)
+        self.assertIn("quality, risk_reward", text)
+        self.assertIn(f"{first.level_price:.2f}", text)
+        self.assertIn("Data gap: conflicting historical base rates remain null.", text)
 
     def test_risk_command_exposes_real_register_with_evidence_and_triggers(self):
         output = StringIO()

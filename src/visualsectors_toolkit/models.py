@@ -12,6 +12,7 @@ LevelSide = Literal["Support", "Resistance"]
 EvidenceStance = Literal["support", "opposition", "neutral"]
 RiskKind = Literal["headwind", "tailwind", "uncertainty"]
 Severity = Literal["low", "medium", "high"]
+MAX_EXPECTED_BOUNCE_PCT = 100.0
 
 
 def require_finite(value: float, name: str, *, positive: bool = False) -> float:
@@ -107,6 +108,22 @@ class Level:
             raise ValueError("level.confluence_count must be a non-negative integer")
 
 
+def is_usable_level(level: Level) -> bool:
+    """Permanent toolkit quality gate, independent of upstream corrections."""
+    return level.exp_bounce_pct is None or level.exp_bounce_pct <= MAX_EXPECTED_BOUNCE_PCT
+
+
+def level_data_gap_warnings(levels: Sequence[Level], *, ticker: str | None = None) -> tuple[str, ...]:
+    prefix = f"{ticker} " if ticker else ""
+    return tuple(sorted({
+        f"Data gap: {prefix}{level.side} {level.level_type} at {level.price:.15g} "
+        f"(date={level.level_date}, approach={level.approach or 'not supplied'}) has "
+        f"exp_bounce_pct={level.exp_bounce_pct:.15g} above {MAX_EXPECTED_BOUNCE_PCT:g}; "
+        "the row was excluded from scoring and zones."
+        for level in levels if not is_usable_level(level)
+    }))
+
+
 @dataclass(frozen=True, slots=True)
 class MarketSnapshot:
     ticker: str
@@ -153,6 +170,9 @@ class MarketSnapshot:
             raise ValueError("snapshot evidence IDs must be unique")
         if any(not isinstance(item, str) or not item.strip() for item in self.warnings):
             raise ValueError("snapshot.warnings must contain non-empty strings")
+        object.__setattr__(self, "warnings", tuple(dict.fromkeys(
+            (*self.warnings, *level_data_gap_warnings(self.levels, ticker=self.ticker))
+        )))
 
 
 @dataclass(frozen=True, slots=True)

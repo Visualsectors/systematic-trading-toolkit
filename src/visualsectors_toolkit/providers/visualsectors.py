@@ -14,7 +14,10 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode, urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
-from ..models import DatasetManifest, Evidence, Level, MarketSnapshot, require_iso_datetime, require_ticker
+from ..models import (
+    DatasetManifest, Evidence, Level, MarketSnapshot, is_usable_level, level_data_gap_warnings,
+    require_iso_datetime, require_ticker,
+)
 from .base import MarketDataProvider, ProviderCapabilities
 
 DEFAULT_API_BASE_URL = "https://api.visualsectors.com"
@@ -321,6 +324,8 @@ class VisualSectorsProvider(MarketDataProvider):
         latest_level_date = max(level_dates, default=None)
         levels = tuple(self._map_level(row) for row in eligible_levels
                        if row.get("level_date") == latest_level_date)
+        warnings.extend(level_data_gap_warnings(levels, ticker=ticker))
+        levels = tuple(level for level in levels if is_usable_level(level))
         if not levels:
             warnings.append("No current selected levels were returned; level evidence is unavailable.")
         indicators: dict[str, float | None] = {}
