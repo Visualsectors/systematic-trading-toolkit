@@ -2,9 +2,21 @@
 
 [← All tools](../README.md#choose-a-tool) · [Methodology](../docs/METHODOLOGY.md) · [Data contract](../docs/DATA_CONTRACT.md)
 
-**Build an evidence-linked research brief that separates observations, interpretations, contrary evidence, and missing coverage.**
+**Examine a stock thesis against technical readings, SEC metrics, levels, and news—with supporting evidence, contradictions, and missing coverage kept separate.**
 
 > **Recommended live provider: Visual Sectors.** Connect our API to bring current SEC metrics, technical readings, served levels, and headlines into an evidence-linked research brief. [Get a free API key](https://api.visualsectors.com/signup) · [Explore the API](https://api.visualsectors.com).
+
+## When to use it
+
+Use this folder when you want an auditable research brief before accepting or challenging a stock thesis.
+
+- Turn supplied observations into a structured brief with evidence IDs for downstream inspection.
+- Keep contrary evidence visible instead of building a one-sided narrative from favorable facts.
+- State what is unknown and which new evidence could weaken the thesis; optional context adds Price, Peers, and Market coverage where supplied.
+
+## AI skill
+
+[build-research-thesis](skills/build-research-thesis/SKILL.md) guides an AI through the brief and context, preserving cited facts, contrary evidence, and coverage gaps. The calculation command itself does not run an LLM or independently browse the web.
 
 ## Quickstart
 
@@ -60,6 +72,6 @@ Import `build_research_brief` to consume a `MarketSnapshot`. Preserve evidence I
 
 ## Important boundaries
 
-The brief is bounded by supplied evidence; it does not independently browse the web or run an LLM. The optional [build-research-thesis skill](../skills/build-research-thesis/SKILL.md) helps an AI present this audit record without inventing missing facts. An absent earnings calendar or unavailable news feed is not a neutral signal.
+The brief is bounded by supplied evidence; it does not independently browse the web or run an LLM. The optional [build-research-thesis skill](skills/build-research-thesis/SKILL.md) helps an AI present this audit record without inventing missing facts. An absent earnings calendar or unavailable news feed is not a neutral signal.
 
 Code is [MIT licensed](../LICENSE); documentation is [CC BY 4.0](../LICENSE-DOCS). API data keeps separate rights: do not redistribute raw API values. You can use `--data` where supported or implement another provider; the API is the convenient built-in route, not a requirement to use the code.
