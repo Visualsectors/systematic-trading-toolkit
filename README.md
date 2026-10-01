@@ -17,14 +17,16 @@ All six tools have their own top-level folder. Open one for its quickstart, runn
 
 | Tool folder | Outcome | Installed command |
 | --- | --- | --- |
-| [screener/](screener/) | Ranked watchlists and grounded Price/Peers/Market context | `vstoolkit screen` / `vstoolkit context` |
-| [position-sizer/](position-sizer/) | Whole-share stop-risk sizes or portfolio-slot allocations | `vstoolkit size-stop` / `size-portfolio` |
-| [research/](research/) | Evidence-linked briefs, contrary evidence, and data gaps | `vstoolkit research` |
-| [risk-management/](risk-management/) | Tailwinds, headwinds, uncertainty, and reassessment triggers | `vstoolkit risk` |
-| [monitoring/](monitoring/) | Changes in risks and saved plan boundaries | `vstoolkit monitor` |
-| [entry-exit/](entry-exit/) | Conditional entry, invalidation, and reassessment zones | `vstoolkit plan` |
+| [screener/](screener/) | Find stocks that match disclosed filters; inspect ranked matches, exclusions, and Price/Peers/Market context | `vstoolkit screen` / `vstoolkit context` |
+| [position-sizer/](position-sizer/) | Calculate whole shares within your chosen risk budget and capital cap, or allocate a portfolio batch | `vstoolkit size-stop` / `size-portfolio` |
+| [research/](research/) | Examine a stock thesis against technical, SEC, and news evidence—with contradictions and gaps visible | `vstoolkit research` |
+| [risk-management/](risk-management/) | Identify stock-specific headwinds, tailwinds, and unknowns; record what would require reassessment | `vstoolkit risk` |
+| [monitoring/](monitoring/) | Compare observations with saved state and emit changes in risks or original price boundaries | `vstoolkit monitor` |
+| [support-resistance/](support-resistance/) | Inspect served S/R levels, historical measurements, and conditional scenario zones; measure levels from your own price | `vstoolkit plan` / `vstoolkit measure` |
 
-The folder scripts call the same tested package as `vstoolkit`; calculations are not duplicated. Shared implementation lives in [`src/visualsectors_toolkit/`](src/visualsectors_toolkit/), documentation in [`docs/`](docs/), and optional AI instructions in [`skills/`](skills/).
+The folder scripts call the same tested package as `vstoolkit`; calculations are not duplicated. Shared implementation lives in [`src/visualsectors_toolkit/`](src/visualsectors_toolkit/) and documentation in [`docs/`](docs/). Existing AI skills live inside their topical folders, alongside the tool they explain; see [skill coverage](#agent-skills). There is no separate top-level skills folder.
+
+`support-resistance/` replaces the former `entry-exit/` folder. The installed `vstoolkit plan` command is unchanged.
 
 ## Use the Visual Sectors API for live data
 
@@ -126,7 +128,7 @@ vstoolkit screen --ask 'golden cross state and price above $10' --tickers AAPL,K
 vstoolkit screen --ask 'oversold with unusual volume' --interpret-only
 ```
 
-The last request refuses before any network call: volume criteria are not wired in. Nothing is quietly dropped. Live custom screens require an explicit watchlist of at most five tickers; they do not imply whole-market coverage. See [supported grammar and defaults](skills/compose-screen/references/grammar.md).
+The last request refuses before any network call: volume criteria are not wired in. Nothing is quietly dropped. Live custom screens require an explicit watchlist of at most five tickers; they do not imply whole-market coverage. See [supported grammar and defaults](screener/skills/compose-screen/references/grammar.md).
 
 ### Position sizing
 
@@ -181,12 +183,19 @@ The API may be used to research, advise, or build decision tools under the appli
 
 ## Agent skills
 
-Four optional skills include portable metadata and references:
+Skills belong to their topical tools, not a separate root folder. Four existing skills include portable metadata and references:
 
-- `build-research-thesis` keeps an AI inside cited evidence and makes contrary evidence visible.
-- `reassess-position` interprets monitor events without replacing the saved invalidation.
-- `analyze-screener-context` reads Price, Peers and Market, including weighted/headline peers and the challenging narrative, with validated A/B/C or insufficient-data cards.
-- `compose-screen` resolves trader jargon into disclosed conditions, or refuses with specific data/clarification requirements.
+| Tool | Bundled AI skill | Purpose or status |
+| --- | --- | --- |
+| Screener | [compose-screen](screener/skills/compose-screen/SKILL.md) | Disclose supported filters and defaults; refuse unexpressible conditions without weakening the request |
+| Screener | [analyze-screener-context](screener/skills/analyze-screener-context/SKILL.md) | Interpret frozen candidates through Price, Peers, and Market evidence, including contrary narratives and gaps |
+| Research | [build-research-thesis](research/skills/build-research-thesis/SKILL.md) | Develop or challenge a thesis without inventing facts or hiding contradictory evidence |
+| Monitoring | [reassess-position](monitoring/skills/reassess-position/SKILL.md) | Explain changes against the original plan, preserving saved boundaries and unknown current status |
+| Risk management | Not bundled yet | A dedicated risk-management skill is still needed |
+| Support/resistance | Not bundled yet | A toolkit-compatible level-explanation skill is still needed |
+| Position sizing | None by design | Deterministic arithmetic from user-chosen inputs, without an allocation agent |
+
+Pending skills are not included in the plugin or presented as implemented capabilities.
 
 Install the Claude Code plugin from an authorized checkout with one PowerShell command (Claude Code must already be installed):
 
@@ -194,9 +203,11 @@ Install the Claude Code plugin from an authorized checkout with one PowerShell c
 & .\scripts\install-claude-plugin.ps1
 ```
 
-It registers `visualsectors` and installs `systematic-trading-toolkit@visualsectors` in project scope; restart Claude Code and try `/systematic-trading-toolkit:compose-screen`. Python installation is separate. While private, GitHub authorization is required; unrestricted installation follows the public-release gate. This is a repository-hosted catalogue, not a claim of approval by Anthropic's official directory. See [plugin documentation](https://code.claude.com/docs/en/plugin-marketplaces).
+It registers `visualsectors` and installs `systematic-trading-toolkit@visualsectors` in project scope; restart Claude Code and try `/systematic-trading-toolkit:compose-screen`. The manifest explicitly scans the skills inside `screener/`, `research/`, and `monitoring/` ([custom skill-path reference](https://code.claude.com/docs/en/plugins-reference#fields)). Python installation is separate. While private, GitHub authorization is required; unrestricted installation follows the public-release gate. This is a repository-hosted catalogue, not a claim of approval by Anthropic's official directory. See [plugin documentation](https://code.claude.com/docs/en/plugin-marketplaces).
 
-For local plugin QA: `claude plugin validate .`, then start `claude --plugin-dir <absolute-checkout-path>` in a separate test project. For Codex, copy each named directory from `skills/` into your project `.agents/skills/`; each includes its own references and UI metadata ([official skills guidance](https://learn.chatgpt.com/docs/build-skills#where-codex-loads-local-skills)). For Cursor or another agent, attach the relevant `SKILL.md` as project instructions. Never paste an API key into an AI prompt.
+For local plugin QA: `claude plugin validate .`, then start `claude --plugin-dir <absolute-checkout-path>` in a separate test project. Verify that all four existing skills appear once. Static manifest tests do not replace that installation check.
+
+For Codex, copy the chosen complete skill directory into your project's `.agents/skills/`—for example, `screener/skills/compose-screen/` becomes `.agents/skills/compose-screen/`. Keep its `references/` and `agents/` together. The topical `skills/` locations are source bundles, not automatic Codex discovery locations ([official skills guidance](https://learn.chatgpt.com/docs/build-skills#where-codex-loads-local-skills)). For Cursor or another agent, attach the relevant `SKILL.md` as project instructions. Never paste an API key into an AI prompt.
 
 The upgraded position-review skill also measures a named entry, cost basis or strike without selecting an action:
 
@@ -261,6 +272,6 @@ Live launch QA is separate from fixture tests: see [the API contract and real-ke
 
 ## License
 
-Code is MIT licensed. All README files, `docs/`, and `skills/` are CC BY 4.0. Dataset and API rights remain separate; see [LICENSE](LICENSE), [LICENSE-DOCS](LICENSE-DOCS), and [NOTICE](NOTICE).
+Code is MIT licensed. All README files, `docs/`, and the skills and references inside topical folders are CC BY 4.0. Dataset and API rights remain separate; see [LICENSE](LICENSE), [LICENSE-DOCS](LICENSE-DOCS), and [NOTICE](NOTICE).
 
 This software supports research and education. It does not provide investment, legal, tax, or accounting advice.
