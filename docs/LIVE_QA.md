@@ -76,7 +76,7 @@ claude plugin validate .
 
 Pace each live command; context normally has seven logical reads but daily-bar pagination can multiply them. Refused screen exits 2 before authentication/network. Verify every figure is present under its emitted evidence ID, every unavailable peer/cap/breadth/linkage lane says “not supplied,” and no real ticker is replaced with ALFA. News/market proxy and non-PIT caveats must survive card rendering. Named-price distances are signed; nulls stay null and the exact closing sentence is retained.
 
-The top30 jargon cases each have a test. Validation of plugin JSON alone is not an installation test: after public release, install in a clean Claude Code project, verify four skills load and exercise their namespaced commands. Do not claim marketplace validation passed unless the actual CLI was available.
+The top30 jargon cases each have a test. Validation of plugin JSON alone is not an installation test: after public release, install in a clean Claude Code project, verify six skills load and exercise their namespaced commands. Do not claim marketplace validation passed unless the actual CLI was available.
 
 ## 3b. Rehearsal login: bounded current levels
 

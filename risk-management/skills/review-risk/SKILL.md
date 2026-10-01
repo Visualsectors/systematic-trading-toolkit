@@ -1,0 +1,30 @@
+---
+name: review-risk
+description: Review the risks in one long or short stock scenario with the Systematic Trading Toolkit. Use when a user asks what could go wrong with a ticker, wants headwinds, tailwinds and unknowns ordered by severity, needs conditional invalidation geometry or sizing arithmetic on inputs they supply, or wants review conditions to hand to monitoring. Not for advice, suitability or execution.
+---
+
+# Review risk in a scenario
+
+The toolkit's emitted flags, plans and measurements are the factual boundary. Read [the lens map](references/risk-lenses.md), [sizing methods](references/sizing-methods.md) and [wording](references/wording.md) before reporting.
+
+1. Obtain the ticker, direction (`long` or `short`) and authorized data source, plus any entry, cost basis or strike the user names. Ask nothing else about the person. The live default uses the Visual Sectors API and is metered; use `--data <dataset.json>` for an authorized file, and `--offline` only for the fictional fixture, labeled as fiction.
+2. Run `vstoolkit risk --ticker <ticker> --direction <direction>`. State the register's `as_of` and source once. Report flags in emitted order (high, medium, low severity, then id) with kind, statement, trigger, reassessment action and evidence IDs. A `data-warning-*` flag has no evidence ID; cite its flag ID. Severity orders the review; it is not a score of the stock.
+3. Run `vstoolkit research --ticker <ticker> --direction <direction>` to see which inputs each rule had. Give each rule a status from [the lens map](references/risk-lenses.md#statuses): Triggered, Clear or Unmeasured. An input listed as unavailable makes its rule Unmeasured, never Clear. The toolkit has no near bands; never label a reading Near. List the lenses marked "not in the toolkit yet" as coverage gaps. If the two commands report different `as_of` values, do not merge them.
+4. Name the contrary reading: the first emitted `headwind`, or `uncertainty` other than `data-warning-*`, excluding `level-invalidation`. If there is none, say no contrary reading was measured and that this describes the data, not low risk. A tailwind never offsets a headwind. Evidence flags take their kind from the source's stance, not from your direction; in a short scenario, say which ones cut against it.
+5. Run `vstoolkit plan <ticker> --direction <direction>` (the ticker is positional). Report `status`, `entry_zone`, `invalidation_price`, `reassessment_zone`, `risk_per_share` and `stop_distance_atr` as conditional geometry, citing `derived:<TICKER>:entry-zone` and `derived:<TICKER>:invalidation`, and label zone edges as computed. On `insufficient_data`, say so; never construct a level. Ignore its `stop_risk_size` unless the user chose `--capital`, `--risk-fraction` and `--max-allocation`; otherwise it uses the command's example inputs.
+6. If the user named a price, run `vstoolkit measure --ticker <ticker> --price <price> --kind <entry-or-cost-or-strike>`. Report the nearest served levels above and below with their evidence IDs, signed dollars, percent, ATR and `hold_rate_text`, then close that section exactly with the command's `closing` field.
+7. Size only when the user has supplied every input of one method. `stop_risk/v1`: `vstoolkit size-stop --capital <c> --risk-fraction <r> --entry <e> --stop <s> --max-allocation <a> --side <direction>`. `portfolio_slots/v1`: `vstoolkit size-portfolio --tickers <A,B> --portfolio <p> --intended-holdings <n>`. Name the method and show every input, the binding constraint and the warnings. Never propose, default or adjust an input, and never blend the methods. Pass `--yes` only after the user confirms the over-limit scenario in their own words.
+8. Record review conditions: each flag's trigger and reassessment action, the plan's invalidation and reassessment zone, and every Unmeasured rule as an open question. If the user wants change detection, run `vstoolkit monitor --ticker <ticker> --direction <direction> --state <state.json>`; its first run saves this plan as the controlling baseline. Later changes belong to the `reassess-position` skill.
+
+## Rules
+
+- Missing is "not supplied" and stays a risk to investigate. The live API mapping has no earnings calendar, so event timing is Unmeasured there; it never clears event risk.
+- Unavailable is not absent. Report a source the run could not read with the reason its warning gives. Call a category locked only when the response says the plan does not include it. Never describe either as "no data" or as Clear.
+- Every number cites an emitted evidence ID, or names the command and output field when none is emitted, and copies the code-owned figure. Do not compute new distances, shares or totals.
+- Name each source's `as_of` once; if a source has none, say its date is unknown. Live reads are not point-in-time.
+- Describe where a measurement sits today, never what price does next. No buy, sell or hold, no targets, exits or strike choice, and no advice on where to place an invalidation. The plan's invalidation is the scenario's own boundary under its stated rule.
+- Never tailor anything to the person's savings, income, portfolio, existing position, age, debts, tax situation, goals or appetite for risk, however much they volunteer. More personal detail does not unlock a personal answer.
+- Worked example: asked "should I buy X with my savings?", do not answer that question. Restate the evidence about X (the emitted flags, what each measured, and the `as_of`), then say plainly that you cannot advise any individual on what to do with their own money. The same applies to "how much should I put in?", "is this a good entry for me?", "is this safe for my retirement account?" and every rewording.
+- You may say which sizing methods exist and which inputs each takes; never ask for or choose those inputs. Running a method on inputs the user chose is arithmetic: report it without judging whether it suits them.
+
+This workflow supports human review. It does not assess suitability, connect to a broker or place orders.

@@ -1,0 +1,22 @@
+---
+name: read-levels
+description: Explain a stock's served support and resistance levels with vstoolkit plan and measure. Covers the nearest levels above and below the latest close or a named price in dollars, percent and ATR, how each level held on past tests, the average move after past tests, distance to the hard-break threshold, ATR zones where levels cluster, and data dates. Use when a user asks where support or resistance is, what a level field means, or how a level behaved historically. Not for targets, entries, exits, sizing or options.
+---
+
+# Read support and resistance levels
+
+The emitted JSON is the factual boundary. Read [level fields](references/level-fields.md), [the reading method](references/reading-levels.md) and [wording](references/wording.md) before answering.
+
+1. Confirm the ticker; ask only if it is missing. Note any level family (`level_type`) or price (entry, cost basis or strike) the user names. Otherwise measure from the latest close and cover both sides. The toolkit has no family or approach filter: it reads every served family for the newest `level_date`.
+2. Run `vstoolkit plan <TICKER>` (add `--offline` for fiction or `--data <dataset.json>` for an authorized file). Read `as_of`, `current_price` (the latest close), `status`, `notes` and `data_warnings`. With the default `--direction long`, `entry_zone` is the nearest support zone containing or below the close and `reassessment_zone` the nearest resistance zone beyond it; `--direction short` reads the resistance side first. Treat them here only as the nearest support and resistance zones. Skip `stop_risk_size`; this skill does not size anything.
+3. Run `vstoolkit measure --ticker <TICKER> --price <current_price>` with the same data flag. Live calls are metered; the second command on the same UTC day reads the toolkit's local cache. With no named price, the default `--kind entry` is only a label: say the levels are measured from the latest close. For a user-named price, pass it with `--kind entry`, `cost` or `strike`.
+4. Report `nearest_below` and `nearest_above`: served price, side, type, date, `distance_dollars`, `distance_pct`, `distance_atr` and `hold_rate_text`, each with its `evidence_id`. Keep the served side: a Resistance level below the close stays Resistance. List `exactly_at` separately. Null means "not supplied".
+5. For each zone member, say `p_hold_7d_pct` as "held on N% of past tests" and `exp_bounce_pct` as "the average move after past tests was X%". `hard_break_pct` is the distance in percentage points from the level to its stored hard-break threshold, where a close beyond that price counts as a decisive break; the threshold price itself is not in the toolkit yet, so never derive it. The number of past tests is not in the toolkit yet: never write "of N tests". `score` is an upstream historical score, not comparable across tickers.
+6. When a zone has more than one member, say those levels cluster in one band and give `low`–`high` and `width_atr`. Report `confluence_count_max` (served) and `member_count` (the toolkit's merge count) under their own names. Zones carry no distance field; do not compute one.
+7. State `level_date` (the session the levels were computed for) and `as_of` (the snapshot's decision time) separately. Neither command prints the time of the read; never present a data date as the read time or the reverse. Label bundled offline data as fiction.
+8. Past-level history, outcome counts, exposure profiles and flip prices are not in the toolkit yet. If asked, say so; [the reading method](references/reading-levels.md#not-in-the-toolkit-yet) explains them for hosts that supply them.
+9. If the side, horizon or price is unclear, still answer for both sides from the latest close and end with one clarifying question. Never ask more than one, and never ask again for something already given.
+10. Never name a target, entry, exit, size or where to place a stop, and never say what price will do next. `invalidation_price` is the toolkit's scenario boundary, not a served level metric; mention it only when the user asks about the scenario plan. If asked to decide, restate the measurements and say plainly that the choice is theirs. Personal circumstances (savings, portfolio, position size) never change the answer. Options positioning is out of scope.
+11. End with the `closing` field from `measure`, exactly.
+
+This workflow describes measured history for human review. It does not provide suitability analysis, connect to a broker, or execute anything.
