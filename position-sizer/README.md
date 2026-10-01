@@ -2,9 +2,21 @@
 
 [← All tools](../README.md#choose-a-tool) · [Methodology](../docs/METHODOLOGY.md) · [Data contract](../docs/DATA_CONTRACT.md)
 
-**Convert explicit capital and risk assumptions into a whole-share position size, with the limiting constraint and unallocated capital visible.**
+**Calculate how many whole shares fit your chosen risk budget and capital cap—or divide a portfolio allocation across a batch of stocks.**
 
 > **Recommended live provider: Visual Sectors.** Connect our API for live prices, volatility inputs, and level-based plan geometry. Manual entry/stop arithmetic also works without an API key. [Get a free API key](https://api.visualsectors.com/signup) · [Explore the API](https://api.visualsectors.com).
+
+## When to use it
+
+Use this folder when the assumptions are yours and you want transparent sizing arithmetic rather than an allocation recommendation.
+
+- Size one scenario from capital, a loss budget, entry/invalidation prices, and a maximum allocation.
+- Allocate a ticker batch using the separate portfolio-slot method, with volatility weighting only when inputs support it.
+- Inspect whole shares, allocated capital, the binding constraint, and unused capital before integrating the result into your own workflow.
+
+## AI skill
+
+None by design. This folder exposes deterministic sizing calculations with explicit inputs; it does not bundle an agent that chooses your risk budget or holdings.
 
 ## Quickstart
 
