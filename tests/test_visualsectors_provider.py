@@ -1,5 +1,5 @@
 import copy
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from email.message import Message
 from io import BytesIO
 import os
@@ -11,7 +11,7 @@ from unittest.mock import patch
 from urllib.error import HTTPError
 
 from visualsectors_toolkit.providers import ApiResponseError, MissingApiKeyError, RateLimitError, VisualSectorsProvider
-from visualsectors_toolkit.providers.visualsectors import PLAN_INDICATORS
+from visualsectors_toolkit.providers.visualsectors import CURRENT_LEVELS_LIMIT, PLAN_INDICATORS
 
 
 AS_OF = "2026-09-23T23:59:59Z"
@@ -143,6 +143,77 @@ class VisualSectorsProviderTests(unittest.TestCase):
                         self.assertIsNone(row.pe_ratio)
                     else:
                         self.assertEqual(row.evidence, ())
+
+    def test_current_levels_request_is_date_bounded_and_selected_on_weekends(self):
+        # A Sunday ceiling must not invent a session date or require a row on Sunday.
+        sunday = datetime(2026, 9, 27, 0, 30, tzinfo=timezone.utc)
+        with tempfile.TemporaryDirectory() as directory:
+            provider = RecordedProvider(directory)
+            with patch("visualsectors_toolkit.providers.visualsectors.datetime") as clock:
+                clock.now.return_value = sunday
+                clock.fromisoformat.side_effect = datetime.fromisoformat
+                row = provider.get("AAPL")
+            query = next(query for _method, path, query, _body in provider.calls if path == "/v1/levels")
+            self.assertEqual(query, {"ticker": "AAPL", "date": "2026-09-27",
+                                     "only_best": "true", "limit": str(CURRENT_LEVELS_LIMIT)})
+            self.assertEqual([level.level_date for level in row.levels], ["2026-09-23"])
+
+    def test_login_and_plans_never_follow_a_levels_cursor_even_on_short_or_empty_pages(self):
+        for operation in ("verify", "get"):
+            for count in (0, 1, 10, CURRENT_LEVELS_LIMIT):
+                with self.subTest(operation=operation, count=count), tempfile.TemporaryDirectory() as directory:
+                    provider = RecordedProvider(directory)
+                    response = provider.recorded[("GET", "/v1/levels", None)]
+                    response["rows"] = response["rows"] * count
+                    response["next_cursor"] = "older-history-page"
+                    if operation == "verify":
+                        warnings = provider.verify()
+                        self.assertTrue(all(flag is False for flag in provider.cache_flags))
+                    else:
+                        warnings = provider.get("AAPL").warnings
+                    level_calls = [query for _method, path, query, _body in provider.calls if path == "/v1/levels"]
+                    self.assertEqual(len(level_calls), 1)
+                    self.assertNotIn("cursor", level_calls[0])
+                    self.assertIn("only the first bounded page", " ".join(warnings))
+                    self.assertEqual(len(provider.calls), 10 if operation == "verify" else 9)
+
+    def test_current_levels_reject_an_over_limit_response(self):
+        with tempfile.TemporaryDirectory() as directory:
+            provider = RecordedProvider(directory)
+            response = provider.recorded[("GET", "/v1/levels", None)]
+            response["rows"] *= CURRENT_LEVELS_LIMIT + 1
+            with self.assertRaisesRegex(ApiResponseError, "current-snapshot row limit"):
+                provider.verify()
+
+    def test_current_levels_omit_history_and_observations_after_common_cutoff(self):
+        with tempfile.TemporaryDirectory() as directory:
+            provider = RecordedProvider(directory)
+            response = provider.recorded[("GET", "/v1/levels", None)]
+            current = response["rows"][0]
+            response["rows"] = [
+                {**current, "level_date": "2026-09-22", "price": 117},
+                {**current, "level_date": "2026-09-24", "price": 119},
+                current,
+            ]
+            row = provider.get("AAPL")
+            self.assertEqual([level.level_date for level in row.levels], ["2026-09-23"])
+            self.assertIn("latest levels endpoint returned multiple dates", " ".join(row.warnings))
+
+    def test_current_levels_never_hide_authentication_or_rate_limits(self):
+        for failure in (ApiResponseError(401, "invalid key"), RateLimitError("42")):
+            with self.subTest(failure=failure), tempfile.TemporaryDirectory() as directory:
+                provider = RecordedProvider(directory)
+                provider.recorded[("GET", "/v1/levels", None)] = failure
+                with self.assertRaises(type(failure)):
+                    provider.verify()
+
+    def test_empty_current_levels_are_an_explicit_data_gap(self):
+        with tempfile.TemporaryDirectory() as directory:
+            provider = RecordedProvider(directory)
+            provider.recorded[("GET", "/v1/levels", None)] = envelope([])
+            row = provider.get("AAPL")
+            self.assertEqual(row.levels, ())
+            self.assertIn("No current selected levels", " ".join(row.warnings))
 
     def test_optional_endpoints_never_hide_authentication_or_rate_limits(self):
         for path, view in (("/v1/fundamentals", "metrics"), ("/v1/news", "headlines")):
