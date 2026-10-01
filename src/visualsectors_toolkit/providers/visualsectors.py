@@ -21,6 +21,8 @@ DEFAULT_API_BASE_URL = "https://api.visualsectors.com"
 SIGNUP_URL = f"{DEFAULT_API_BASE_URL}/signup"
 PLAN_INDICATORS = ("atr14", "rsi14", "sma20", "sma50", "sma200")
 CURRENT_LEVELS_LIMIT = 100
+CURRENT_METRIC_LIMIT = 1
+NEWS_HEADLINES_LIMIT = 25
 
 
 class _NoCredentialRedirect(HTTPRedirectHandler):
@@ -269,7 +271,11 @@ class VisualSectorsProvider(MarketDataProvider):
                 "Level evidence may be incomplete; no historical pagination was attempted."
             )
         technical_responses = {
-            indicator: self._get_pages(f"/v1/technicals/{indicator}", {"ticker": ticker}, cache=cache)
+            indicator: self._get_first_page(
+                f"/v1/technicals/{indicator}",
+                {"ticker": ticker, "date": today.isoformat(), "limit": str(CURRENT_METRIC_LIMIT)},
+                warnings, cache=cache,
+            )
             for indicator in PLAN_INDICATORS
         }
         bars_response = self._get_pages(
@@ -278,11 +284,15 @@ class VisualSectorsProvider(MarketDataProvider):
             cache=cache,
             max_rows=60,
         )
-        metrics_response = self._optional_pages(
-            "/v1/fundamentals", {"ticker": ticker, "view": "metrics"}, warnings, cache=cache
+        metrics_response = self._optional_first_page(
+            "/v1/fundamentals",
+            {"ticker": ticker, "view": "metrics", "date": today.isoformat(),
+             "limit": str(CURRENT_METRIC_LIMIT)},
+            warnings, cache=cache,
         )
-        news_response = self._optional_pages(
-            "/v1/news", {"ticker": ticker, "view": "headlines", "limit": "25"}, warnings, cache=cache
+        news_response = self._optional_first_page(
+            "/v1/news", {"ticker": ticker, "view": "headlines", "limit": str(NEWS_HEADLINES_LIMIT)},
+            warnings, cache=cache,
         )
 
         decision_times = [
@@ -369,12 +379,28 @@ class VisualSectorsProvider(MarketDataProvider):
             warnings=tuple(dict.fromkeys(warnings)),
         )
 
-    def _optional_pages(
+    def _get_first_page(
+        self, path: str, query: Mapping[str, str], warnings: list[str], *, cache: bool
+    ) -> dict[str, Any]:
+        """Read a bounded snapshot once, even if an old server offers history."""
+        response = self._request_json("GET", path, query=query, cache=cache)
+        rows = _rows(response, path)
+        if len(rows) > int(query["limit"]):
+            raise ApiResponseError(None, f"{path} response exceeded the requested current-snapshot row limit")
+        if response.get("next_cursor") is not None:
+            label = path + (f" view={query['view']}" if "view" in query else "")
+            warnings.append(
+                f"{label} returned a cursor; only the first bounded page was read. "
+                "Evidence may be incomplete; no historical pagination was attempted."
+            )
+        return response
+
+    def _optional_first_page(
         self, path: str, query: Mapping[str, str], warnings: list[str], *, cache: bool
     ) -> dict[str, Any]:
         """Optional evidence may degrade, but authentication and quota never do."""
         try:
-            return self._get_pages(path, query, cache=cache)
+            return self._get_first_page(path, query, warnings, cache=cache)
         except ApiResponseError as exc:
             if exc.status == 401:
                 raise

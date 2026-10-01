@@ -46,7 +46,7 @@ vstoolkit monitor --ticker AAPL --direction long --state .\monitoring\aapl-state
 vstoolkit screen --preset near_support --limit 5
 ```
 
-Pace commands against the response allowance. Login normally needs ten requests; a cold plan needs nine; a five-ticker screen can need 46 before pagination. A 429 must show a wait time, not a traceback. Wait before retrying. No tool here automatically purchases calls.
+Pace commands against the response allowance. Login normally needs ten requests; a cold plan needs nine; a five-ticker screen can need 46 before daily-bar pagination. Current levels, technicals, fundamentals metrics and news never follow cursors. A 429 must show a wait time, not a traceback. Wait before retrying. No tool here automatically purchases calls.
 
 Inspect every result:
 
@@ -85,6 +85,36 @@ Login and cold plans request `/v1/levels?ticker=AAPL&date=<today-UTC>&only_best=
 Reinstall the reviewed toolkit source into the existing virtual environment before retesting; an already installed wheel will not pick up the fix merely because the source checkout changed. In a separate terminal, set `VISUALSECTORS_API_BASE_URL` to `https://api.rehearsal.visualsectors.com`, then run `vstoolkit login` and an AAPL plan with a rehearsal key entered only at the hidden prompt. Repeat with Pro and a genuine free key. Inspect rehearsal logs: one levels request with the date, `only_best` and `limit`, and no levels cursor requests. Return the host override to its previous value afterwards. This is rehearsal evidence only, not the production/free-key launch gate.
 
 **C0 API check:** rehearsal's 2.2.0 OpenAPI says an undated `/v1/levels` request is the latest eligible snapshot. The report of roughly 100 cursor pages does not alone establish whether those rows span dates. With an existing rehearsal key, compare the distinct `level_date` values in the first two pages of the undated request and the bounded selected-levels request above. Retain only dates/counts and the API/connector deployment commits, never the key or raw market values. If the undated route crosses dates, report an API/deployment defect to C0 separately; the toolkit bound is not a server-side fix. No full-history pagination is needed for this check.
+
+## 3c. Production login and plans: bounded current evidence
+
+This extends the levels-only fix in PR #4. With the reviewed fix installed, login and plans read:
+
+| Source | Query bound | Cursor handling |
+| --- | --- | --- |
+| Selected levels | `date=<today-UTC>&only_best=true&limit=100` | First page only |
+| Each of ATR14, RSI14, SMA20/50/200 | `date=<today-UTC>&limit=1` | First page only; latest row only |
+| Fundamentals metrics | `view=metrics&date=<today-UTC>&limit=1` | First page only |
+| News headlines | `view=headlines&limit=25` | First page only |
+| Daily timeseries | `view=daily&to=<today-UTC>&limit=60` | Existing `max_rows=60` retained |
+
+Every query also supplies the ticker. An unexpected current-evidence cursor is a visible incomplete-evidence warning, never an instruction to fetch history. Empty technicals stay null; empty optional evidence is a disclosed gap. A response exceeding its requested row limit is rejected: core technicals fail closed; optional metrics/news become explicit gaps. HTTP 401 and 429 still stop the command. No missing latest row is replaced by historical cursor data.
+
+Rustam: obtain the reviewed branch and exact commit, then reinstall into your existing virtual environment from that checkout:
+
+```powershell
+python -m pip install --no-cache-dir --force-reinstall .
+Remove-Item Env:VISUALSECTORS_API_BASE_URL -ErrorAction SilentlyContinue
+vstoolkit login --no-open
+vstoolkit plan AAPL
+vstoolkit plan MSFT
+```
+
+Enter the **production free key** only at the hidden login prompt. Allow for quota limits between commands; do not loop on 429. The `bounded pagination allowance` error must not recur for technicals, metrics or news. In API request logs, check one request per current-evidence endpoint, the query bounds above, and no continuation requests for those endpoints. Login bypasses caches; plans may reuse same-day cached responses. Retain only toolkit/API commits, host, date, request counts, query names, exit codes and warning summaries, not keys or raw licensed rows.
+
+The provider regressions cover 0/1/10/100 advertised pages for **each** indicator, metrics and news, both login verification and plans, including empty first pages with cursors. Separate tests enforce UTC/weekend ceilings, first-page row limits, null/data-gap behavior, authentication/quota propagation, and the unchanged timeseries row cap.
+
+**G14.1 API investigation:** determine independently whether an undated individual indicator route, such as `/v1/technicals/atr14?ticker=AAPL&limit=1`, serves one latest observation or historical pagination. Compare with the explicitly dated request above; the `/v1/technicals` catalogue itself is not the value endpoint. Report dates/counts, cursors and deployment commit only. The client fix neither proves nor repairs the API's undated behavior. Route that finding to G14.1 and the merge desk separately; do not require a full-history fetch to diagnose it.
 
 ## 4. Record launch evidence
 
