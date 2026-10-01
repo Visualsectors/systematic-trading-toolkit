@@ -11,7 +11,9 @@ from unittest.mock import patch
 from urllib.error import HTTPError
 
 from visualsectors_toolkit.providers import ApiResponseError, MissingApiKeyError, RateLimitError, VisualSectorsProvider
-from visualsectors_toolkit.providers.visualsectors import CURRENT_LEVELS_LIMIT, PLAN_INDICATORS
+from visualsectors_toolkit.providers.visualsectors import (
+    CURRENT_LEVELS_LIMIT, CURRENT_METRIC_LIMIT, NEWS_HEADLINES_LIMIT, PLAN_INDICATORS,
+)
 
 
 AS_OF = "2026-09-23T23:59:59Z"
@@ -184,6 +186,147 @@ class VisualSectorsProviderTests(unittest.TestCase):
             response["rows"] *= CURRENT_LEVELS_LIMIT + 1
             with self.assertRaisesRegex(ApiResponseError, "current-snapshot row limit"):
                 provider.verify()
+
+    def test_current_technicals_and_metrics_request_one_date_bounded_row_on_weekends(self):
+        sunday = datetime(2026, 9, 27, 0, 30, tzinfo=timezone.utc)
+        for operation in ("verify", "get"):
+            with self.subTest(operation=operation), tempfile.TemporaryDirectory() as directory:
+                provider = RecordedProvider(directory)
+                with patch("visualsectors_toolkit.providers.visualsectors.datetime") as clock:
+                    clock.now.return_value = sunday
+                    clock.fromisoformat.side_effect = datetime.fromisoformat
+                    if operation == "verify":
+                        provider.verify()
+                    else:
+                        provider.get("AAPL")
+                    clock.now.assert_called_once_with(timezone.utc)
+                for indicator in PLAN_INDICATORS:
+                    path = f"/v1/technicals/{indicator}"
+                    queries = [query for _method, route, query, _body in provider.calls if route == path]
+                    self.assertEqual(queries, [{"ticker": "AAPL", "date": "2026-09-27",
+                                                "limit": str(CURRENT_METRIC_LIMIT)}])
+                metrics = [query for _method, route, query, _body in provider.calls if route == "/v1/fundamentals"]
+                self.assertEqual(metrics, [{"ticker": "AAPL", "view": "metrics", "date": "2026-09-27",
+                                             "limit": str(CURRENT_METRIC_LIMIT)}])
+                news = [query for _method, route, query, _body in provider.calls if route == "/v1/news"]
+                self.assertEqual(news, [{"ticker": "AAPL", "view": "headlines", "limit": str(NEWS_HEADLINES_LIMIT)}])
+                self.assertEqual(provider._snapshots["AAPL"].rsi14, 33)
+                self.assertEqual(provider._snapshots["AAPL"].pe_ratio, 29.5)
+
+    def test_login_and_plans_never_follow_0_1_10_100_pages_of_current_evidence(self):
+        routes = [(f"/v1/technicals/{indicator}", None) for indicator in PLAN_INDICATORS]
+        routes += [("/v1/fundamentals", "metrics"), ("/v1/news", "headlines")]
+        for operation in ("verify", "get"):
+            for path, view in routes:
+                for page_count in (0, 1, 10, 100):
+                    for empty_first_page in (False, True):
+                        with self.subTest(operation=operation, path=path, pages=page_count,
+                                          empty=empty_first_page), tempfile.TemporaryDirectory() as directory:
+                            provider = RecordedProvider(directory)
+                            original_request = provider._request_json
+                            requests = []
+
+                            def page(method, route, *, query=None, body=None, cache=True):
+                                response = original_request(method, route, query=query, body=body, cache=cache)
+                                if route != path:
+                                    return response
+                                requests.append(query)
+                                self.assertNotIn("cursor", query, "Current evidence must not request a continuation")
+                                response["next_cursor"] = f"history:2-of-{page_count}" if page_count > 1 else None
+                                if page_count == 0 or empty_first_page:
+                                    response["rows"] = []
+                                    response["count"] = 0
+                                return response
+
+                            with patch.object(provider, "_request_json", side_effect=page):
+                                if operation == "verify":
+                                    warnings = provider.verify()
+                                else:
+                                    warnings = provider.get("AAPL").warnings
+                            self.assertEqual(len(requests), 1)
+                            self.assertEqual(len(provider.calls), 10 if operation == "verify" else 9)
+                            self.assertTrue(all(flag == (operation == "get") for flag in provider.cache_flags))
+                            cursor_warnings = [warning for warning in warnings
+                                               if path in warning and "only the first bounded page" in warning]
+                            self.assertEqual(len(cursor_warnings), int(page_count > 1))
+                            row = provider._snapshots["AAPL"]
+                            empty = page_count == 0 or empty_first_page
+                            if path.startswith("/v1/technicals/"):
+                                self.assertEqual(getattr(row, path.rsplit("/", 1)[-1]) is None, empty)
+                            elif view == "metrics":
+                                self.assertEqual(row.pe_ratio is None, empty)
+                            else:
+                                self.assertEqual(len(row.evidence), 0 if empty else 1)
+
+    def test_current_evidence_rejects_over_limit_rows_without_following_a_cursor(self):
+        routes = [(f"/v1/technicals/{indicator}", None, CURRENT_METRIC_LIMIT) for indicator in PLAN_INDICATORS]
+        routes += [("/v1/fundamentals", "metrics", CURRENT_METRIC_LIMIT),
+                   ("/v1/news", "headlines", NEWS_HEADLINES_LIMIT)]
+        for operation in ("verify", "get"):
+            for path, view, limit in routes:
+                with self.subTest(operation=operation, path=path), tempfile.TemporaryDirectory() as directory:
+                    provider = RecordedProvider(directory)
+                    response = provider.recorded[("GET", path, view)]
+                    response["rows"] *= limit + 1
+                    response["next_cursor"] = "history:2"
+                    if view is None:
+                        with self.assertRaisesRegex(ApiResponseError, "current-snapshot row limit"):
+                            provider.verify() if operation == "verify" else provider.get("AAPL")
+                    else:
+                        warnings = provider.verify() if operation == "verify" else provider.get("AAPL").warnings
+                        self.assertIn(f"{path} view={view} is unavailable", " ".join(warnings))
+                        row = provider._snapshots["AAPL"]
+                        if view == "metrics":
+                            self.assertIsNone(row.pe_ratio)
+                        else:
+                            self.assertEqual(row.evidence, ())
+                    queries = [query for _method, route, query, _body in provider.calls if route == path]
+                    self.assertEqual(len(queries), 1)
+                    self.assertNotIn("cursor", queries[0])
+
+    def test_empty_or_after_cutoff_technicals_remain_missing_without_history_fallback(self):
+        for indicator in PLAN_INDICATORS:
+            for rows in ([], [{"date": "2026-09-24", "indicator": indicator, "value": 999}]):
+                with self.subTest(indicator=indicator, rows=rows), tempfile.TemporaryDirectory() as directory:
+                    provider = RecordedProvider(directory)
+                    response = envelope(rows)
+                    response["next_cursor"] = "older-session"
+                    provider.recorded[("GET", f"/v1/technicals/{indicator}", None)] = response
+                    row = provider.get("AAPL")
+                    self.assertIsNone(getattr(row, indicator))
+                    self.assertIn(f"{indicator} is unavailable", " ".join(row.warnings))
+
+    def test_current_technicals_never_hide_authentication_or_rate_limits(self):
+        for indicator in PLAN_INDICATORS:
+            for failure in (ApiResponseError(401, "invalid key"), RateLimitError("42")):
+                with self.subTest(indicator=indicator, failure=failure), tempfile.TemporaryDirectory() as directory:
+                    provider = RecordedProvider(directory)
+                    provider.recorded[("GET", f"/v1/technicals/{indicator}", None)] = failure
+                    with self.assertRaises(type(failure)):
+                        provider.verify()
+
+    def test_news_retains_up_to_25_items_from_the_first_page_only(self):
+        for count in (0, 1, 10, NEWS_HEADLINES_LIMIT):
+            with self.subTest(count=count), tempfile.TemporaryDirectory() as directory:
+                provider = RecordedProvider(directory)
+                news = provider.recorded[("GET", "/v1/news", "headlines")]
+                item = news["rows"][0]
+                news["rows"] = [{**item, "id": f"story-{index}"} for index in range(count)]
+                news["next_cursor"] = "older-headlines"
+                row = provider.get("AAPL")
+                self.assertEqual(len(row.evidence), count)
+                self.assertIn("/v1/news view=headlines returned a cursor", " ".join(row.warnings))
+
+    def test_plan_pagination_is_reserved_for_timeseries_with_its_60_row_bound(self):
+        for operation in ("verify", "get"):
+            with self.subTest(operation=operation), tempfile.TemporaryDirectory() as directory:
+                provider = RecordedProvider(directory)
+                with patch.object(provider, "_get_pages", wraps=provider._get_pages) as pages:
+                    provider.verify() if operation == "verify" else provider.get("AAPL")
+                pages.assert_called_once()
+                self.assertEqual(pages.call_args.args[0], "/v1/timeseries/history")
+                self.assertEqual(pages.call_args.kwargs["max_rows"], 60)
+                self.assertEqual(pages.call_args.kwargs["cache"], operation == "get")
 
     def test_current_levels_omit_history_and_observations_after_common_cutoff(self):
         with tempfile.TemporaryDirectory() as directory:

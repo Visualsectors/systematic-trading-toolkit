@@ -235,7 +235,7 @@ plan = build_level_plan(
 )
 ```
 
-Provider I/O is isolated from deterministic calculation modules. The live adapter uses the standard library, Bearer authentication, cursor paging, explicit `Retry-After` errors, and a per-day local cache. A cold ticker normally uses nine requests: levels, five individual technical indicators (ATR14, RSI14, SMA20/50/200), daily bar history, SEC metrics, and news. Login adds a health check and bypasses cached responses, so normally uses ten requests. Pagination can add more. `/v1/technicals` is an indicator catalogue in 2.2.0, not a bundled value feed.
+Provider I/O is isolated from deterministic calculation modules. The live adapter uses the standard library, Bearer authentication, explicit `Retry-After` errors, and a per-day local cache. A cold ticker normally uses nine requests: levels, five individual technical indicators (ATR14, RSI14, SMA20/50/200), daily bar history, SEC metrics, and news. Login adds a health check and bypasses cached responses, so normally uses ten requests. Only daily bar history follows cursors, up to 60 rows; short history pages can add requests. Current levels are selected with `date=<today-UTC>&only_best=true&limit=100`. Each technical indicator and SEC metrics use `date=<today-UTC>&limit=1`; news uses `limit=25`. These current-evidence reads never follow a cursor, even on an empty first page; unexpected cursors produce visible incomplete-evidence warnings. `/v1/technicals` is an indicator catalogue in 2.2.0, not a bundled value feed. See [production retest steps](docs/LIVE_QA.md#3c-production-login-and-plans-bounded-current-evidence).
 
 ## Trust boundary
 
