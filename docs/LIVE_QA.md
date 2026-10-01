@@ -78,6 +78,14 @@ Pace each live command; context normally has seven logical reads but daily-bar p
 
 The top30 jargon cases each have a test. Validation of plugin JSON alone is not an installation test: after public release, install in a clean Claude Code project, verify four skills load and exercise their namespaced commands. Do not claim marketplace validation passed unless the actual CLI was available.
 
+## 3b. Rehearsal login: bounded current levels
+
+Login and cold plans request `/v1/levels?ticker=AAPL&date=<today-UTC>&only_best=true&limit=100` exactly once. `date` is a ceiling, not an exact session date: weekends and holidays still return the latest eligible session. `only_best=true` selects the published support/resistance pair for each approach (currently up to ten rows on a session). A levels cursor is never followed, including on a short or empty first page; an unexpected cursor is reported as incomplete evidence. Only the newest level date on or before the common source cutoff is retained. Authentication and rate-limit failures still fail login, without replacing the existing key.
+
+Reinstall the reviewed toolkit source into the existing virtual environment before retesting; an already installed wheel will not pick up the fix merely because the source checkout changed. In a separate terminal, set `VISUALSECTORS_API_BASE_URL` to `https://api.rehearsal.visualsectors.com`, then run `vstoolkit login` and an AAPL plan with a rehearsal key entered only at the hidden prompt. Repeat with Pro and a genuine free key. Inspect rehearsal logs: one levels request with the date, `only_best` and `limit`, and no levels cursor requests. Return the host override to its previous value afterwards. This is rehearsal evidence only, not the production/free-key launch gate.
+
+**C0 API check:** rehearsal's 2.2.0 OpenAPI says an undated `/v1/levels` request is the latest eligible snapshot. The report of roughly 100 cursor pages does not alone establish whether those rows span dates. With an existing rehearsal key, compare the distinct `level_date` values in the first two pages of the undated request and the bounded selected-levels request above. Retain only dates/counts and the API/connector deployment commits, never the key or raw market values. If the undated route crosses dates, report an API/deployment defect to C0 separately; the toolkit bound is not a server-side fix. No full-history pagination is needed for this check.
+
 ## 4. Record launch evidence
 
 Record the toolkit commit, API deployment version/commit, date, Python/OS version, observed free-tier limits, commands and exit codes. Retain only redacted derived summaries and warnings in a private QA record, not raw licensed API rows. A contract fixture, green CI or dev-host test is not proof that the production/free-key gate passed.

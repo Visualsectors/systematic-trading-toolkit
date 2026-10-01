@@ -20,6 +20,7 @@ from .base import MarketDataProvider, ProviderCapabilities
 DEFAULT_API_BASE_URL = "https://api.visualsectors.com"
 SIGNUP_URL = f"{DEFAULT_API_BASE_URL}/signup"
 PLAN_INDICATORS = ("atr14", "rsi14", "sma20", "sma50", "sma200")
+CURRENT_LEVELS_LIMIT = 100
 
 
 class _NoCredentialRedirect(HTTPRedirectHandler):
@@ -250,7 +251,23 @@ class VisualSectorsProvider(MarketDataProvider):
             "Earnings growth is unavailable from the Stage 1 public mapping and remains null.",
             "Days to earnings is unavailable: earnings calendar data is not served by API 2.2.0; no event-risk clearance is implied.",
         ]
-        levels_response = self._get_pages("/v1/levels", {"ticker": ticker}, cache=cache)
+        # Login and plans need a current snapshot, not a key's entire history.
+        # `date` is a ceiling, so weekends/holidays still use the latest eligible
+        # session. Do not follow a cursor, even on an older API deployment.
+        levels_response = self._request_json(
+            "GET", "/v1/levels",
+            query={"ticker": ticker, "date": today.isoformat(), "only_best": "true",
+                   "limit": str(CURRENT_LEVELS_LIMIT)},
+            cache=cache,
+        )
+        level_rows = _rows(levels_response, "levels")
+        if len(level_rows) > CURRENT_LEVELS_LIMIT:
+            raise ApiResponseError(None, "levels response exceeded the requested current-snapshot row limit")
+        if levels_response.get("next_cursor") is not None:
+            warnings.append(
+                "Current selected levels returned a cursor; only the first bounded page was read. "
+                "Level evidence may be incomplete; no historical pagination was attempted."
+            )
         technical_responses = {
             indicator: self._get_pages(f"/v1/technicals/{indicator}", {"ticker": ticker}, cache=cache)
             for indicator in PLAN_INDICATORS
@@ -285,8 +302,17 @@ class VisualSectorsProvider(MarketDataProvider):
         cutoff = _instant(decision_time)
         cutoff_date = cutoff.date().isoformat()
 
-        levels = tuple(self._map_level(row) for row in _rows(levels_response, "levels")
-                       if str(row.get("level_date", "")) <= cutoff_date)
+        eligible_levels = [row for row in level_rows if str(row.get("level_date", "")) <= cutoff_date]
+        level_dates = {str(row.get("level_date", "")) for row in eligible_levels}
+        if len(level_dates) > 1:
+            warnings.append(
+                "The latest levels endpoint returned multiple dates; only the newest eligible date was retained."
+            )
+        latest_level_date = max(level_dates, default=None)
+        levels = tuple(self._map_level(row) for row in eligible_levels
+                       if row.get("level_date") == latest_level_date)
+        if not levels:
+            warnings.append("No current selected levels were returned; level evidence is unavailable.")
         indicators: dict[str, float | None] = {}
         for indicator, response in technical_responses.items():
             rows = sorted((row for row in _rows(response, indicator)
