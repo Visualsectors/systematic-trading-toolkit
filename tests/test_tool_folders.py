@@ -85,6 +85,29 @@ class ToolFolderTests(unittest.TestCase):
         self.assertIn("support-resistance", workflow)
         self.assertNotIn("entry-exit", workflow)
 
+    def test_release_readme_does_not_describe_the_retired_production_contract(self):
+        text = (ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertIn("API **2.2.0 is live**", text)
+        self.assertIn("| Free | 6 months | 60 | 1,000 | 5,000 |", text)
+        self.assertIn("| LinkedIn-approved Free | 3 years | 500 | 10,000 | 100,000 |", text)
+        for stale in ("2.1.0-dev", "older contract", "not yet production entitlements", "30-day levels-history window"):
+            self.assertNotIn(stale, text)
+        self.assertIn("A successful run on an account with a custom grant does not prove ordinary Free entitlements.", text)
+
+    def test_level_docs_distinguish_frequencies_from_magnitudes_and_selection(self):
+        for relative in ("README.md", "support-resistance/README.md", "docs/METHODOLOGY.md"):
+            with self.subTest(document=relative):
+                text = (ROOT / relative).read_text(encoding="utf-8")
+                for term in ("p_hold_7d_pct", "exp_bounce_pct", "hard_break_pct", "magnitudes in percentage points", "hindsight", "only_best=true"):
+                    self.assertIn(term, text)
+                self.assertNotIn("break rates", text)
+
+    def test_release_qa_preserves_the_scope_of_unverified_checks(self):
+        text = (ROOT / "docs/LIVE_QA.md").read_text(encoding="utf-8")
+        self.assertIn("final ordinary-Free entitlement behavior and full chat-plugin installation remain unverified", text)
+        self.assertIn("Do not claim the full checklist passed", text)
+        self.assertIn("latest client guard is covered by synthetic regressions", text)
+
 
 if __name__ == "__main__":
     unittest.main()

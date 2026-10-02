@@ -14,10 +14,10 @@ How the Visual Sectors in-product analyst reads risk, mapped onto what the toolk
 
 | Status | Meaning | Reading it from the toolkit |
 | --- | --- | --- |
-| Triggered | Today's reading meets the risk's trigger. It says the condition is met, not what price does next. | The rule's flag is emitted. Exception: `level-invalidation` is emitted whenever a plan has a boundary; it is Triggered only when `monitor` emits `invalidation_breached`. |
+| Triggered | Today's reading meets the risk's trigger. It says the condition is met, not what price does next. | The rule's flag is emitted. Exception: `level-invalidation` is emitted whenever a plan has a boundary, so the flag alone is never a status. Read the authorized monitor state instead: the `invalidation_breached` event means newly breached at that evaluation, and saved `invalidation_breached: true` means still breached even when no new event was emitted. Name the saved boundary you are reading; a newly computed `plan` is not the saved one. |
 | Near | Today's reading is inside the risk's near band: close to the trigger, not meeting it. | Not in the toolkit yet. No rule in the toolkit's risk.py has a near band. |
-| Clear | Today's reading is outside both the trigger and the near band. It judges today's reading only. | `vstoolkit research` emits the rule's input with its `derived:` evidence ID, and the flag did not fire. |
-| Unmeasured | The data behind the risk was not supplied, so nothing is judged. It is never counted as clear and never suggested for monitoring. | `research` lists the input as unavailable, or `plan` reports `status: insufficient_data`. |
+| Clear | Today's reading is outside both the trigger and the near band. It judges today's reading only. | `vstoolkit research` emits the rule's input with its `derived:` evidence ID, and the flag did not fire. For `level-invalidation`, only a saved monitor state with `invalidation_breached: false` for that boundary; the absence of a new event is never Clear. |
+| Unmeasured | The data behind the risk was not supplied, so nothing is judged. It is never counted as clear and never suggested for monitoring. | `research` lists the input as unavailable, or `plan` reports `status: insufficient_data`. For `level-invalidation` with no authorized state file: the boundary is defined and its monitored breach status is not evaluated. Never create a state file to find out. |
 
 `evidence-*` and `data-warning-*` flags are observations and gaps, not rules. Report them as emitted, without a status.
 
@@ -44,8 +44,8 @@ In live data, the toolkit's Visual Sectors provider sets a headline's stance fro
 - **Inputs:** last price, the latest-dated served levels, and ATR. A served ATR is preferred; one derived from the served `dist_atr` is a fallback and is labeled derived.
 - **Trigger and near band:** in-product, being inside a band, or within a short ATR distance of one, draws attention; further away reads as comfortable. Toolkit: not in the toolkit yet.
 - **Severity:** proximity dominates. Break history only orders bands at a similar distance; no amount of history lifts a far band above a near one.
-- **Unmeasured when:** there is no price, no level dated on or before the decision time, or no usable ATR.
-- **Toolkit:** `plan` emits the entry band and `invalidation_price`, set 0.25 ATR beyond the entry band's far edge (the toolkit's levels.py). Its `risk_per_share` and `stop_distance_atr` run from the entry band's near edge to the invalidation, in dollars and ATR; neither is the distance from today's price. Each band member carries its served `dist_atr`. `measure` emits signed ATR distances from a user-named price to the nearest served levels. `risk` emits `level-invalidation`; `monitor` emits `invalidation_breached` against the saved plan.
+- **Unmeasured when:** there is no price, no usable level dated on or before the decision time (including when the toolkit dropped every row of the newest session), or no usable ATR.
+- **Toolkit:** `plan` emits the entry band and `invalidation_price`, set 0.25 ATR beyond the entry band's far edge (the toolkit's levels.py). Its `risk_per_share` and `stop_distance_atr` run from the entry band's near edge to the invalidation, in dollars and ATR; neither is the distance from today's price. Each band member carries its served `dist_atr`. `measure` emits signed ATR distances from a user-named price to the nearest served levels. `risk` emits `level-invalidation` whenever a boundary exists. `monitor` evaluates the saved plan: it emits `invalidation_breached` only on the evaluation where the breach begins, and keeps `invalidation_breached: true` in the saved state while it lasts.
 
 ### 2. Level quality
 
@@ -54,7 +54,12 @@ In live data, the toolkit's Visual Sectors provider sets a headline's stance fro
 - **Trigger and near band:** in-product, a band with a weak measured hold record draws attention. Toolkit: not in the toolkit yet; no flag reads level history.
 - **Severity:** none of its own; it qualifies lens 1.
 - **Unmeasured when:** there are no levels, or the nearest band carries no served history. Null means nobody counted, not that the level never held.
-- **Toolkit:** `plan` emits `entry_historical_base_rates`, `reassessment_historical_base_rates`, `score_max` and `confluence_count_max`; `measure` emits `hold_rate_text`. Say rates as "held on N% of past tests". `score` is an upstream, unitless historical score: never turn it into a percentage. Quote `exp_bounce_pct` and `hard_break_pct` under their field names; neither is a statement about this level's next test. The number of past tests behind a rate is not served; never state or imply one.
+- **Toolkit:** `plan` emits `entry_historical_base_rates`, `reassessment_historical_base_rates`, `score_max` and `confluence_count_max`; `measure` emits `hold_rate_text`.
+  - Each base-rate row is one physical level with its sorted `approaches`. A figure the approaches disagree on is null with a `Data gap: conflicting historical base rates` note. It is never averaged, never filled from one approach, and never rounded up to the stronger one. The same level under several approaches is one level, not several confirmations.
+  - Say rates as "held on N% of past tests", with the hindsight limit beside them: the API measures them over levels recomputed in 2026.
+  - `score` is an upstream, unitless blended score that differs by approach: never turn it into a percentage. Quote `exp_bounce_pct` and `hard_break_pct` under their field names, as magnitudes in percentage points; neither is a frequency or a statement about this level's next test.
+  - The number of past tests behind a rate is not in the toolkit; never state or imply one.
+  - A level row with `exp_bounce_pct` above 100 is dropped by the toolkit and named in a `Data gap:` warning. That gap is not level quality evidence, and a null figure is missing, not zero.
 
 ### 3. Event proximity
 
@@ -97,11 +102,18 @@ In live data, the toolkit's Visual Sectors provider sets a headline's stance fro
 
 ## Contrary reading
 
-In-product, the review always names the single strongest measured reading cutting against a calm view, ordered by severity, then lens, then ticker. Only measured readings qualify: a gap is not contrary evidence. When nothing qualifies, it says so, and says this describes what was measured, not a conclusion that risk is low. The toolkit selection is step 4 of the skill. The `research` brief's "Contrary evidence" block lists opposing evidence; its "No contrary evidence was supplied" entry is a coverage gap.
+In-product, the review names the single strongest measured reading cutting against the view under review. Only measured readings qualify: a gap is not contrary evidence. When nothing qualifies, it says so, and says this describes what was measured, not a conclusion that risk is low.
+
+In the toolkit, keep two things apart (step 4 of the skill):
+
+- **The emitted `kind`.** For `evidence-*` flags it comes from the source's stance (supporting or opposing), whatever the scenario. Copy it verbatim.
+- **Scenario relevance.** Whether the observation supports, challenges, or has unclear relevance to the stated direction and thesis. In a short scenario a supporting observation can challenge the thesis, and an opposing one can be consistent with it, but only argue relevance from the stated thesis and the observation's own statement. Never invert every label, never assume a thesis, and never treat an `uncertainty` or `data-warning-*` flag as falsifying evidence.
+
+The `research` brief's "Contrary evidence" block lists opposing-stance evidence; it is not scenario-aware. Its "No contrary evidence was supplied" entry is a coverage gap.
 
 ## Sixteen-risk watch list
 
-In-product, each stock also gets sixteen named risks in four families. Each has a one-line risk, the metric watched, a trigger, a near band and an update cadence, and each is framed for a holder of the stock; in a short scenario, several reverse direction. A risk whose data was not supplied is Unmeasured, and an Unmeasured or stale risk is never suggested for monitoring. The toolkit's `monitor` tracks every emitted flag instead and has no suggestion step.
+In answers, name only the gaps that bear on the scenario and offer this full list on request. In-product, each stock also gets sixteen named risks in four families. Each has a one-line risk, the metric watched, a trigger, a near band and an update cadence, and each is framed for a holder of the stock; in a short scenario, several reverse direction. A risk whose data was not supplied is Unmeasured, and an Unmeasured or stale risk is never suggested for monitoring. The toolkit's `monitor` tracks every emitted flag instead and has no suggestion step.
 
 | Risk id | Family | The risk | Toolkit |
 | --- | --- | --- | --- |

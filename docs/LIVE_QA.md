@@ -1,6 +1,8 @@
 # API 2.2.0 contract and live launch QA
 
-Offline tests are necessary, not launch evidence. Keep this repository private until the public host and a new **free** account pass the live steps below. Do not substitute an admin, Pro or pre-approved key.
+Offline tests are necessary, not production evidence. The full ordinary-Free test below uses a new **free** account: an admin, Pro, demo or pre-approved key does not prove that tier.
+
+Release scope (2026-10-02): the release owner accepted the existing production `login` and AAPL/MSFT plan checks without a newly registered Free-account retest. The tester's account is recorded as approved with a custom history grant, and those checks preceded the final level-display guard. Keep that scope explicit: the latest client guard is covered by synthetic regressions; final ordinary-Free entitlement behavior and full chat-plugin installation remain unverified. This exception does not turn the remaining checklist into completed evidence.
 
 ## 1. Install from source
 
@@ -28,7 +30,7 @@ curl.exe -sS 'https://api.visualsectors.com/v1/levels?ticker=AAPL'
 
 Expected: health `ok=true`; unauthenticated levels has HTTP 401, `error=missing_api_key` and `get_key=https://api.visualsectors.com/signup`. The API repo additionally has a keyless release gate: `node scripts/check-toolkit-public-contract.mjs`. It fails closed on an old contract or missing signup guidance and does not deploy anything.
 
-On 2026-09-30, the public host still reported `2.1.0-dev` and omitted the 401 signup link, even though API `main` already contained that link. That is a deployment gap, not a reason to restore withdrawn views. Re-run this check after promotion.
+Checked 2026-10-02: the public host returns health `ok=true`, contract `2.2.0`, and the expected 401 signup guidance. The API connector's level-bounce guard was promoted on 2026-10-01 and api-mcp refreshed afterwards. These keyless and deployment checks do not establish the limits or data access of a particular key. Re-run the commands rather than treating this dated observation as a permanent guarantee.
 
 ## 3. Use a genuinely free key in a chat-independent terminal
 
@@ -46,7 +48,7 @@ vstoolkit monitor --ticker AAPL --direction long --state .\monitoring\aapl-state
 vstoolkit screen --preset near_support --limit 5
 ```
 
-Pace commands against the response allowance. Login normally needs ten requests; a cold plan needs nine; a five-ticker screen can need 46 before pagination. A 429 must show a wait time, not a traceback. Wait before retrying. No tool here automatically purchases calls.
+Pace commands against the response allowance. Login normally needs ten requests; a cold plan needs nine; a five-ticker screen can need 46 before daily-bar pagination. Current levels, technicals, fundamentals metrics and news never follow cursors. A 429 must show a wait time, not a traceback. Wait before retrying. No tool here automatically purchases calls.
 
 Inspect every result:
 
@@ -86,8 +88,46 @@ Reinstall the reviewed toolkit source into the existing virtual environment befo
 
 **C0 API check:** rehearsal's 2.2.0 OpenAPI says an undated `/v1/levels` request is the latest eligible snapshot. The report of roughly 100 cursor pages does not alone establish whether those rows span dates. With an existing rehearsal key, compare the distinct `level_date` values in the first two pages of the undated request and the bounded selected-levels request above. Retain only dates/counts and the API/connector deployment commits, never the key or raw market values. If the undated route crosses dates, report an API/deployment defect to C0 separately; the toolkit bound is not a server-side fix. No full-history pagination is needed for this check.
 
+## 3c. Production login and plans: bounded current evidence
+
+This extends the levels-only fix in PR #4. With the reviewed fix installed, login and plans read:
+
+| Source | Query bound | Cursor handling |
+| --- | --- | --- |
+| Selected levels | `date=<today-UTC>&only_best=true&limit=100` | First page only |
+| Each of ATR14, RSI14, SMA20/50/200 | `date=<today-UTC>&limit=1` | First page only; latest row only |
+| Fundamentals metrics | `view=metrics&date=<today-UTC>&limit=1` | First page only |
+| News headlines | `view=headlines&limit=25` | First page only |
+| Daily timeseries | `view=daily&to=<today-UTC>&limit=60` | Existing `max_rows=60` retained |
+
+Every query also supplies the ticker. An unexpected current-evidence cursor is a visible incomplete-evidence warning, never an instruction to fetch history. Empty technicals stay null; empty optional evidence is a disclosed gap. A response exceeding its requested row limit is rejected: core technicals fail closed; optional metrics/news become explicit gaps. HTTP 401 and 429 still stop the command. No missing latest row is replaced by historical cursor data.
+
+To retest the reviewed branch, record its exact commit and reinstall into your existing virtual environment from that checkout:
+
+```powershell
+python -m pip install --no-cache-dir --force-reinstall .
+Remove-Item Env:VISUALSECTORS_API_BASE_URL -ErrorAction SilentlyContinue
+vstoolkit login --no-open
+vstoolkit plan AAPL
+vstoolkit plan MSFT
+```
+
+Enter the **production free key** only at the hidden login prompt. Allow for quota limits between commands; do not loop on 429. The `bounded pagination allowance` error must not recur for technicals, metrics or news. In API request logs, check one request per current-evidence endpoint, the query bounds above, and no continuation requests for those endpoints. Login bypasses caches; plans may reuse same-day cached responses. Retain only toolkit/API commits, host, date, request counts, query names, exit codes and warning summaries, not keys or raw licensed rows.
+
+The provider regressions cover 0/1/10/100 advertised pages for **each** indicator, metrics and news, both login verification and plans, including empty first pages with cursors. Separate tests enforce UTC/weekend ceilings, first-page row limits, null/data-gap behavior, authentication/quota propagation, and the unchanged timeseries row cap.
+
+**G14.1 API investigation:** determine independently whether an undated individual indicator route, such as `/v1/technicals/atr14?ticker=AAPL&limit=1`, serves one latest observation or historical pagination. Compare with the explicitly dated request above; the `/v1/technicals` catalogue itself is not the value endpoint. Report dates/counts, cursors and deployment commit only. The client fix neither proves nor repairs the API's undated behavior. Route that finding to G14.1 and the merge desk separately; do not require a full-history fetch to diagnose it.
+
+## 3d. Production plan output and implausible level inputs
+
+After installing the reviewed fix, rerun AAPL/MSFT plans on production. In each of `entry_historical_base_rates` and `reassessment_historical_base_rates`, verify every `(side, level_type, level_price)` occurs once and its `approaches` array lists the contributing approaches. Different sides/types/exact source prices must remain separate. Conflicting historical values must be null with a plan note, not averaged.
+
+Before the source correction, any supplied `exp_bounce_pct > 100` must produce a level-naming `data_warnings` entry and must not appear in either zone's members or affect its score. Tests reproduce the reported AAPL donchian 328.7 / 4,420 and MSFT pivot 497.09 / 33,196,824,404 cases. If the connector has already masked those fields to null, do not expect the raw-outlier client warning: the permanent toolkit guard is exercised by the synthetic tests, while the production response now contains a missing statistic. Do not infer that missing bounce/reward data has been repaired at source.
+
+Exactly 100, zero and missing bounce values remain permitted by this gate. If all current levels are rejected, insufficient-data output is valid; using older rejected-session substitutes is not. The latest-route fix is now promoted, so do not dismiss recurring per-indicator cursor warnings as normal: the client remains bounded and warns, but report them with the host and deployment version for API investigation. Return the toolkit/API commits, exit codes and redacted warning summaries; never include credentials or raw licensed tables.
+
 ## 4. Record launch evidence
 
 Record the toolkit commit, API deployment version/commit, date, Python/OS version, observed free-tier limits, commands and exit codes. Retain only redacted derived summaries and warnings in a private QA record, not raw licensed API rows. A contract fixture, green CI or dev-host test is not proof that the production/free-key gate passed.
 
-Do not flip repository visibility, publish a package or claim live launch completion until the production checks above pass and Vlad authorizes release.
+Repository publication follows the release owner's authorization and its explicitly accepted QA scope. Do not claim the full checklist passed when a check was waived or not run. This release does not publish a PyPI package or the screener video.

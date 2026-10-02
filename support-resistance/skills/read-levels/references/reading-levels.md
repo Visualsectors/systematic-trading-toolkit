@@ -2,32 +2,36 @@
 
 ## Which levels
 
-Only levels from the newest `level_date` on or before the snapshot's `as_of` are read; older sessions are a different map. The live read covers every served level family at once. Both commands return the nearest levels only, never the full list; a complete level listing is not in the toolkit yet.
+Only levels from the newest `level_date` on or before the snapshot's `as_of` are read; older sessions are a different map. The live read is one bounded request for the rows marked as selected (`only_best=true`) up to the current date, with a row limit and no cursor-following. The API selects one Support and one Resistance per scoring approach, so the read is a selected subset, often the same level repeated across approaches, never every level or family. A `--data` file holds what its author included. Both commands return the nearest levels only, never the full list; a complete level map is not in the toolkit yet.
+
+Rows with `exp_bounce_pct` above 100 are dropped by the toolkit before anything is measured, and a `Data gap:` warning names each one. Report the warning and leave the row out; never quote its figures. If the whole newest session was dropped, there is no level evidence for it, and older sessions are not a substitute.
 
 ## Nearest levels and zones
 
-`measure` picks the closest served level strictly above and strictly below a price by price alone, whatever its side. A Resistance level below the close is reported as `nearest_below` with side Resistance; keep that label and do not call it support.
+`measure` picks the closest kept level strictly above and strictly below a price by price alone, whatever its side. A Resistance level below the close is reported as `nearest_below` with side Resistance; keep that label and do not call it support.
 
-`plan` groups levels into zones. Each level becomes a band 0.25 ATR14 either side of its price. Overlapping or touching bands of the same served side merge while the merged band stays within 1.0 ATR14. Side is decided by membership, not proximity: the nearest support zone must hold a Support level and lie below the close (or contain it); a resistance zone must hold a Resistance level and lie above it (or contain it). A zone is geometry around served prices, not evidence that a level holds. Where price sits relative to a zone is position, not a break.
+`plan` groups levels into zones for one scenario direction; it is conditional geometry, not the level map. When support and resistance both contain the price, or the opposite-side zone is not beyond the entry zone, `plan` leaves `reassessment_zone` null and says why in `notes`. That is not a missing resistance: report the raw resistance `measure` emitted, keep its served side, and never invent the zone's edges.
 
-When several levels share a zone, say they cluster within one band. `confluence_count_max` is the largest served confluence among the members; `member_count` is how many rows the toolkit merged. Reporting the second under the first's name inflates a served number.
+Each level becomes a band 0.25 ATR14 either side of its price. Overlapping or touching bands of the same served side merge while the merged band stays within 1.0 ATR14. Side is decided by membership, not proximity: the nearest support zone must hold a Support level and lie below the close (or contain it); a resistance zone must hold a Resistance level and lie above it (or contain it). A zone is geometry around served prices, not evidence that a level holds. Where price sits relative to a zone is position, not a break.
+
+When several rows share a zone, say they fall in one band. The same level and price can appear once per scoring approach, each with its own `score` and `p_hold_7d_pct`: that is one level scored several ways, not several confirmations. The base-rate rows already group them by physical level and list their `approaches`. Where the approaches disagree, the toolkit leaves the figure null with a note. Say they disagree, give each member's figure under its own approach name if useful, and never average them or quietly keep the stronger one. `confluence_count_max` is the largest served confluence among the members; `member_count` is how many rows the toolkit merged. Reporting the second under the first's name inflates a served number.
 
 ## Comparing levels
 
-Compare only the levels the commands emitted. Order by one served field you name: `p_hold_7d_pct` when the user cares how often a level held, `exp_bounce_pct` when they care how far price moved after past tests. Levels with a null value go after every measured one. Never blend fields into your own composite. A balanced ranking over both fields, and tie-breaking by number of past tests, are not in the toolkit yet. Ordering by a measured field is not a ranking of trade ideas.
+Compare only the levels the commands emitted, and only within one approach: the dictionary says scores and hold rates differ by approach. Order by one served field you name: `p_hold_7d_pct` when the user cares how often a level held, `exp_bounce_pct` when they care how large the measured bounce after past tests was. Levels with a null value go after every measured one. Never blend fields into your own composite. A balanced ranking over both fields, and tie-breaking by number of past tests, are not in the toolkit yet. Ordering by a measured field is not a ranking of trade ideas.
 
 ## Historical record
 
-- `p_hold_7d_pct`: "held on N% of past tests".
-- `exp_bounce_pct`: "the average move after past tests was X%".
-- `hard_break_pct`: the distance from the level to its stored hard-break threshold, where a close beyond that price counts as a decisive break. If the user asks where a level is invalidated, this is the served answer; the threshold price is not in the toolkit yet.
+- `p_hold_7d_pct`: "held on N% of past tests", a seven-day hold frequency. It comes from a backtest over levels recomputed in 2026, so it carries hindsight; say so beside the rate, not only in a closing note.
+- `exp_bounce_pct`: "a measured bounce of X% after past tests". The dictionary does not say whether it is an average, so never call it one.
+- `hard_break_pct`: a stored hard-break magnitude in percentage points. It is not a frequency of breaks, not a current break signal and not a price; the threshold price is not in the toolkit yet. Do not turn it into a distance from today's price or a place to put an invalidation.
 - The number of past tests is not in the toolkit yet. Never write "of N tests" or imply a sample size.
 
 These describe their own sample, with upstream recomputation and hindsight limitations. Missing is "not supplied", never zero, never a result. Copy figures as emitted, rounded to at most two decimals; never compute your own distance, difference, percentage or average, and say relationships in words ("a little below the close").
 
 ## Dates and freshness
 
-- `level_date`: the session the levels were computed for.
+- `level_date`: the source event session. It is not when the level became available.
 - `as_of`: the snapshot's decision time. Live, it is the earliest `as_of` across the API responses combined; with `--data`, the dataset snapshot's own `as_of`.
 - The time of the read is not printed. Same-day live reads may come from the local cache, so they do not prove fresh intraday coverage.
 - `data_warnings` carry source limits, such as unadjusted prices and non-point-in-time data. State them before conclusions.

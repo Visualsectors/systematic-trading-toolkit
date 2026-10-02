@@ -4,19 +4,19 @@
 
 **Understand the served support/resistance levels around a stock, how those levels behaved historically, and which price boundaries define your research scenario.**
 
-> **Recommended live provider: Visual Sectors.** Connect our API for the served S/R levels and measured hold, bounce, and break statistics that differentiate this workflow from price-only support/resistance examples. [Get a free API key](https://api.visualsectors.com/signup) · [Explore the API](https://api.visualsectors.com).
+> **Recommended live provider: Visual Sectors.** Connect our API for served S/R levels, historical hold frequency, bounce magnitude and hard-break readings. [Get a free API key](https://api.visualsectors.com/signup) · [Explore the API](https://api.visualsectors.com).
 
 ## When to use it
 
 Use this folder when you want to turn a stock's dated levels into an inspectable price map—not a buy/sell instruction.
 
-- Measure the nearest served levels above and below the latest close, or a price you name such as an entry, cost basis, or strike, in dollars, percent, and ATR.
-- Read each level's historical record: how often it held on past tests, the average move after past tests, and its distance to the stored hard-break threshold.
-- See where levels cluster into ATR-width zones, plus conditional entry and reassessment bands and the scenario's invalidation boundary.
+- Measure the nearest selected levels above and below the latest close, or a price you name such as an entry, cost basis, or strike, in dollars, percent, and ATR.
+- Inspect the historical hold frequency, bounce magnitude and hard-break magnitude supplied for each selected level, with their limitations.
+- See conditional entry and reassessment bands, the scenario's invalidation boundary, and distances in ATR units. The bands are scenario geometry, not a full level map.
 
 ## AI skill
 
-[read-levels](skills/read-levels/SKILL.md) explains the nearest served levels around the latest close or a price you name, how each one held on past tests, the average move after past tests, its distance to the hard-break threshold, and the zones where levels cluster. It keeps data dates apart, asks at most one clarifying question, and marks fields the toolkit does not read yet. It does not choose levels to trade, set targets or exits, size a position, or say what price will do next.
+[read-levels](skills/read-levels/SKILL.md) explains the nearest selected levels around the latest close or a price you name, each level's seven-day hold frequency on past tests (measured with hindsight), its measured bounce and stored hard-break magnitudes, and the zones where levels cluster. It keeps data dates apart, asks at most one clarifying question, and marks fields the toolkit does not read yet. It does not choose levels to trade, set targets or exits, size a position, or say what price will do next.
 
 ## Quickstart
 
@@ -55,7 +55,13 @@ Live use requires a supported production API. The toolkit targets API 2.2.0; [cu
 
 ## What you get
 
-Entry and reassessment bands, invalidation price, ATR stop distance, reward-to-reassessment R, whole-share sizing, and `data_warnings`. Served rates are labelled `historical_base_rate`.
+Entry and reassessment bands, invalidation price, ATR stop distance, reward-to-reassessment R, whole-share sizing, and `data_warnings`. Historical measurements use the schema label `historical_base_rate`: only `p_hold_7d_pct` is a frequency; `exp_bounce_pct` and `hard_break_pct` are magnitudes in percentage points. The API documents the hold backtest as using levels recomputed in 2026 (hindsight), not a point-in-time strategy test.
+
+Live plans request the latest eligible session with `only_best=true`. They read the upstream selected support/resistance pair per approach, not every level family. A returned cursor is a disclosed evidence gap, never followed to fetch the remaining families.
+
+Historical base-rate rows are consolidated by `(side, level_type, level_price)`, with a sorted `approaches` list on each row. Conflicting statistics remain null with a note; they are not averaged or selected for the most favorable value. Exact source prices define identity, not rounded display prices.
+
+The toolkit permanently treats `exp_bounce_pct > 100` as a data gap. The entire offending row is excluded from scoring, ATR estimation and zones, and a warning names its ticker, side, type, price and approach. Exactly 100 is accepted; missing values stay missing. If all current levels fail the guard, the plan reports insufficient data rather than reviving older levels. This client guard remains in place after upstream corrections.
 
 Output is JSON, suitable for inspection, saving locally, or feeding into your own builder workflow. For every available flag and its unit:
 

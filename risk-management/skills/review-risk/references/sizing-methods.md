@@ -44,6 +44,8 @@ How does a batch of picks share the portfolio slots it occupies?
 | `--intended-holdings` | A positive whole number of names the portfolio will hold. |
 | Close and volatility | Read from the data source for each ticker (`volatility_20d_pct`). |
 
+The command sizes every ticker as a long pick: it has no side input. Never present its output as short sizing; a short scenario is sized with `stop_risk/v1` and `--side short`.
+
 One slot is the portfolio divided by intended holdings, to the cent, and the batch budget is the number of picks times the slot. When every priced pick has a volatility, priced picks share their slots by normalized inverse volatility (`tilt: tilted`). If any priced pick lacks one, every priced pick gets an equal slot (`equal`) and a note names the missing ones. Shares round down. A pick with no close is `no_price`, and its slot stays unallocated. A target below one share buys one (`min_share`) unless one share costs more than the whole batch budget (`too_expensive`). A second pass then trims other picks, or drops a minimum, so deployment never exceeds the batch budget. Leftover is reported as `unallocated`, never redeployed.
 
 Output: `slot`, `batch_budget`, and per position `allocation_amount`, `shares`, `notional`, `tilt`, `batch_share`, `portfolio_share` and `note`, plus `gross_long`, `gross_short`, `net`, `deployed`, `unallocated`, `deployed_fraction_of_portfolio` and `notes`. The command sizes every pick as long. The batch budget is the binding limit. Volatility is backward-looking and depends on the provider's definition.
