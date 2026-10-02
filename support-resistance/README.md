@@ -4,19 +4,19 @@
 
 **Understand the served support/resistance levels around a stock, how those levels behaved historically, and which price boundaries define your research scenario.**
 
-> **Recommended live provider: Visual Sectors.** Connect our API for served S/R levels, historical hold frequency, bounce magnitude and hard-break readings. [Get a free API key](https://api.visualsectors.com/signup) · [Explore the API](https://api.visualsectors.com).
+> **Recommended live provider: Visual Sectors.** Connect our API for the served S/R levels and measured hold, bounce, and break statistics that differentiate this workflow from price-only support/resistance examples. [Get a free API key](https://api.visualsectors.com/signup) · [Explore the API](https://api.visualsectors.com).
 
 ## When to use it
 
 Use this folder when you want to turn a stock's dated levels into an inspectable price map—not a buy/sell instruction.
 
-- Measure the nearest selected levels above and below the latest close, or a price you name such as an entry, cost basis, or strike, in dollars, percent, and ATR.
-- Inspect the historical hold frequency, bounce magnitude and hard-break magnitude supplied for each selected level, with their limitations.
-- See conditional entry and reassessment bands, the scenario's invalidation boundary, and distances in ATR units. The bands are scenario geometry, not a full level map.
+- See conditional entry and reassessment bands, the scenario's invalidation boundary, and distances in ATR units.
+- Inspect the historical hold, bounce, and break measurements supplied for the level family, with their limitations.
+- Measure the nearest served levels above and below a price you name, such as an entry, cost basis, or strike.
 
 ## AI skill
 
-[read-levels](skills/read-levels/SKILL.md) explains the nearest selected levels around the latest close or a price you name, each level's seven-day hold frequency on past tests (measured with hindsight), its measured bounce and stored hard-break magnitudes, and the zones where levels cluster. It keeps data dates apart, asks at most one clarifying question, and marks fields the toolkit does not read yet. It does not choose levels to trade, set targets or exits, size a position, or say what price will do next.
+A dedicated toolkit-compatible support/resistance skill is not bundled yet. The calculation commands work independently; a skill will be added separately. No placeholder skill or automatic advice is included.
 
 ## Quickstart
 
@@ -28,10 +28,7 @@ The offline tickers and observations are fictional; they require no network conn
 
 ```powershell
 python .\support-resistance\run.py ALFA --offline --direction long --capital 25000 --risk-fraction 0.005 --max-allocation 0.10
-vstoolkit measure --ticker ALFA --price 49 --offline
 ```
-
-The second command measures the served levels from ALFA's fictional latest close of 49.
 
 ### 2. Connect the Visual Sectors API
 
@@ -50,14 +47,11 @@ Live use requires a supported production API. The toolkit targets API 2.2.0; [cu
 | --- | --- |
 | Ticker and direction | One US-listed ticker, long or short. |
 | Geometry | Newest eligible dated levels, current price, and ATR14. |
-| Named price | Optional, for `vstoolkit measure`: a positive price labelled `entry`, `cost`, or `strike`. |
 | Sizing assumptions | Capital, decimal risk fraction, and decimal allocation cap. Defaults: 100,000 / 0.005 / 0.10. |
 
 ## What you get
 
-Entry and reassessment bands, invalidation price, ATR stop distance, reward-to-reassessment R, whole-share sizing, and `data_warnings`. Historical measurements use the schema label `historical_base_rate`: only `p_hold_7d_pct` is a frequency; `exp_bounce_pct` and `hard_break_pct` are magnitudes in percentage points. The API documents the hold backtest as using levels recomputed in 2026 (hindsight), not a point-in-time strategy test.
-
-Live plans request the latest eligible session with `only_best=true`. They read the upstream selected support/resistance pair per approach, not every level family. A returned cursor is a disclosed evidence gap, never followed to fetch the remaining families.
+Entry and reassessment bands, invalidation price, ATR stop distance, reward-to-reassessment R, whole-share sizing, and `data_warnings`. Served rates are labelled `historical_base_rate`.
 
 Historical base-rate rows are consolidated by `(side, level_type, level_price)`, with a sorted `approaches` list on each row. Conflicting statistics remain null with a note; they are not averaged or selected for the most favorable value. Exact source prices define identity, not rounded display prices.
 
@@ -80,12 +74,9 @@ vstoolkit measure --ticker AAPL --price 200 --kind strike
 
 This returns signed dollar, percent, and ATR distances; a strike also gets its distance from the latest close in ATR. It uses served level prices, not generated targets. Unavailable levels, ATR, or historical rates remain null.
 
-Some served fields are not read by the toolkit yet, including the hard-break threshold price and the number of past tests; [level fields](skills/read-levels/references/level-fields.md) lists them.
-
 ## How it works—and how to check it
 
 - [Calculation source](../src/visualsectors_toolkit/levels.py)—the actual rules, not a duplicated folder-specific implementation.
-- [Named-price source](../src/visualsectors_toolkit/named_price.py)—nearest served levels and signed distances from a price.
 - [Reference tests](../tests/test_levels.py)—arithmetic, edge cases, and deterministic behavior.
 - [Launcher smoke tests](../tests/test_tool_folders.py)—every top-level entry point and its help path.
 - [Limitations](../docs/LIMITATIONS.md)—what the output does not establish.
@@ -94,6 +85,6 @@ Import `build_level_plan` to inspect the same deterministic geometry in Python. 
 
 ## Important boundaries
 
-An exit here means a scenario invalidation/reassessment boundary, not a broker order or an assured fill. Historical level measurements describe past tests, not today's trade. If valid inputs or a suitable zone are absent, the tool abstains rather than fabricating a price.
+An exit here means a scenario invalidation/reassessment boundary, not a broker order or a fill guarantee. Historical level measurements are not probabilities for today's trade. If valid inputs or a suitable zone are absent, the tool abstains rather than fabricating a price.
 
 Code is [MIT licensed](../LICENSE); documentation is [CC BY 4.0](../LICENSE-DOCS). API data keeps separate rights: do not redistribute raw API values. You can use `--data` where supported or implement another provider; the API is the convenient built-in route, not a requirement to use the code.

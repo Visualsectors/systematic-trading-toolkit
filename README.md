@@ -5,7 +5,7 @@
 [![Code license: MIT](https://img.shields.io/badge/Code-MIT-15803D)](LICENSE)
 [![Docs license: CC BY 4.0](https://img.shields.io/badge/Docs-CC_BY_4.0-64748B)](LICENSE-DOCS)
 
-**S/R levels with measured hold frequency, bounce magnitude and hard-break readings**—plus screening, position sizing, evidence-linked research, risk registers, and change-based monitoring for US-listed equities.
+**S/R levels with measured hold, bounce and break rates**—plus screening, position sizing, evidence-linked research, risk registers, and change-based monitoring for US-listed equities.
 
 This is an inspectable, dependency-free Python toolkit for builders using Claude Code, Codex, Cursor, or their own automation. It connects to the Visual Sectors Data API with a free key, keeps credentials outside prompts and shell history, and contains no broker connection or order execution.
 
@@ -36,11 +36,11 @@ The Visual Sectors API is the built-in live provider: one key connects screening
 - **Know the limits:** live calls are metered; [published entitlements](https://api.visualsectors.com/v1/docs.json) and response headers are authoritative. Begin with a small watchlist.
 - **Keep control:** the code is MIT licensed. Use your own dataset with `--data` or implement another provider; connecting to our API is not mandatory.
 
-API **2.2.0 is live** on the public host (checked 2026-10-02). This toolkit is experimental: missing evidence stays visible, and live API calls consume your allowance. The offline examples work without signup or a network connection. See [live QA](docs/LIVE_QA.md) for checks you can reproduce and the limits of the release evidence.
+Live launch is pending while the public host serves the older contract. The code targets API 2.2.0; [live QA](docs/LIVE_QA.md) must pass before public release. The offline examples work without signup or a network connection.
 
 ## Run it on AAPL
 
-Requirements: Python 3.10 or newer and Git; a Visual Sectors API key for live commands. In PowerShell, start in a project directory outside synced folders such as OneDrive:
+Requirements: Python 3.10 or newer and Git. **Live launch is pending:** this client needs API 2.2.0 on the public host; production still serves the older contract as of 2026-09-30. The offline demo works now. In PowerShell, start in a project directory outside synced folders such as OneDrive:
 
 ```powershell
 git clone https://github.com/Visualsectors/systematic-trading-toolkit.git
@@ -65,7 +65,7 @@ vstoolkit login
 vstoolkit plan AAPL
 ```
 
-Install from source as shown above. There is no PyPI release yet: do not use `pip install visualsectors-toolkit`.
+The repository is currently private, so cloning requires authorized GitHub access. There is no PyPI release yet: do not use `pip install visualsectors-toolkit`. After the repository becomes public, this same source install works without GitHub authentication.
 
 `login` opens signup, reads the key through hidden input, and checks health plus every endpoint used by `plan AAPL`, bypassing the local cache. Only then does it save the key to the ignored `.env` file; a failed check preserves any previous key. Optional fundamentals/news failures are printed as data gaps, not reported as complete coverage. A successful plan includes:
 
@@ -165,23 +165,15 @@ The strict file format is documented in [the dataset contract](docs/DATA_CONTRAC
 
 ## How to read the output
 
-`p_hold_7d_pct` is a historical seven-day hold frequency; `exp_bounce_pct` and `hard_break_pct` are measured magnitudes in percentage points, not frequencies. The output retains the schema label `historical_base_rate`, but that label does not turn every member field into a rate. The API documents hold measurements from levels recomputed in 2026 (hindsight); they are not point-in-time strategy results or probabilities for the current setup.
-
-Zones are conditional geometry, not fills or forecasts. A screen narrows research coverage; it does not establish expected return or suitability. Missing values remain missing, and Stage 1 API observations are non-point-in-time. Treat cited structured output as the audit record when an AI presents it.
+Historical hold, bounce, and break rates describe the served level family; they are not probabilities for the current setup. Zones are conditional geometry, not fills or forecasts. A screen narrows research coverage; it does not establish expected return or suitability. Missing values remain missing, and Stage 1 API observations are non-point-in-time. Treat cited structured output as the audit record when an AI presents it.
 
 ## Live data scope and rights
 
-The default host and signup surface are both `https://api.visualsectors.com`. Toolkit live workflows need your own API key; the API's separately documented limited demo key is not a substitute for account login or free-tier QA. The offline fixture remains key-free.
+The default host and signup surface are both `https://api.visualsectors.com`. Every live request needs an API key; there is no anonymous live tier or public demo-data endpoint. The offline fixture remains key-free.
 
-Production's **2.2.0** catalogue, checked 2026-10-02, publishes these allowances:
+Production's published contract, checked 2026-09-30, is still `2.1.0-dev`: a free key has **60 requests/minute, 1,000/day, 5,000/month and a 30-day levels-history window**. Its LinkedIn tier is documented as 1,000/minute, 10,000/day, 100,000/month and five years of levels history. These are the served figures, not a promise of unreleased tiers. Consult [the live catalogue](https://api.visualsectors.com/v1/docs.json) and response rate-limit headers for the current offer and your key's limits.
 
-| Access | History window | Requests/minute | Requests/day | Requests/month |
-| --- | --- | ---: | ---: | ---: |
-| Free | 6 months | 60 | 1,000 | 5,000 |
-| LinkedIn-approved Free | 3 years | 500 | 10,000 | 100,000 |
-| Data API Pro | Up to 15 years | 1,000 | 25,000 | 500,000 |
-
-The published row cap is 1,000 per response. Account-specific grants can differ; the [live catalogue](https://api.visualsectors.com/v1/docs.json), your account and response rate-limit headers remain authoritative. Ordinary Free is not eligible for call-pack top-ups in this catalogue; approved Free and Pro are. Do not work around a 404/410 by using withdrawn datasets. A successful run on an account with a custom grant does not prove ordinary Free entitlements.
+This client targets the **2.2.0 contract**. That release documents six months of free history at the same 60/1,000/5,000 request limits; LinkedIn-approved free access has 500/10,000/100,000 calls and three years; Data API Pro has 1,000/25,000/500,000 calls and up to 15 years. These newer figures are not yet production entitlements. The repo stays private until 2.2.0 is promoted to the public host and `login` plus real-ticker plans work with a genuinely free key. Do not work around a 404/410 by using withdrawn datasets.
 
 Returned rows remain limited by retained source history and key entitlements. The adapter derives 20-session momentum, annualized 20-session volatility, and 20-session average dollar volume from available raw, unadjusted bars. If fewer than 21 valid sessions are returned, those derived fields remain null.
 
@@ -191,7 +183,7 @@ The API may be used to research, advise, or build decision tools under the appli
 
 ## Agent skills
 
-Skills belong to their topical tools, not a separate root folder. Six existing skills include portable metadata and references:
+Skills belong to their topical tools, not a separate root folder. Four existing skills include portable metadata and references:
 
 | Tool | Bundled AI skill | Purpose or status |
 | --- | --- | --- |
@@ -199,11 +191,11 @@ Skills belong to their topical tools, not a separate root folder. Six existing s
 | Screener | [analyze-screener-context](screener/skills/analyze-screener-context/SKILL.md) | Interpret frozen candidates through Price, Peers, and Market evidence, including contrary narratives and gaps |
 | Research | [build-research-thesis](research/skills/build-research-thesis/SKILL.md) | Develop or challenge a thesis without inventing facts or hiding contradictory evidence |
 | Monitoring | [reassess-position](monitoring/skills/reassess-position/SKILL.md) | Explain changes against the original plan, preserving saved boundaries and unknown current status |
-| Risk management | [review-risk](risk-management/skills/review-risk/SKILL.md) | Order flags by severity, mark unmeasured rules, and record review conditions without choosing inputs or actions |
-| Support/resistance | [read-levels](support-resistance/skills/read-levels/SKILL.md) | Explain the nearest served levels, their measured history and clustering zones, without targets or exits |
+| Risk management | Not bundled yet | A dedicated risk-management skill is still needed |
+| Support/resistance | Not bundled yet | A toolkit-compatible level-explanation skill is still needed |
 | Position sizing | None by design | Deterministic arithmetic from user-chosen inputs, without an allocation agent |
 
-Every topical tool except position sizing has a bundled skill; screener has two.
+Pending skills are not included in the plugin or presented as implemented capabilities.
 
 Install the Claude Code plugin from an authorized checkout with one PowerShell command (Claude Code must already be installed):
 
@@ -211,9 +203,9 @@ Install the Claude Code plugin from an authorized checkout with one PowerShell c
 & .\scripts\install-claude-plugin.ps1
 ```
 
-It registers `visualsectors` and installs `systematic-trading-toolkit@visualsectors` in project scope; restart Claude Code and try `/systematic-trading-toolkit:compose-screen`. The manifest explicitly scans the skills inside `screener/`, `research/`, `risk-management/`, `monitoring/`, and `support-resistance/` ([custom skill-path reference](https://code.claude.com/docs/en/plugins-reference#fields)). Python installation is separate. This is a repository-hosted catalogue, not a claim of approval by Anthropic's official directory. See [plugin documentation](https://code.claude.com/docs/en/plugin-marketplaces).
+It registers `visualsectors` and installs `systematic-trading-toolkit@visualsectors` in project scope; restart Claude Code and try `/systematic-trading-toolkit:compose-screen`. The manifest explicitly scans the skills inside `screener/`, `research/`, and `monitoring/` ([custom skill-path reference](https://code.claude.com/docs/en/plugins-reference#fields)). Python installation is separate. While private, GitHub authorization is required; unrestricted installation follows the public-release gate. This is a repository-hosted catalogue, not a claim of approval by Anthropic's official directory. See [plugin documentation](https://code.claude.com/docs/en/plugin-marketplaces).
 
-For local plugin QA: `claude plugin validate .`, then start `claude --plugin-dir <absolute-checkout-path>` in a separate test project. Verify that all six existing skills appear once. Static manifest tests do not replace that installation check.
+For local plugin QA: `claude plugin validate .`, then start `claude --plugin-dir <absolute-checkout-path>` in a separate test project. Verify that all four existing skills appear once. Static manifest tests do not replace that installation check.
 
 For Codex, copy the chosen complete skill directory into your project's `.agents/skills/`—for example, `screener/skills/compose-screen/` becomes `.agents/skills/compose-screen/`. Keep its `references/` and `agents/` together. The topical `skills/` locations are source bundles, not automatic Codex discovery locations ([official skills guidance](https://learn.chatgpt.com/docs/build-skills#where-codex-loads-local-skills)). For Cursor or another agent, attach the relevant `SKILL.md` as project instructions. Never paste an API key into an AI prompt.
 

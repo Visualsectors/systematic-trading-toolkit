@@ -10,9 +10,7 @@ EXISTING_SKILLS = {
     "compose-screen": "screener",
     "analyze-screener-context": "screener",
     "build-research-thesis": "research",
-    "review-risk": "risk-management",
     "reassess-position": "monitoring",
-    "read-levels": "support-resistance",
 }
 
 
@@ -22,7 +20,7 @@ def topical_skills():
 
 class SkillTests(unittest.TestCase):
     def test_skills_live_with_their_tools_and_share_portable_wording(self):
-        canonical = (ROOT / "docs/SKILL_WORDING.md").read_bytes()
+        canonical = (ROOT / "docs/SKILL_WORDING.md").read_text(encoding="utf-8")
         directories = topical_skills()
         names = [directory.name for directory in directories]
         self.assertEqual(len(names), len(set(names)), "duplicate skill names")
@@ -31,7 +29,7 @@ class SkillTests(unittest.TestCase):
         self.assertFalse(list((ROOT / "skills").glob("*/SKILL.md")), "skills must not live in a separate root folder")
         self.assertFalse(list((ROOT / "position-sizer").rglob("SKILL.md")), "position sizing intentionally has no skill")
         for directory in directories:
-            self.assertEqual((directory / "references/wording.md").read_bytes(), canonical)
+            self.assertEqual((directory / "references/wording.md").read_text(encoding="utf-8"), canonical)
             metadata = (directory / "agents/openai.yaml").read_text(encoding="utf-8")
             self.assertIn(f"${directory.name}", metadata)
             self.assertIn("allow_implicit_invocation: true", metadata)

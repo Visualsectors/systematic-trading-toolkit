@@ -9,4 +9,4 @@ if (-not (Get-Command claude -ErrorAction SilentlyContinue)) {
 if ($LASTEXITCODE -ne 0) { throw 'Marketplace registration failed; plugin was not installed.' }
 & claude plugin install systematic-trading-toolkit@visualsectors --scope project
 if ($LASTEXITCODE -ne 0) { throw 'Plugin installation failed.' }
-Write-Host 'Installed six skills in project scope. Restart Claude Code. Python toolkit installation is separate; see README.md.'
+Write-Host 'Installed four skills in project scope. Restart Claude Code. Python toolkit installation is separate; see README.md.'
