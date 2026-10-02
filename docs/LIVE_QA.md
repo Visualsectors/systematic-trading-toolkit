@@ -4,6 +4,8 @@ Offline tests are necessary, not production evidence. The full ordinary-Free tes
 
 Release scope (2026-10-02): the release owner accepted the existing production `login` and AAPL/MSFT plan checks without a newly registered Free-account retest. The tester's account is recorded as approved with a custom history grant, and those checks preceded the final level-display guard. Keep that scope explicit: the latest client guard is covered by synthetic regressions; final ordinary-Free entitlement behavior and full chat-plugin installation remain unverified. This exception does not turn the remaining checklist into completed evidence.
 
+Beta hardening (2026-10-02): the independently built and installed wheel passes 196 tests. New regressions cover a positive-20/negative-60-session trend candidate, bounded/empty live screen pages, five-candidate defaults, explicit sizing assumptions and stale offline monitoring with unchanged saved state. All six skills pass static validation; their supplied files are unchanged. Local wheel tests are not a new authenticated production-key or logged-in Claude test. CI results on the exact merged commit remain a separate release gate.
+
 ## 1. Install from source
 
 Follow the README clone, venv and `python -m pip install .` commands in a fresh directory. No PyPI package is currently published. Run:

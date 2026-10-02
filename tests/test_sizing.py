@@ -13,6 +13,9 @@ class StopRiskSizingTests(unittest.TestCase):
         self.assertEqual(result.notional, 10_000)
         self.assertEqual(result.planned_loss_at_stop, 500)
         self.assertEqual(result.binding_constraint, "both")
+        self.assertEqual(result.capital, 100_000)
+        self.assertEqual(result.risk_fraction, 0.005)
+        self.assertEqual(result.max_allocation_fraction, 0.10)
 
     def test_long_stop_must_be_below_entry(self):
         with self.assertRaisesRegex(ValueError, "long stop"):

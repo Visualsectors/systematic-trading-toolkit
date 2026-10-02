@@ -1,4 +1,5 @@
 import copy
+from dataclasses import replace
 from datetime import date, datetime, timedelta, timezone
 from email.message import Message
 from io import BytesIO
@@ -14,6 +15,7 @@ from visualsectors_toolkit.providers import ApiResponseError, MissingApiKeyError
 from visualsectors_toolkit.providers.visualsectors import (
     CURRENT_LEVELS_LIMIT, CURRENT_METRIC_LIMIT, NEWS_HEADLINES_LIMIT, PLAN_INDICATORS,
 )
+from visualsectors_toolkit.screening import run_screen
 
 
 AS_OF = "2026-09-23T23:59:59Z"
@@ -115,6 +117,53 @@ class VisualSectorsProviderTests(unittest.TestCase):
             method, path, _query, body = provider.calls[0]
             self.assertEqual((method, path), ("POST", "/v1/screen"))
             self.assertEqual(body["limit"], 10)
+
+    def test_live_trend_does_not_reject_positive_20_negative_60_session_momentum(self):
+        closes = [150.0] + [100.0] * 39 + [100.0 + 0.5 * index for index in range(21)]
+        self.assertLess((closes[-1] / closes[0] - 1) * 100, 0)
+        bars = [{"date": (date(2026, 7, 24) + timedelta(days=index)).isoformat(),
+                 "close": close, "volume": 1_000_000} for index, close in enumerate(closes)]
+        with tempfile.TemporaryDirectory() as directory:
+            provider = RecordedProvider(directory)
+            momentum, _volatility, adv = provider._derived_bar_fields(bars)
+            row = replace(provider.get("AAPL"), price=110, atr14=5, sma20=105.25,
+                          sma50=102.10, sma200=86.875, momentum_20d_pct=momentum,
+                          average_dollar_volume_20d=adv)
+            provider.calls.clear()
+            with patch.object(provider, "get", return_value=row):
+                snapshots = provider.screen_universe("trend_continuation", limit=5)
+            body = provider.calls[0][3]
+            self.assertEqual(body["criteria"], [{"id": "trend", "dataset": "technicals",
+                                               "field": "sma50", "op": "gt", "value": 0}])
+            self.assertEqual(body["sort"], {"field": "sma50", "direction": "desc"})
+            self.assertEqual([candidate.ticker for candidate in run_screen(snapshots, "trend_continuation").candidates], ["AAPL"])
+            self.assertIn("not the whole market", " ".join(provider.screen_warnings))
+
+    def test_live_universe_defaults_to_five_candidates(self):
+        with tempfile.TemporaryDirectory() as directory:
+            provider = RecordedProvider(directory)
+            provider.universe()
+            self.assertEqual(provider.calls[0][3]["limit"], 5)
+
+    def test_screen_empty_or_cursor_pages_are_bounded_and_disclosed(self):
+        for results in ([], [{"ticker": "AAPL"}]):
+            with self.subTest(results=results), tempfile.TemporaryDirectory() as directory:
+                provider = RecordedProvider(directory)
+                provider.recorded[("POST", "/v1/screen", None)]["results"] = results
+                provider.recorded[("POST", "/v1/screen", None)]["next_cursor"] = "more-candidates"
+                provider.screen_universe("trend_continuation", limit=5)
+                self.assertEqual(sum(path == "/v1/screen" for _, path, _, _ in provider.calls), 1)
+                self.assertIn("Further candidates remain unexamined", " ".join(provider.screen_warnings))
+                self.assertIn("at most 5", " ".join(provider.screen_warnings))
+
+    def test_screen_over_limit_or_malformed_response_fails_before_hydration(self):
+        for results in ([{"ticker": "AAPL"}] * 6, ["AAPL"]):
+            with self.subTest(results=results), tempfile.TemporaryDirectory() as directory:
+                provider = RecordedProvider(directory)
+                provider.recorded[("POST", "/v1/screen", None)]["results"] = results
+                with self.assertRaises(ApiResponseError), patch.object(provider, "get") as hydrate:
+                    provider.screen_universe("near_support", limit=5)
+                hydrate.assert_not_called()
 
     def test_verify_exercises_every_plan_endpoint_without_cache(self):
         with tempfile.TemporaryDirectory() as directory:

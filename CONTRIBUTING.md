@@ -7,10 +7,18 @@ missing optional dependency must not break fixture mode.
 Before opening a change:
 
 ```bash
+python -m pip install .
 python -m unittest discover -s tests -v
 python -m compileall -q src tests
 python -m visualsectors_toolkit demo --offline --output toolkit-report.md
 ```
+
+Use a virtual environment and a checkout outside synced folders; the root
+README has the installation steps. Changes to `main` go through a pull request
+with all twelve OS/Python CI checks passing and approval from the human code
+owner named in `.github/CODEOWNERS`. Stale approvals are dismissed after new
+commits. The rule applies to administrators too; an AI or automation account
+must not treat another agent's approval as the owner's release authorization.
 
 Requirements for changes:
 

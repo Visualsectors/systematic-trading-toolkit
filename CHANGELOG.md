@@ -4,6 +4,12 @@ All notable changes will be documented here. This project uses semantic versioni
 
 ## [Unreleased]
 
+- Prepared the experimental public beta: six topical AI skills and four published prompt snapshots, with bounded live plan reads and permanent implausible-bounce guards.
+- Removed an incorrect 60-session return gate from the 20-session trend preset; bounded live candidate coverage and upstream order are now explicit, including empty results.
+- Defaulted live CLI screening and provider universes to five candidates, validated response bounds, and disclosed unfollowed screen cursors.
+- Exposed every stop-risk sizing input and labelled any plan using default inputs as example-only.
+- Corrected the offline monitoring quickstart to explain its fixed timestamp and retained stale-observation protection.
+
 - Added six discoverable top-level tool folders, structured quickstarts, runnable launchers, and a standalone `risk` command.
 - Updated the live adapter for API 2.2.0 SEC metrics and per-indicator technicals; withdrawn earnings timing stays null with a visible gap.
 - Added graceful optional-evidence failures, uncached full-path login verification, and safe 401 login guidance.

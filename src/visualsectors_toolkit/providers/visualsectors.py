@@ -166,6 +166,7 @@ class VisualSectorsProvider(MarketDataProvider):
         self._cache_dir = Path(cache_dir) if cache_dir is not None else default_cache
         self._timeout = timeout
         self._snapshots: dict[str, MarketSnapshot] = {}
+        self.screen_warnings: tuple[str, ...] = ()
 
     @property
     def capabilities(self) -> ProviderCapabilities:
@@ -199,7 +200,7 @@ class VisualSectorsProvider(MarketDataProvider):
         )
 
     def universe(self) -> tuple[MarketSnapshot, ...]:
-        return self.screen_universe("oversold_at_support", limit=25)
+        return self.screen_universe("oversold_at_support", limit=5)
 
     def verify(self) -> tuple[str, ...]:
         """Exercise every plan endpoint uncached; return any explicit data gaps."""
@@ -226,20 +227,36 @@ class VisualSectorsProvider(MarketDataProvider):
         elif preset == "trend_continuation":
             criteria = [
                 {"id": "trend", "dataset": "technicals", "field": "sma50", "op": "gt", "value": 0},
-                {"id": "momentum", "dataset": "prices", "field": "return_60_sessions_pct", "op": "gt", "value": 0},
             ]
-            sort = {"field": "return_60_sessions_pct", "direction": "desc"}
+            # The API has no 20-session momentum field. Positive 60-session
+            # return is NOT implied by our local 20-session rule. Use only a
+            # necessary coarse condition, then apply the disclosed local rules.
+            sort = {"field": "sma50", "direction": "desc"}
         elif preset != "near_support":
             raise ValueError(f"unknown preset: {preset}")
+        self.screen_warnings = (
+            f"Live screen coverage is at most {limit} upstream candidates from one bounded page, "
+            f"ordered by {sort['field']} {sort['direction']}; local exclusions and ranking apply "
+            "only to that fetched candidate set, not the whole market. The API prefilter and "
+            "local zone rules are not an exact whole-market match. No replacement candidates "
+            "are fetched after local exclusions.",
+        )
         payload = self._request_json(
             "POST",
             "/v1/screen",
             body={"version": 1, "match": "all", "criteria": criteria, "sort": sort, "limit": limit},
         )
         results = payload.get("results")
-        if not isinstance(results, list):
+        if not isinstance(results, list) or any(not isinstance(row, dict) for row in results):
             raise ApiResponseError(None, "screen response did not contain a results array")
-        tickers = [require_ticker(str(row.get("ticker", ""))) for row in results if isinstance(row, dict)]
+        if len(results) > limit:
+            raise ApiResponseError(None, "screen response exceeded the requested candidate limit")
+        if payload.get("next_cursor") is not None:
+            self.screen_warnings += (
+                "Live screen returned a cursor; only the first candidate page was read. "
+                "Further candidates remain unexamined.",
+            )
+        tickers = list(dict.fromkeys(require_ticker(str(row.get("ticker", ""))) for row in results))
         return tuple(self.get(ticker) for ticker in tickers)
 
     def get(self, ticker: str) -> MarketSnapshot:
