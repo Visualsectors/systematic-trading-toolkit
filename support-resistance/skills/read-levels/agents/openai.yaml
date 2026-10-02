@@ -1,6 +1,0 @@
-interface:
-  display_name: "Read Levels"
-  short_description: "Nearest served levels and their measured history"
-  default_prompt: "Use $read-levels to review my authorized toolkit evidence, cite code-owned facts and identify missing coverage."
-policy:
-  allow_implicit_invocation: true

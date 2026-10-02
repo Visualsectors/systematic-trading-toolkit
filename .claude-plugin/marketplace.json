@@ -4,6 +4,6 @@
   "plugins": [{
     "name": "systematic-trading-toolkit",
     "source": "./",
-    "description": "Evidence-first screening, Price/Peers/Market context, thesis, risk-review, position-review and support/resistance skills."
+    "description": "Evidence-first screening, Price/Peers/Market context, thesis and position-review skills."
   }]
 }

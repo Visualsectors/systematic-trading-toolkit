@@ -1,6 +1,0 @@
-interface:
-  display_name: "Review Risk"
-  short_description: "Severity-ordered flags, gaps and review conditions"
-  default_prompt: "Use $review-risk to review my authorized toolkit evidence, cite code-owned facts and identify missing coverage."
-policy:
-  allow_implicit_invocation: true

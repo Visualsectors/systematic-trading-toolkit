@@ -170,10 +170,9 @@ code is public.
 
 ## Public release gate
 
-This port does not change repository visibility or deploy the API. The public
-`api.visualsectors.com` host serves API 2.2.0 (checked 2 October 2026).
-Offline parity does not prove production access or ordinary Free entitlements.
-The current release authorization accepts the existing approved-account
-production QA; it does not establish a fresh ordinary-Free test.
-The repository must become public after the applicable checks and release
-review, **before the screener video is published**. See [live QA](LIVE_QA.md).
+This port does not change repository visibility or deploy the API. D428 still
+requires the public `api.visualsectors.com` contract and a genuinely free key
+to pass real-ticker `login`/`plan` QA. On 30 September 2026, the host still reports
+`2.1.0-dev`; offline parity is not that proof. The repository must become public
+after those gates and release review, **before the screener video is published**.
+See [live QA](LIVE_QA.md). Do not describe the private repo as available to viewers.
