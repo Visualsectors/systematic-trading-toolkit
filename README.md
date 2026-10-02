@@ -226,6 +226,10 @@ vstoolkit measure --ticker ALFA --price 100 --kind cost --offline
 
 Distances to served levels are signed dollars/percent/ATR. Missing values stay null; historical rates read “held on N% of past tests.”
 
+### Published prompt snapshot
+
+[`prompts/`](prompts/README.md) publishes the system prompts that Visual Sectors' Alfred used on 1 October 2026 for the Support/Resistance explainer, the News + Sentiment explainer, the daily narrative cluster and the Options run explainer. This is a one-time snapshot: the files are not updated when Alfred's prompts change. They take closed, host-supplied evidence only: no SQL, browser, URL, warehouse, or HTTP client is embedded in a skill. Prompt text is CC BY 4.0 and its normalized SHA-256 is pinned by tests.
+
 ## Python API
 
 ```python
