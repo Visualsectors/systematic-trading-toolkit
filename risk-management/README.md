@@ -16,7 +16,7 @@ Use this folder when you need a structured risk checklist for one stock, before 
 
 ## AI skill
 
-A dedicated risk-management skill is not bundled yet. The deterministic `vstoolkit risk` command works independently; agent instructions will be added separately. Research and monitoring skills are not presented as a substitute for a dedicated risk skill.
+[review-risk](skills/review-risk/SKILL.md) guides an AI through the register in severity order: each flag's trigger and evidence IDs, whether each rule is Triggered, Clear or Unmeasured, the strongest contrary reading, conditional invalidation geometry, and the review conditions to hand to [monitoring](../monitoring/). It runs sizing arithmetic only on inputs you supply, names the method used, and never chooses a risk budget, an exit or a holding action. Missing or unavailable data stays an open question, never an all-clear.
 
 ## Quickstart
 

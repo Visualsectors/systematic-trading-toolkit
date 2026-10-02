@@ -191,7 +191,7 @@ The API may be used to research, advise, or build decision tools under the appli
 
 ## Agent skills
 
-Skills belong to their topical tools, not a separate root folder. Four existing skills include portable metadata and references:
+Skills belong to their topical tools, not a separate root folder. Six existing skills include portable metadata and references:
 
 | Tool | Bundled AI skill | Purpose or status |
 | --- | --- | --- |
@@ -199,11 +199,11 @@ Skills belong to their topical tools, not a separate root folder. Four existing 
 | Screener | [analyze-screener-context](screener/skills/analyze-screener-context/SKILL.md) | Interpret frozen candidates through Price, Peers, and Market evidence, including contrary narratives and gaps |
 | Research | [build-research-thesis](research/skills/build-research-thesis/SKILL.md) | Develop or challenge a thesis without inventing facts or hiding contradictory evidence |
 | Monitoring | [reassess-position](monitoring/skills/reassess-position/SKILL.md) | Explain changes against the original plan, preserving saved boundaries and unknown current status |
-| Risk management | Not bundled yet | A dedicated risk-management skill is still needed |
-| Support/resistance | Not bundled yet | A toolkit-compatible level-explanation skill is still needed |
+| Risk management | [review-risk](risk-management/skills/review-risk/SKILL.md) | Order flags by severity, mark unmeasured rules, and record review conditions without choosing inputs or actions |
+| Support/resistance | [read-levels](support-resistance/skills/read-levels/SKILL.md) | Explain the nearest served levels, their measured history and clustering zones, without targets or exits |
 | Position sizing | None by design | Deterministic arithmetic from user-chosen inputs, without an allocation agent |
 
-Pending skills are not included in the plugin or presented as implemented capabilities.
+Every topical tool except position sizing has a bundled skill; screener has two.
 
 Install the Claude Code plugin from an authorized checkout with one PowerShell command (Claude Code must already be installed):
 
@@ -211,9 +211,9 @@ Install the Claude Code plugin from an authorized checkout with one PowerShell c
 & .\scripts\install-claude-plugin.ps1
 ```
 
-It registers `visualsectors` and installs `systematic-trading-toolkit@visualsectors` in project scope; restart Claude Code and try `/systematic-trading-toolkit:compose-screen`. The manifest explicitly scans the skills inside `screener/`, `research/`, and `monitoring/` ([custom skill-path reference](https://code.claude.com/docs/en/plugins-reference#fields)). Python installation is separate. This is a repository-hosted catalogue, not a claim of approval by Anthropic's official directory. See [plugin documentation](https://code.claude.com/docs/en/plugin-marketplaces).
+It registers `visualsectors` and installs `systematic-trading-toolkit@visualsectors` in project scope; restart Claude Code and try `/systematic-trading-toolkit:compose-screen`. The manifest explicitly scans the skills inside `screener/`, `research/`, `risk-management/`, `monitoring/`, and `support-resistance/` ([custom skill-path reference](https://code.claude.com/docs/en/plugins-reference#fields)). Python installation is separate. This is a repository-hosted catalogue, not a claim of approval by Anthropic's official directory. See [plugin documentation](https://code.claude.com/docs/en/plugin-marketplaces).
 
-For local plugin QA: `claude plugin validate .`, then start `claude --plugin-dir <absolute-checkout-path>` in a separate test project. Verify that all four existing skills appear once. Static manifest tests do not replace that installation check.
+For local plugin QA: `claude plugin validate .`, then start `claude --plugin-dir <absolute-checkout-path>` in a separate test project. Verify that all six existing skills appear once. Static manifest tests do not replace that installation check.
 
 For Codex, copy the chosen complete skill directory into your project's `.agents/skills/`—for example, `screener/skills/compose-screen/` becomes `.agents/skills/compose-screen/`. Keep its `references/` and `agents/` together. The topical `skills/` locations are source bundles, not automatic Codex discovery locations ([official skills guidance](https://learn.chatgpt.com/docs/build-skills#where-codex-loads-local-skills)). For Cursor or another agent, attach the relevant `SKILL.md` as project instructions. Never paste an API key into an AI prompt.
 
