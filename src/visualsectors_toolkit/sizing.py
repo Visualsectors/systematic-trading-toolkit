@@ -38,6 +38,9 @@ def _fraction(part: Decimal, whole: Decimal) -> float:
 class StopRiskSize:
     method: Literal["stop_risk/v1"]
     side: Literal["long", "short"]
+    capital: float
+    risk_fraction: float
+    max_allocation_fraction: float
     shares: int
     entry: float
     stop: float
@@ -92,6 +95,9 @@ def size_by_stop_risk(
     return StopRiskSize(
         method="stop_risk/v1",
         side=side,
+        capital=float(portfolio),
+        risk_fraction=float(risk_pct),
+        max_allocation_fraction=float(cap_pct),
         shares=shares,
         entry=float(entry_price),
         stop=float(stop_price),

@@ -75,6 +75,12 @@ Install from source as shown above. There is no PyPI release yet: do not use `pi
 - served hold, bounce, and hard-break measurements labelled `historical_base_rate`; and
 - whole-share `stop_risk/v1` arithmetic with every input visible.
 
+`plan` includes `sizing_inputs`, each omitted/defaulted input, and an `example_only` flag. Without all three sizing flags, the 100,000 capital / 0.005 risk fraction / 0.10 allocation-cap defaults are **example assumptions**, not your position size. To use your own arithmetic scenario:
+
+```powershell
+vstoolkit plan AAPL --capital 25000 --risk-fraction 0.005 --max-allocation 0.10
+```
+
 To install without a checkout (Git still required):
 
 ```powershell
@@ -104,13 +110,15 @@ The report contains all six outcomes in one Markdown file.
 
 ### Screening
 
+Live preset screens default to five upstream candidates to bound API use. Local rules and ranks apply only to that fetched set: this is not an exhaustive whole-market ranking, and local exclusions are not backfilled. For `trend_continuation`, the API selects positive-SMA50 candidates ordered by SMA50; the toolkit then checks and ranks by **20-session** momentum. It does not require positive 60-session returns. Coverage and any unfollowed cursor are disclosed in the output, including when no candidates pass.
+
 ```powershell
 vstoolkit screen --preset near_support --limit 5
 vstoolkit screen --preset oversold_at_support --limit 5
 vstoolkit screen --preset trend_continuation --limit 5
 ```
 
-The live provider starts with `POST /v1/screen`, then loads the fields needed to validate the returned names locally. Start with `--limit 5` on a free key. A cold screen takes roughly `1 + 9 × returned tickers` requests, before extra pagination: 5 tickers need about 46 calls, but 25 can need 226. The default limit is 25, not a guarantee that a free key can hydrate it in one burst. A 429 stops the command and displays `Retry-After`; it does not silently retry or buy more calls. Wait before retrying; completed reads may be reused from the same-day cache.
+The live provider starts with `POST /v1/screen`, then loads the fields needed to validate the returned names locally. The default limit is 5. A cold screen takes roughly `1 + 9 × returned tickers` requests, before extra pagination: 5 tickers need about 46 calls, but an explicit limit of 25 can need 226. Five is a safer starting point, not a guarantee against quota errors after other requests. A 429 stops the command and displays `Retry-After`; it does not silently retry or buy more calls. Wait before retrying; completed reads may be reused from the same-day cache.
 
 The three presets disclose their filters in [the methodology](docs/METHODOLOGY.md). Distance is measured to the computed support-zone edge.
 

@@ -28,8 +28,9 @@ The offline tickers and observations are fictional; they require no network conn
 
 ```powershell
 python .\monitoring\run.py --offline --ticker ALFA --direction long --state .\monitoring\offline-state.local.json
-python .\monitoring\run.py --offline --ticker ALFA --direction long --state .\monitoring\offline-state.local.json
 ```
+
+Use a new state path for this first-run example. The bundled fixture has a fixed observation timestamp: repeating it against the same state deliberately exits with `observed_at must be later than the previous evaluation`, preserving the state file. This is stale-observation protection, not a deduplication demo. To test unchanged-event deduplication, supply a genuinely later dataset observation; see the [monitor regression tests](../tests/test_research_risk_monitor.py). Do not change an old snapshot's timestamps just to make it appear fresh.
 
 ### 2. Connect the Visual Sectors API
 

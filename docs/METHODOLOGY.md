@@ -8,6 +8,8 @@ Every calculation is a pure function of explicit inputs. Core modules do not rea
 
 Screens apply disclosed hard filters, record every exclusion reason, and sort by a deterministic key with ticker as the final tie-breaker. The included presets are examples, not optimized strategies. No preset was chosen from the bundled fixture's returns; the fixture contains no future returns.
 
+Live presets are bounded two-stage screens: one API-prefiltered page (five candidates by default), then local rules and ranking on those snapshots only. API-level distance and local zone-edge distance can differ. No whole-market parity or exhaustive top-ranked list is claimed. Trend screening uses only positive SMA50 as its coarse API criterion, ordered by SMA50; positive 20-session momentum is checked locally. A negative 60-session return does not disqualify a locally eligible trend candidate. Output warnings disclose the upstream order, bound and any unfollowed cursor, even for an empty page.
+
 ## Level geometry
 
 Only observations from the newest `level_date` are eligible for a plan. Each level becomes a band with a default half-width of 0.25 ATR. Overlapping bands are clustered only with levels of the same served side. Entry, invalidation, and opposite-side reassessment zones are conditional geometry—not probability estimates.
@@ -31,6 +33,8 @@ shares            = min(risk shares, allocation shares)
 ```
 
 The planned loss excludes gaps through the stop, slippage, commissions, taxes, and borrow costs.
+
+`stop_risk/v1` exposes the original capital, risk fraction and allocation fraction alongside entry and stop. CLI `plan` additionally exposes `sizing_inputs.defaulted_inputs` and `example_only`; any omitted sizing flag makes the result an explicitly warned example. Defaults are 100,000 / 0.005 / 0.10, not inferred account settings or recommendations. Supply all three flags to calculate a user-chosen scenario.
 
 ## Portfolio-slot sizing
 

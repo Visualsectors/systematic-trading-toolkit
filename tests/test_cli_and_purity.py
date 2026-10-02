@@ -12,7 +12,7 @@ from pathlib import Path
 from visualsectors_toolkit.cli import _build_parser, main
 from visualsectors_toolkit.models import Level
 from visualsectors_toolkit.monitoring import evaluate_monitor
-from visualsectors_toolkit.providers import ApiResponseError, MissingApiKeyError, SyntheticFixtureProvider, VisualSectorsProviderError
+from visualsectors_toolkit.providers import ApiResponseError, MissingApiKeyError, SyntheticFixtureProvider, VisualSectorsProvider, VisualSectorsProviderError
 from visualsectors_toolkit.report import render_markdown
 from visualsectors_toolkit.workflow import run_reference_workflow
 
@@ -121,6 +121,63 @@ class CliTests(unittest.TestCase):
             self.assertEqual(main(("plan", "BRVO", "--direction", "short", "--offline")), 0)
         result = json.loads(output.getvalue())
         self.assertEqual(result["plan"]["direction"], "short")
+
+    def test_cli_screen_defaults_to_five(self):
+        self.assertEqual(_build_parser().parse_args(("screen", "--offline")).limit, 5)
+
+    def test_empty_live_screen_still_exposes_upstream_coverage(self):
+        with tempfile.TemporaryDirectory() as directory:
+            provider = VisualSectorsProvider(api_key="recorded-test-key", cache_dir=directory)
+            output = StringIO()
+            with patch.object(provider, "_request_json", return_value={"results": [], "next_cursor": "more"}), patch(
+                "visualsectors_toolkit.cli._provider", return_value=provider
+            ), redirect_stdout(output):
+                self.assertEqual(main(("screen", "--preset", "trend_continuation")), 0)
+            result = json.loads(output.getvalue())
+            self.assertEqual(result["coverage"], 0)
+            self.assertEqual(result["candidates"], [])
+            self.assertIn("at most 5", " ".join(result["warnings"]))
+            self.assertIn("returned a cursor", " ".join(result["warnings"]))
+
+    def test_plan_default_and_partial_sizing_is_explicitly_example_only(self):
+        for flags, defaulted, capital in (
+            ((), ["capital", "risk_fraction", "max_allocation_fraction"], 100_000),
+            (("--capital", "25000"), ["risk_fraction", "max_allocation_fraction"], 25_000),
+        ):
+            with self.subTest(flags=flags), redirect_stdout(StringIO()) as output:
+                self.assertEqual(main(("plan", "ALFA", "--offline", *flags)), 0)
+                result = json.loads(output.getvalue())
+                inputs = result["sizing_inputs"]
+                self.assertTrue(inputs["example_only"])
+                self.assertEqual(inputs["defaulted_inputs"], defaulted)
+                self.assertEqual(inputs["capital"], capital)
+                self.assertIn("Example sizing only", " ".join(result["sizing_warnings"]))
+                self.assertIn("Example sizing only", " ".join(result["stop_risk_size"]["warnings"]))
+                for name in ("capital", "risk_fraction", "max_allocation_fraction"):
+                    self.assertEqual(result["stop_risk_size"][name], inputs[name])
+
+    def test_plan_explicit_inputs_have_no_default_assumptions(self):
+        with redirect_stdout(StringIO()) as output:
+            self.assertEqual(main(("plan", "ALFA", "--offline", "--capital", "25000",
+                                   "--risk-fraction", "0.005", "--max-allocation", "0.10")), 0)
+        result = json.loads(output.getvalue())
+        self.assertFalse(result["sizing_inputs"]["example_only"])
+        self.assertEqual(result["sizing_inputs"]["defaulted_inputs"], [])
+        self.assertEqual(result["sizing_warnings"], [])
+        self.assertEqual(result["stop_risk_size"]["risk_budget"], 125)
+        self.assertEqual(result["stop_risk_size"]["allocation_cap"], 2500)
+
+    def test_offline_monitor_repeat_rejects_stale_fixture_and_preserves_state(self):
+        with tempfile.TemporaryDirectory() as directory:
+            state = Path(directory) / "state.json"
+            arguments = ("monitor", "--ticker", "ALFA", "--offline", "--state", str(state))
+            with redirect_stdout(StringIO()):
+                self.assertEqual(main(arguments), 0)
+            initial = state.read_bytes()
+            with redirect_stderr(StringIO()) as error:
+                self.assertEqual(main(arguments), 2)
+            self.assertIn("observed_at must be later", error.getvalue())
+            self.assertEqual(state.read_bytes(), initial)
 
     def test_plan_json_merges_approaches_and_discloses_excluded_level(self):
         base = SyntheticFixtureProvider().get("ALFA")

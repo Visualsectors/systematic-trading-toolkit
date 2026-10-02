@@ -85,6 +85,18 @@ class ToolFolderTests(unittest.TestCase):
         self.assertIn("support-resistance", workflow)
         self.assertNotIn("entry-exit", workflow)
 
+    def test_monitoring_readme_has_one_fixed_timestamp_first_run_example(self):
+        text = (ROOT / "monitoring/README.md").read_text(encoding="utf-8")
+        command = r"python .\monitoring\run.py --offline --ticker ALFA --direction long --state .\monitoring\offline-state.local.json"
+        self.assertEqual(text.count(command), 1)
+        self.assertIn("fixed observation timestamp", text)
+        self.assertIn("preserving the state file", text)
+
+    def test_release_readme_matches_free_friendly_cli_default(self):
+        text = (ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertIn("The default limit is 5.", text)
+        self.assertNotIn("The default limit is 25", text)
+
     def test_release_readme_does_not_describe_the_retired_production_contract(self):
         text = (ROOT / "README.md").read_text(encoding="utf-8")
         self.assertIn("API **2.2.0 is live**", text)

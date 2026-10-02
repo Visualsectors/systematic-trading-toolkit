@@ -48,11 +48,15 @@ Live use requires a supported production API. The toolkit targets API 2.2.0; [cu
 | --- | --- |
 | Preset | `near_support`, `oversold_at_support`, or `trend_continuation`. |
 | Universe | Live API, fictional offline fixture, or your own `--data` JSON. |
-| Limit | 1–100 tickers; start at 5 with a free key. |
+| Limit | 1–100 tickers; defaults to 5 to bound live calls. |
 
 ## What you get
 
 Ranked candidates, observed inputs, exclusion reasons, and a count of candidates omitted by the requested limit.
+
+Live presets fetch only one upstream candidate page, at most `--limit` tickers. The output discloses that scope even if no local candidate passes; no cursor is followed and exclusions are not backfilled. `coverage` counts hydrated snapshots, not the API's entire universe. `omitted_candidates` counts local matches beyond the output limit, not unseen upstream stocks. This is not an exhaustive whole-market ranking.
+
+For `trend_continuation`, the API's coarse condition is positive SMA50, ordered by SMA50 descending. Local filters then require positive **20-session** momentum and rank by it. Positive 60-session returns are not required: the API cannot express the documented 20-session return rule, so upstream order is not a proxy for the local final rank.
 
 Output is JSON, suitable for inspection, saving locally, or feeding into your own builder workflow. For every available flag and its unit:
 

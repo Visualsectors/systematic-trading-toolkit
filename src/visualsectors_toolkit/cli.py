@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import replace
 from datetime import datetime, timezone
 import getpass
 import json
@@ -207,7 +208,7 @@ def _build_parser() -> argparse.ArgumentParser:
     screen_choice.add_argument("--ask", help="Closed plain-English filter request; unsupported conditions refuse before any network call.")
     screen.add_argument("--interpret-only", action="store_true", help="Show the disclosed --ask conditions without fetching data.")
     screen.add_argument("--tickers", help="Comma-separated explicit live watchlist for --ask (maximum five); no whole-market claim.")
-    screen.add_argument("--limit", type=_limit, default=25, help="Maximum returned tickers (1-100).")
+    screen.add_argument("--limit", type=_limit, default=5, help="Maximum returned tickers (1-100; default 5 to keep live calls bounded).")
 
     context = commands.add_parser("context", help="Compute evidence-linked Price, Peers and Market context in Python.")
     _add_data_source(context)
@@ -229,9 +230,9 @@ def _build_parser() -> argparse.ArgumentParser:
     _add_data_source(plan)
     plan.add_argument("ticker", help="US-listed ticker, for example AAPL.")
     plan.add_argument("--direction", choices=("long", "short"), default="long", help="Scenario direction.")
-    plan.add_argument("--capital", type=float, default=100_000, help="Portfolio capital in account currency.")
-    plan.add_argument("--risk-fraction", type=float, default=0.005, help="Fraction at risk; 0.005 means 0.5%%.")
-    plan.add_argument("--max-allocation", type=float, default=0.10, help="Capital cap; 0.10 means 10%%.")
+    plan.add_argument("--capital", type=float, help="Portfolio capital; omitted uses a disclosed example of 100,000.")
+    plan.add_argument("--risk-fraction", type=float, help="Fraction at risk; omitted uses a disclosed example of 0.005 (0.5%%).")
+    plan.add_argument("--max-allocation", type=float, help="Capital cap; omitted uses a disclosed example of 0.10 (10%%).")
     plan.add_argument("--yes", action="store_true", help="Confirm a risk fraction over 5%% or allocation over 50%%.")
 
     stop = commands.add_parser("size-stop", help="Size a position from entry/stop risk and an allocation cap.")
@@ -321,7 +322,10 @@ def _run(args: argparse.Namespace) -> int:
             if isinstance(provider, VisualSectorsProvider)
             else provider.universe()
         )
-        _print(run_screen(universe, preset, limit=args.limit))
+        result = run_screen(universe, preset, limit=args.limit)
+        if isinstance(provider, VisualSectorsProvider):
+            result = replace(result, warnings=(*result.warnings, *provider.screen_warnings))
+        _print(result)
         return 0
     if args.command == "measure":
         _print(measure_named_price(_provider(args.data, args.offline).get(args.ticker), args.price, kind=args.kind))
@@ -361,6 +365,17 @@ def _run(args: argparse.Namespace) -> int:
         print(card if args.format == "markdown" else json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False))
         return 0
     if args.command == "plan":
+        defaults = {"capital": 100_000, "risk_fraction": 0.005, "max_allocation": 0.10}
+        defaulted = [name for name in defaults if getattr(args, name) is None]
+        for name in defaulted:
+            setattr(args, name, defaults[name])
+        sizing_inputs = {
+            "capital": args.capital,
+            "risk_fraction": args.risk_fraction,
+            "max_allocation_fraction": args.max_allocation,
+            "defaulted_inputs": ["max_allocation_fraction" if name == "max_allocation" else name for name in defaulted],
+            "example_only": bool(defaulted),
+        }
         provider = _provider(args.data, args.offline)
         row, plan = _plan(provider, args.ticker, args.direction)
         _confirm_high_risk(args)
@@ -375,7 +390,14 @@ def _run(args: argparse.Namespace) -> int:
                 max_allocation_fraction=args.max_allocation,
                 side=plan.direction,
             )
-        _print({"plan": plan, "stop_risk_size": stop_size, "data_warnings": row.warnings})
+        sizing_warnings = (
+            "Example sizing only: omitted inputs use disclosed defaults. Supply --capital, "
+            "--risk-fraction and --max-allocation for your own arithmetic scenario; this is not a recommendation.",
+        ) if defaulted else ()
+        if stop_size is not None:
+            stop_size = replace(stop_size, warnings=(*stop_size.warnings, *sizing_warnings))
+        _print({"plan": plan, "stop_risk_size": stop_size, "sizing_inputs": sizing_inputs,
+                "sizing_warnings": sizing_warnings, "data_warnings": row.warnings})
         return 0
     if args.command == "size-stop":
         _confirm_high_risk(args)
