@@ -1,6 +1,8 @@
 # API 2.2.0 contract and live launch QA
 
-Offline tests are necessary, not launch evidence. Keep this repository private until the public host and a new **free** account pass the live steps below. Do not substitute an admin, Pro or pre-approved key.
+Offline tests are necessary, not production evidence. The full ordinary-Free test below uses a new **free** account: an admin, Pro, demo or pre-approved key does not prove that tier.
+
+Release scope (2026-10-02): the release owner accepted the existing production `login` and AAPL/MSFT plan checks without a newly registered Free-account retest. The tester's account is recorded as approved with a custom history grant, and those checks preceded the final level-display guard. Keep that scope explicit: the latest client guard is covered by synthetic regressions; final ordinary-Free entitlement behavior and full chat-plugin installation remain unverified. This exception does not turn the remaining checklist into completed evidence.
 
 ## 1. Install from source
 
@@ -28,7 +30,7 @@ curl.exe -sS 'https://api.visualsectors.com/v1/levels?ticker=AAPL'
 
 Expected: health `ok=true`; unauthenticated levels has HTTP 401, `error=missing_api_key` and `get_key=https://api.visualsectors.com/signup`. The API repo additionally has a keyless release gate: `node scripts/check-toolkit-public-contract.mjs`. It fails closed on an old contract or missing signup guidance and does not deploy anything.
 
-On 2026-09-30, the public host still reported `2.1.0-dev` and omitted the 401 signup link, even though API `main` already contained that link. That is a deployment gap, not a reason to restore withdrawn views. Re-run this check after promotion.
+Checked 2026-10-02: the public host returns health `ok=true`, contract `2.2.0`, and the expected 401 signup guidance. The API connector's level-bounce guard was promoted on 2026-10-01 and api-mcp refreshed afterwards. These keyless and deployment checks do not establish the limits or data access of a particular key. Re-run the commands rather than treating this dated observation as a permanent guarantee.
 
 ## 3. Use a genuinely free key in a chat-independent terminal
 
@@ -100,7 +102,7 @@ This extends the levels-only fix in PR #4. With the reviewed fix installed, logi
 
 Every query also supplies the ticker. An unexpected current-evidence cursor is a visible incomplete-evidence warning, never an instruction to fetch history. Empty technicals stay null; empty optional evidence is a disclosed gap. A response exceeding its requested row limit is rejected: core technicals fail closed; optional metrics/news become explicit gaps. HTTP 401 and 429 still stop the command. No missing latest row is replaced by historical cursor data.
 
-Rustam: obtain the reviewed branch and exact commit, then reinstall into your existing virtual environment from that checkout:
+To retest the reviewed branch, record its exact commit and reinstall into your existing virtual environment from that checkout:
 
 ```powershell
 python -m pip install --no-cache-dir --force-reinstall .
@@ -122,10 +124,10 @@ After installing the reviewed fix, rerun AAPL/MSFT plans on production. In each 
 
 Before the source correction, any supplied `exp_bounce_pct > 100` must produce a level-naming `data_warnings` entry and must not appear in either zone's members or affect its score. Tests reproduce the reported AAPL donchian 328.7 / 4,420 and MSFT pivot 497.09 / 33,196,824,404 cases. If the connector has already masked those fields to null, do not expect the raw-outlier client warning: the permanent toolkit guard is exercised by the synthetic tests, while the production response now contains a missing statistic. Do not infer that missing bounce/reward data has been repaired at source.
 
-Exactly 100, zero and missing bounce values remain permitted by this gate. If all current levels are rejected, insufficient-data output is valid; using older rejected-session substitutes is not. Per-indicator cursor warnings remain expected until the API latest-route fix is promoted and are separate from the level-quality checks. Return the toolkit/API commits, exit codes and redacted warning summaries; never include credentials or raw licensed tables.
+Exactly 100, zero and missing bounce values remain permitted by this gate. If all current levels are rejected, insufficient-data output is valid; using older rejected-session substitutes is not. The latest-route fix is now promoted, so do not dismiss recurring per-indicator cursor warnings as normal: the client remains bounded and warns, but report them with the host and deployment version for API investigation. Return the toolkit/API commits, exit codes and redacted warning summaries; never include credentials or raw licensed tables.
 
 ## 4. Record launch evidence
 
 Record the toolkit commit, API deployment version/commit, date, Python/OS version, observed free-tier limits, commands and exit codes. Retain only redacted derived summaries and warnings in a private QA record, not raw licensed API rows. A contract fixture, green CI or dev-host test is not proof that the production/free-key gate passed.
 
-Do not flip repository visibility, publish a package or claim live launch completion until the production checks above pass and Vlad authorizes release.
+Repository publication follows the release owner's authorization and its explicitly accepted QA scope. Do not claim the full checklist passed when a check was waived or not run. This release does not publish a PyPI package or the screener video.
