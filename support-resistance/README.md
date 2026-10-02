@@ -4,14 +4,14 @@
 
 **Understand the served support/resistance levels around a stock, how those levels behaved historically, and which price boundaries define your research scenario.**
 
-> **Recommended live provider: Visual Sectors.** Connect our API for the served S/R levels and measured hold, bounce, and break statistics that differentiate this workflow from price-only support/resistance examples. [Get a free API key](https://api.visualsectors.com/signup) · [Explore the API](https://api.visualsectors.com).
+> **Recommended live provider: Visual Sectors.** Connect our API for served S/R levels, historical hold frequency, bounce magnitude and hard-break readings. [Get a free API key](https://api.visualsectors.com/signup) · [Explore the API](https://api.visualsectors.com).
 
 ## When to use it
 
 Use this folder when you want to turn a stock's dated levels into an inspectable price map—not a buy/sell instruction.
 
 - See conditional entry and reassessment bands, the scenario's invalidation boundary, and distances in ATR units.
-- Inspect the historical hold, bounce, and break measurements supplied for the level family, with their limitations.
+- Inspect the historical hold frequency, bounce magnitude and hard-break magnitude supplied for each selected level, with their limitations.
 - Measure the nearest served levels above and below a price you name, such as an entry, cost basis, or strike.
 
 ## AI skill
@@ -51,7 +51,9 @@ Live use requires a supported production API. The toolkit targets API 2.2.0; [cu
 
 ## What you get
 
-Entry and reassessment bands, invalidation price, ATR stop distance, reward-to-reassessment R, whole-share sizing, and `data_warnings`. Served rates are labelled `historical_base_rate`.
+Entry and reassessment bands, invalidation price, ATR stop distance, reward-to-reassessment R, whole-share sizing, and `data_warnings`. Historical measurements use the schema label `historical_base_rate`: only `p_hold_7d_pct` is a frequency; `exp_bounce_pct` and `hard_break_pct` are magnitudes in percentage points. The API documents the hold backtest as using levels recomputed in 2026 (hindsight), not a point-in-time strategy test.
+
+Live plans request the latest eligible session with `only_best=true`. They read the upstream selected support/resistance pair per approach, not every level family. A returned cursor is a disclosed evidence gap, never followed to fetch the remaining families.
 
 Historical base-rate rows are consolidated by `(side, level_type, level_price)`, with a sorted `approaches` list on each row. Conflicting statistics remain null with a note; they are not averaged or selected for the most favorable value. Exact source prices define identity, not rounded display prices.
 

@@ -16,6 +16,8 @@ A permanent data-quality gate excludes any row with `exp_bounce_pct > 100` befor
 
 Both historical base-rate lists group by exact `(side, level_type, level_price)` and list distinct source `approaches` in sorted order. Identical supplied statistics are kept once, missing statistics remain null, and conflicting non-null values become null with an explicit note. No mean, maximum or favorable-approach selection is used. Zone members still preserve the valid source observations; consolidation changes the descriptive base-rate display, not the identity of those source rows.
 
+The schema name `historical_base_rate` is retained for compatibility. `p_hold_7d_pct` is a seven-day hold frequency; `exp_bounce_pct` and `hard_break_pct` are magnitudes in percentage points, not frequencies. The API documents the hold backtest as using levels recomputed in 2026 (hindsight). These are neither point-in-time strategy results nor current-setup probabilities. `approach` names the upstream scoring/selection method, not the level family's construction parameters; live plans request `only_best=true`, so they do not enumerate every served family.
+
 ## Stop-risk sizing
 
 For portfolio capital `P`, risk fraction `r`, entry `E`, stop `S`, and maximum allocation fraction `a`:
