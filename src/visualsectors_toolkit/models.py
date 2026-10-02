@@ -305,13 +305,20 @@ def parse_manifest(raw: Mapping[str, Any]) -> DatasetManifest:
     return _construct(DatasetManifest, raw, "manifest", snapshots=tuple(_snapshot(row) for row in snapshots))
 
 
+def _output_field(key: Any, value: Any) -> Any:
+    # Presentation only. Keep raw geometry/risk inputs unchanged in the model.
+    if key in {"width_atr", "stop_distance_atr"} and isinstance(value, float):
+        return round(value, 2)
+    return to_dict(value)
+
+
 def to_dict(value: Any) -> Any:
     """Convert immutable toolkit outputs into JSON-safe primitives."""
     if is_dataclass(value):
-        return {key: to_dict(item) for key, item in asdict(value).items()
+        return {key: _output_field(key, item) for key, item in asdict(value).items()
                 if not isinstance(value, DatasetManifest) or key not in {"bars", "market", "peers", "headlines", "headline_peers", "context_provenance"} or item is not None}
     if isinstance(value, Mapping):
-        return {str(key): to_dict(item) for key, item in value.items()}
+        return {str(key): _output_field(key, item) for key, item in value.items()}
     if isinstance(value, (tuple, list)):
         return [to_dict(item) for item in value]
     return value
