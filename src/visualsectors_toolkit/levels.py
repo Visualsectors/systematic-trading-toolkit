@@ -86,6 +86,7 @@ class LevelPlan:
     reassessment_historical_base_rates: tuple[HistoricalBaseRate, ...]
     status: Literal["ready", "insufficient_data"]
     notes: tuple[str, ...]
+    reward_risk_warning: Literal["reward_below_risk"] | None = None
 
 
 def _positive(value: float, name: str) -> float:
@@ -183,7 +184,9 @@ def _finish(low: float, high: float, members: Sequence[Level], atr: float) -> Zo
         width_atr=(rounded_high - rounded_low) / atr,
         side=_side(ordered),
         level_types=tuple(sorted({member.level_type for member in ordered})),
-        member_count=len(ordered),
+        # Count exact price levels, not repeated approach/family observations.
+        # Keep all source rows in members for provenance and base-rate checks.
+        member_count=len({member.price for member in ordered}),
         confluence_count_max=_int_max([member.confluence_count for member in ordered]),
         score_max=_finite_max([member.score for member in ordered]),
         members=ordered,
@@ -402,6 +405,7 @@ def build_level_plan(
     invalidation = None
     risk = None
     reward_r = None
+    reward_risk_warning = None
     stop_distance_atr = None
     notes = [
         "Zones are computed from dated level observations and an ATR grouping width; "
@@ -430,7 +434,15 @@ def build_level_plan(
     elif entry is not None and risk is not None and risk > 0:
         reference_entry = entry.high if direction == "long" else entry.low
         reward = review.low - reference_entry if direction == "long" else reference_entry - review.high
-        reward_r = round(reward / risk, 4)
+        raw_reward_r = reward / risk
+        reward_r = round(raw_reward_r, 4)
+        # Classify before display rounding: 0.99999R is still below 1R.
+        if raw_reward_r < 1:
+            reward_risk_warning = "reward_below_risk"
+            notes.append(
+                "Warning: reward to reassessment is below 1R; reward is smaller than risk. "
+                "Ready means the scenario has data, not that its reward/risk is favourable."
+            )
     return LevelPlan(
         ticker=normalized_ticker,
         direction=direction,
@@ -446,4 +458,5 @@ def build_level_plan(
         reassessment_historical_base_rates=_base_rates(review, notes),
         status="ready" if entry is not None else "insufficient_data",
         notes=tuple(notes),
+        reward_risk_warning=reward_risk_warning,
     )

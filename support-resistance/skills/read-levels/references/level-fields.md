@@ -65,12 +65,14 @@ The toolkit treats `exp_bounce_pct` above 100 as a data gap, whatever the source
 
 `vstoolkit plan` zones (`entry_zone`, `reassessment_zone`):
 
+The [plan output definitions](../../../../docs/PLAN_OUTPUT_FIELDS.md) document their count and presentation semantics.
+
 | Field | Meaning |
 | --- | --- |
 | `low`, `high`, `mid` | Band edges and midpoint: each level price plus and minus 0.25 × ATR14, rounded to cents, merged with overlapping same-side bands. |
-| `width_atr` | (`high` − `low`) divided by ATR14. |
+| `width_atr` | (`high` − `low`) divided by ATR14, rounded to two decimal places in JSON output only. Internal calculations retain their original precision. |
 | `side`, `level_types` | The members' shared side and their sorted level types. |
-| `member_count` | How many served rows the toolkit merged into this zone, including one level repeated under several approaches. Its own count, not served evidence and not a count of independent levels or construction methods. |
+| `member_count` | Distinct exact price levels, not approach rows. Two approaches or two families at the same exact price count once. Unrounded distinct prices remain distinct. All observations are retained in `members`; `len(members)` gives the source-observation count. Its own count, not served evidence and not a count of independent confirmations or construction methods. |
 | `confluence_count_max`, `score_max` | The largest served `confluence_count` and `score` among the members. |
 | `members` | The kept served rows in the zone, one per approach, each with its own `approach` (when supplied) and figures. |
 
