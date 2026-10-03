@@ -4,6 +4,7 @@ All notable changes will be documented here. This project uses semantic versioni
 
 ## [Unreleased]
 
+- Flagged scenario reward below 1R before rounding, rounded ATR fields for JSON presentation only, and counted distinct exact prices while retaining every source observation. Aligned the existing read-levels field definitions and bumped the skill plugin to 0.1.2.
 - Prepared the experimental public beta: six topical AI skills and four published prompt snapshots, with bounded live plan reads and permanent implausible-bounce guards.
 - Removed an incorrect 60-session return gate from the 20-session trend preset; bounded live candidate coverage and upstream order are now explicit, including empty results.
 - Defaulted live CLI screening and provider universes to five candidates, validated response bounds, and disclosed unfollowed screen cursors.

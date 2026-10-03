@@ -67,6 +67,14 @@ class PlanOutputReviewTests(unittest.TestCase):
         self.assertEqual(len(zone.members), 2)
         self.assertEqual(zone.level_types, ("fixture", "pivot"))
 
+    def test_distinct_unrounded_prices_count_separately_even_when_display_rounding_matches(self):
+        base = Level("2026-01-15", "Support", "fixture", 98.0001)
+        other = replace(base, price=98.0002)
+        self.assertEqual(round(base.price, 2), round(other.price, 2))
+        zone = cluster_levels((base, other), atr=4)[0]
+        self.assertEqual(zone.member_count, 2)
+        self.assertEqual(tuple(member.price for member in zone.members), (98.0001, 98.0002))
+
     def test_atr_output_rounds_only_for_presentation_in_nested_json(self):
         plan = replace(self.plan(), stop_distance_atr=0.4992254099786105,
                        entry_zone=replace(self.plan().entry_zone, width_atr=0.4992254099786105))
